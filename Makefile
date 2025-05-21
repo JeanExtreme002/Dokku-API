@@ -38,9 +38,25 @@ dokku-install:  ## Install and run the API on Dokku.
 		echo "Creating Dokku app $$FORMATTED_API_NAME"; \
 		dokku apps:create $$FORMATTED_API_NAME && \
 		\
-		make dokku-set-config && \
+		make dokku-up; \
+	}
+
+.PHONY: dokku-up
+dokku-up:  ## Reupload the API to the Dokku (use dokku-install first).
+	@{ \
+		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
+		REPO_NAME="dokku@$(SSH_HOSTNAME):$$FORMATTED_API_NAME"; \
 		\
-		(git remote get-url dokku 2>/dev/null || git remote add dokku $$REPO_NAME) && \
+		make dokku-set-config;\
+		\
+		if git remote get-url dokku &> /dev/null; then \
+		  git remote remove dokku; \
+		fi; \
+		git remote add dokku $$REPO_NAME && \
+		\
+		dokku buildpacks:clear $$FORMATTED_API_NAME && \
+		dokku buildpacks:add $$FORMATTED_API_NAME https://github.com/heroku/heroku-buildpack-python.git && \
+		\
 		git push dokku; \
 	}
 
