@@ -1,0 +1,47 @@
+services:
+  dokku_api:
+    restart: always
+    image: python:3.11
+    env_file: .env
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "${PORT}:${PORT}"
+    command: sh -c 'pip install poetry && poetry install --no-root; poetry run python -m src;'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${PORT} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  unit-test:
+    image: python:3.11
+    env_file: .env
+    working_dir: /app
+    volumes:
+      - ./:/app
+    depends_on: 
+      - mongodb
+    command: sh -c '
+      pip install poetry && poetry install --no-root; 
+      poetry run coverage run -m unittest discover -s src.tests --verbose &&
+      poetry run coverage report;'
+
+  lint:
+    image: python:3.11
+    env_file: .env
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: sh -c 'pip install poetry && poetry install --no-root; poetry run flake8 src;'
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - ":${DB_PORT}"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
