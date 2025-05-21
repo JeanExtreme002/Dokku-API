@@ -143,7 +143,7 @@ docker-stop:  ## Stop the entire project on Docker
 	docker compose down
 
 .PHONY: generate-ssh-key
-generate-ssh-key:  ## Generate SSH key and upload it to Dokku | Args: [key_name]
+generate-ssh-key:  ## Generate SSH key and upload it to Dokku | Arg: key_name=<name>
 	@{ \
 		KEY_NAME=$${key_name}; \
 		\
