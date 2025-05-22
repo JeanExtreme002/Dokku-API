@@ -22,5 +22,5 @@ class LetsencryptCommands(ABC):
 
     @staticmethod
     def enable_letsencrypt_auto_renewal():
-        command = f"letsencrypt:cron-job --add"
+        command = "letsencrypt:cron-job --add"
         return run_command(command)

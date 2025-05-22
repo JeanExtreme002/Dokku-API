@@ -21,8 +21,6 @@ services:
     working_dir: /app
     volumes:
       - ./:/app
-    depends_on: 
-      - mongodb
     command: sh -c '
       pip install poetry && poetry install --no-root; 
       poetry run coverage run -m unittest discover -s src.tests --verbose &&
@@ -34,14 +32,20 @@ services:
     working_dir: /app
     volumes:
       - ./:/app
-    command: sh -c 'pip install poetry && poetry install --no-root; poetry run flake8 src;'
+    command: sh -c 'pip install poetry && poetry install --no-root; poetry run flake8 src && poetry run yapf -r --diff src > /dev/null;'
 
-  mongodb:
-    image: mongo:latest
+  mysql:
+    image: mysql:8.0
     ports:
-      - ":${DB_PORT}"
+      - "${DB_PORT}:${DB_PORT}"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_USER}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - mongodb_data:/data/db
+      - mysql_data:/var/lib/mysql
 
 volumes:
-  mongodb_data:
+  mysql_data:

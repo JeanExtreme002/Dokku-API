@@ -21,6 +21,7 @@ class DatabaseSettings(BaseSettings):
 
 class Settings(CommonSettings, ServerSettings, DatabaseSettings):
     API_KEY: str = os.getenv("API_KEY")
+    MASTER_KEY: str = os.getenv("MASTER_KEY")
 
 
 settings = Settings()

@@ -4,6 +4,7 @@ from src.api.tools.ssh import run_command
 
 
 class AppsCommands(ABC):
+
     @staticmethod
     def create_app(app_name):
         command = f"apps:create {app_name}"

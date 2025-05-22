@@ -65,7 +65,5 @@ class DatabasesCommands(ABC):
         if plugin_name not in ["postgres", "mysql"]:
             return False, "Plugin not found"
 
-        command = (
-            f"--no-restart {plugin_name}:unlink {database_name} {app_name}"
-        )
+        command = f"--no-restart {plugin_name}:unlink {database_name} {app_name}"
         return run_command(command)

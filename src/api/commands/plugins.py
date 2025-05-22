@@ -27,7 +27,8 @@ class PluginsCommands(ABC):
         plugins_commands = {
             "postgres": "plugin:install https://github.com/dokku/dokku-postgres.git",
             "mysql": "plugin:install https://github.com/dokku/dokku-mysql.git mysql",
-            "letsencrypt": "plugin:install https://github.com/dokku/dokku-letsencrypt.git",
+            "letsencrypt":
+            "plugin:install https://github.com/dokku/dokku-letsencrypt.git",
         }
         command = plugins_commands.get(plugin_name)
 

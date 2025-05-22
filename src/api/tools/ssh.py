@@ -10,14 +10,16 @@ ssh_key_path = settings.SSH_KEY_PATH
 ssh_key_passphrase = settings.SSH_KEY_PASSPHRASE
 
 
-def __execute_command(command, username) -> Tuple[bool, str]:
+def __execute_command(command: str, username: str) -> Tuple[bool, str]:
     """
     Execute a command on the remote server via SSH.
+
     Args:
         command (str): The command to execute.
         username (str): The SSH username.
     Returns:
-        Tuple[bool, str]: A tuple containing a boolean indicating success or failure and the output or error message.
+        Tuple[bool, str]: A tuple containing a boolean indicating success
+        or failure and the output or error message.
     """
     if username == "root":
         command = f"dokku {command}"
@@ -48,25 +50,29 @@ def __execute_command(command, username) -> Tuple[bool, str]:
         client.close()
 
 
-def run_command(command):
+def run_command(command: str) -> Tuple[bool, str]:
     """
     Run a command on the remote server via SSH.
+
     Args:
         command (str): The command to execute.
     Returns:
-        Tuple[bool, str]: A tuple containing a boolean indicating success or failure and the output or error message.
+        Tuple[bool, str]: A tuple containing a boolean indicating success
+        or failure and the output or error message.
     """
     success, message = __execute_command(command, "dokku")
     return success, message
 
 
-def run_command_as_root(command):
+def run_command_as_root(command: str) -> Tuple[bool, str]:
     """
     Run a command on the remote server via SSH as root.
+
     Args:
         command (str): The command to execute.
     Returns:
-        Tuple[bool, str]: A tuple containing a boolean indicating success or failure and the output or error message.
+        Tuple[bool, str]: A tuple containing a boolean indicating success
+        or failure and the output or error message.
     """
     success, message = __execute_command(command, "root")
     return success, message

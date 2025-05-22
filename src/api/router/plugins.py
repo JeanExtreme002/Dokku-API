@@ -9,7 +9,7 @@ from src.api.tools import validate_api_key
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
-    @router.get("/", response_description="Return all plugins")
+    @router.post("/", response_description="Return all plugins")
     async def list_plugins(
         request: Request, api_key: APIKey = Depends(validate_api_key)
     ):
@@ -17,12 +17,13 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"success": success, "result": result},
+            content={
+                "success": success,
+                "result": result
+            },
         )
 
-    @router.get(
-        "/{plugin_name}", response_description="Check if plugin is installed"
-    )
+    @router.post("/{plugin_name}", response_description="Check if plugin is installed")
     async def plugin_installed(
         request: Request,
         plugin_name: str,
@@ -32,7 +33,10 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"success": success, "result": result},
+            content={
+                "success": success,
+                "result": result
+            },
         )
 
     @router.post("/{plugin_name}", response_description="Install plugin")
@@ -45,7 +49,10 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"success": success, "result": result},
+            content={
+                "success": success,
+                "result": result
+            },
         )
 
     @router.delete("/{plugin_name}", response_description="Uninstall plugin")
@@ -58,7 +65,10 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"success": success, "result": result},
+            content={
+                "success": success,
+                "result": result
+            },
         )
 
     return router

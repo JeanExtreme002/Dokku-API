@@ -1,28 +1,28 @@
-from fastapi import APIRouter, Depends, FastAPI, Request, status
-from fastapi.openapi.models import APIKey
+from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from src.api.commands import DatabasesCommands
-from src.api.tools import validate_api_key
 
 
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
-    @router.get("/{plugin_name}", response_description="Return all databases")
+    @router.post("/{plugin_name}", response_description="Return all databases")
     async def list_databases(
         request: Request,
         plugin_name: str,
-        api_key: APIKey = Depends(validate_api_key),
     ):
         success, result = DatabasesCommands.list_databases(plugin_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"success": success, "result": result},
+            content={
+                "success": success,
+                "result": result
+            },
         )
 
-    @router.get(
+    @router.post(
         "/{plugin_name}/{database_name}",
         response_description="Check if a database exists",
     )
@@ -30,15 +30,15 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         plugin_name: str,
         database_name: str,
-        api_key: APIKey = Depends(validate_api_key),
     ):
-        success, result = DatabasesCommands.database_exists(
-            plugin_name, database_name
-        )
+        success, result = DatabasesCommands.database_exists(plugin_name, database_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"success": success, "result": result},
+            content={
+                "success": success,
+                "result": result
+            },
         )
 
     @router.post(
@@ -49,15 +49,15 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         plugin_name: str,
         database_name: str,
-        api_key: APIKey = Depends(validate_api_key),
     ):
-        success, result = DatabasesCommands.create_database(
-            plugin_name, database_name
-        )
+        success, result = DatabasesCommands.create_database(plugin_name, database_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"success": success, "result": result},
+            content={
+                "success": success,
+                "result": result
+            },
         )
 
     @router.delete(
@@ -68,18 +68,18 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         plugin_name: str,
         database_name: str,
-        api_key: APIKey = Depends(validate_api_key),
     ):
-        success, result = DatabasesCommands.delete_database(
-            plugin_name, database_name
-        )
+        success, result = DatabasesCommands.delete_database(plugin_name, database_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"success": success, "result": result},
+            content={
+                "success": success,
+                "result": result
+            },
         )
 
-    @router.get(
+    @router.post(
         "/links/{plugin_name}/{database_name}",
         response_description="List linked apps",
     )
@@ -87,7 +87,6 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         plugin_name: str,
         database_name: str,
-        api_key: APIKey = Depends(validate_api_key),
     ):
         success, result = DatabasesCommands.database_linked_apps(
             plugin_name, database_name
@@ -95,7 +94,10 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"success": success, "result": result},
+            content={
+                "success": success,
+                "result": result
+            },
         )
 
     @router.post(
@@ -107,7 +109,6 @@ def get_router(app: FastAPI) -> APIRouter:
         plugin_name: str,
         database_name: str,
         app_name: str,
-        api_key: APIKey = Depends(validate_api_key),
     ):
         success, result = DatabasesCommands.link_database(
             plugin_name, database_name, app_name
@@ -115,7 +116,10 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"success": success, "result": result},
+            content={
+                "success": success,
+                "result": result
+            },
         )
 
     @router.delete(
@@ -127,7 +131,6 @@ def get_router(app: FastAPI) -> APIRouter:
         plugin_name: str,
         database_name: str,
         app_name: str,
-        api_key: APIKey = Depends(validate_api_key),
     ):
         success, result = DatabasesCommands.unlink_database(
             plugin_name, database_name, app_name
@@ -135,7 +138,10 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"success": success, "result": result},
+            content={
+                "success": success,
+                "result": result
+            },
         )
 
     return router

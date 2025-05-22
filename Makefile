@@ -24,10 +24,21 @@ test:  ## Run unit tests
 
 .PHONY: lint
 lint:  ## Run lint
-	@poetry run flake8 src && poetry run black --check src
+	@poetry run flake8 src && poetry run yapf -r --diff src > /dev/null
+
 .PHONY: lint-fix
 lint-fix:  ## Run lint fix
-	@poetry run black src && poetry run isort src
+	@{ \
+		poetry run isort src; \
+		\
+		EXIT_CODE=$$(poetry run flake8 src > /dev/null 2>&1; echo $$?); \
+		\
+		if [ "$$EXIT_CODE" -ne 0 ]; then \
+		  poetry run black src --quiet; \
+		fi; \
+		\
+		poetry run yapf -r -i src; \
+	}
 
 .PHONY: dokku-install
 dokku-install:  ## Install and run the API on Dokku.
@@ -38,11 +49,11 @@ dokku-install:  ## Install and run the API on Dokku.
 		echo "Creating Dokku app $$FORMATTED_API_NAME"; \
 		dokku apps:create $$FORMATTED_API_NAME && \
 		\
-		make dokku-up; \
+		make dokku-deploy; \
 	}
 
-.PHONY: dokku-up
-dokku-up:  ## Reupload the API to the Dokku (use dokku-install first).
+.PHONY: dokku-deploy
+dokku-deploy:  ## Deploy the API to the Dokku (use dokku-install first).
 	@{ \
 		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
 		REPO_NAME="dokku@$(SSH_HOSTNAME):$$FORMATTED_API_NAME"; \
@@ -119,12 +130,12 @@ dokku-uninstall:  ## Stop and uninstall the API on Dokku
 
 .PHONY: docker-run  
 docker-run:  ## Run the entire project (API + Database locally) on Docker
-	make docker-run-mongodb
+	make docker-run-database
 	make docker-run-api
 
-.PHONY: docker-run-mongodb
-docker-run-mongodb:  ## Run Mongo database on Docker
-	@docker compose up -d mongodb
+.PHONY: docker-run-database
+docker-run-database:  ## Run a MySQL database on Docker
+	@docker compose up -d mysql
 
 .PHONY: docker-run-api
 docker-run-api:  ## Run the API on Docker

@@ -30,21 +30,29 @@ PyYAML = "6.0"
 six = "1.16.0"
 sniffio = "1.2.0"
 starlette = "0.17.1"
-typing_extensions = "4.1.1"
+typing_extensions = "4.6.0"
 uvicorn = "0.17.5"
 watchgod = "0.7"
 websockets = "10.2"
 requests = "^2.32.3"
+pymysql = "^1.1.1"
+sqlalchemy = "^2.0.41"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.1.0"
-black = "^24.4.2"
 isort = "^6.0.1"
 coverage = "^7.6.4"
+yapf = "^0.43.0"
+black = "^25.1.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.black]
-line-length = 80
+[tool.yapf]
+based_on_style = "pep8"
+spaces_before_comment = 2
+column_limit = 88
+split_before_logical_operator = true
+dedent_closing_brackets = true
+coalesce_brackets = true
