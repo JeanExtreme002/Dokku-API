@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, FastAPI
 
+from src.api.router.admin.users import get_router as users_router
 from src.api.router.api import get_router as api_router
 from src.api.router.apps import get_router as apps_router
 from src.api.router.base import get_router as base_router
@@ -8,9 +9,11 @@ from src.api.router.databases import get_router as databases_router
 from src.api.router.domains import get_router as domains_router
 from src.api.router.letsencrypt import get_router as letsencrypt_router
 from src.api.router.plugins import get_router as plugins_router
-from src.api.router.users import get_router as users_router
+from src.api.router.quota import get_router as quota_router
 from src.api.tools.validator import (
-    validate_api_key, validate_master_key, validate_user_credentials
+    validate_api_key,
+    validate_master_key,
+    validate_user_credentials,
 )
 
 
@@ -62,9 +65,16 @@ def get_router(app: FastAPI) -> APIRouter:
                       Depends(validate_user_credentials)],
     )
     router.include_router(
+        quota_router(router),
+        tags=["Quota"],
+        prefix="/api/quota",
+        dependencies=[Depends(validate_api_key),
+                      Depends(validate_user_credentials)],
+    )
+    router.include_router(
         users_router(router),
         tags=["Users"],
-        prefix="/api/users",
+        prefix="/api/admin/users",
         dependencies=[Depends(validate_master_key)],
     )
 

@@ -160,7 +160,7 @@ docker-run-database:  ## Run a MySQL database on Docker
 
 .PHONY: docker-run-api
 docker-run-api:  ## Run the API on Docker
-	@docker compose up -d dokku_api
+	@docker compose up dokku_api
 
 .PHONY: docker-test
 docker-test:  ## Run unit tests on Docker

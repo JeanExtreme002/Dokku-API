@@ -6,10 +6,11 @@ from pydantic import BaseModel
 class UserSchema(BaseModel):
     email: str
     access_token: str
-    apps_quote: int
-    services_quote: int
-    networks_quote: int
-    storage_quote: int
+    is_admin: bool = False
+    apps_quota: int = 0
+    services_quota: int = 0
+    networks_quota: int = 0
+    storage_quota: int = 0
     apps: List[str] = []
     services: List[str] = []
     networks: List[str] = []

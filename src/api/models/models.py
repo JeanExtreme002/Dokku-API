@@ -1,7 +1,7 @@
-from typing import Type
+from typing import List, Type
 
 from fastapi import HTTPException
-from sqlalchemy import (Boolean, Column, ForeignKey, Integer, String, create_engine)
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, create_engine
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
@@ -42,11 +42,11 @@ class User(Base):
 
     email = Column(String(255), primary_key=True)
     access_token = Column(String(1024), nullable=True)
-    apps_quote = Column(Integer, nullable=False, default=0)
-    services_quote = Column(Integer, nullable=False, default=0)
-    networks_quote = Column(Integer, nullable=False, default=0)
-    storage_quote = Column(Integer, nullable=False, default=0)
-    isAdmin = Column(Boolean, nullable=False, default=False)
+    apps_quota = Column(Integer, nullable=False, default=0)
+    services_quota = Column(Integer, nullable=False, default=0)
+    networks_quota = Column(Integer, nullable=False, default=0)
+    storage_quota = Column(Integer, nullable=False, default=0)
+    is_admin = Column(Boolean, nullable=False, default=False)
 
     apps = relationship("App", backref="user", cascade="all, delete")
     services = relationship("Service", backref="user", cascade="all, delete")
@@ -79,6 +79,13 @@ class Storage(Resource):
     name = Column(String(255), primary_key=True)
 
 
+def get_users() -> List[str]:
+    db = SessionLocal()
+    users = db.query(User).all()
+
+    return [user.email for user in users]
+
+
 def get_user(email: str) -> UserSchema:
     db = SessionLocal()
     user = db.query(User).filter_by(email=email).first()
@@ -89,10 +96,10 @@ def get_user(email: str) -> UserSchema:
     return UserSchema(
         email=user.email,
         access_token=user.access_token,
-        apps_quote=user.apps_quote,
-        services_quote=user.services_quote,
-        networks_quote=user.networks_quote,
-        storage_quote=user.storage_quote,
+        apps_quota=user.apps_quota,
+        services_quota=user.services_quota,
+        networks_quota=user.networks_quota,
+        storage_quota=user.storage_quota,
         apps=[app.name for app in user.apps],
         services=[service.name for service in user.services],
         networks=[network.name for network in user.networks],
@@ -115,21 +122,23 @@ def create_user(email: str, access_token: str) -> None:
     db.refresh(db_user)
 
 
-def update_user(email: str, user: UserSchema):
+def update_user(email: str, user: UserSchema) -> None:
     db = SessionLocal()
     db_user = db.query(User).filter_by(email=email).first()
 
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    db_user.email = user.email
+    db_user.is_admin = user.is_admin
     db_user.access_token = user.access_token
-    db_user.apps_quote = user.apps_quote
-    db_user.services_quote = user.services_quote
-    db_user.networks_quote = user.networks_quote
-    db_user.storage_quote = user.storage_quote
+    db_user.apps_quota = user.apps_quota
+    db_user.services_quota = user.services_quota
+    db_user.networks_quota = user.networks_quota
+    db_user.storage_quota = user.storage_quota
 
     db.commit()
-    return get_user(email)
+    db.refresh(db_user)
 
 
 def delete_user(email: str) -> None:
@@ -156,6 +165,7 @@ def create_resource(email: str, name: str, resource_type: Type[Resource]) -> Non
         raise HTTPException(status_code=400, detail="Resource already exists")
 
     resource = ResourceType(name=name, user_email=email)
+
     db.add(resource)
     db.commit()
     db.refresh(resource)
