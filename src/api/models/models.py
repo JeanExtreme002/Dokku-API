@@ -1,7 +1,7 @@
 from typing import Type
 
 from fastapi import HTTPException
-from sqlalchemy import (Boolean, Column, ForeignKey, Integer, String, create_engine)
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, create_engine
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
@@ -17,12 +17,19 @@ DB_NAME = Config.DATABASE.DB_NAME
 DATABASE_URL = Config.DATABASE.DB_URL
 
 if not DATABASE_URL:
-    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    DATABASE_URL = (
+        f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    )
 
-if DATABASE_URL and DATABASE_URL.startswith("mysql://"):
+if DATABASE_URL.startswith("mysql://"):
     url_obj = make_url(DATABASE_URL)
-    url_obj = url_obj.set(drivername="mysql+pymysql")
-    DATABASE_URL = str(url_obj)
+    user = url_obj.username or ""
+    password = url_obj.password or ""
+    host = url_obj.host or "localhost"
+    port = f":{url_obj.port}" if url_obj.port else ""
+    database = f"/{url_obj.database}" if url_obj.database else ""
+
+    DATABASE_URL = f"mysql+pymysql://{user}:{password}@{host}{port}{database}"
 
 engine = create_engine(DATABASE_URL)
 

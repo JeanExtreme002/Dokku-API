@@ -2,12 +2,12 @@ from typing import Tuple
 
 from paramiko.client import AutoAddPolicy, SSHClient
 
-from src.api.config import settings
+from src.config import Config
 
-ssh_hostname = settings.SSH_HOSTNAME
-ssh_port = settings.SSH_PORT
-ssh_key_path = settings.SSH_KEY_PATH
-ssh_key_passphrase = settings.SSH_KEY_PASSPHRASE
+ssh_hostname = Config.SSH_SERVER.SSH_HOSTNAME
+ssh_port = Config.SSH_SERVER.SSH_PORT
+ssh_key_path = Config.SSH_SERVER.SSH_KEY_PATH
+ssh_key_passphrase = Config.SSH_SERVER.SSH_KEY_PASSPHRASE
 
 
 def __execute_command(command: str, username: str) -> Tuple[bool, str]:

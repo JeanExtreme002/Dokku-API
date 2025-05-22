@@ -18,6 +18,13 @@ class DatabaseConfig:
     DB_URL = os.getenv("DATABASE_URL")
 
 
+class SSHServerConfig:
+    SSH_HOSTNAME: str = os.getenv("SSH_HOSTNAME")
+    SSH_PORT: int = os.getenv("SSH_PORT")
+    SSH_KEY_PATH: str = os.getenv("SSH_KEY_PATH")
+    SSH_KEY_PASSPHRASE: str = os.getenv("SSH_KEY_PASSPHRASE")
+
+
 class Config:
     """
     Base configuration.
@@ -30,4 +37,8 @@ class Config:
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").lower()
     MAX_CONNECTIONS_PER_REQUEST = int(os.getenv("MAX_CONNECTIONS_PER_REQUEST", "1"))
 
+    API_KEY: str = os.getenv("API_KEY")
+    MASTER_KEY: str = os.getenv("MASTER_KEY")
+
+    SSH_SERVER: SSHServerConfig = SSHServerConfig()
     DATABASE: DatabaseConfig = DatabaseConfig()

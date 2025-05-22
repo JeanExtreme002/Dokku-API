@@ -121,7 +121,7 @@ dokku-set-config:
 			SSH_PORT='$(SSH_PORT)' \
 			SSH_KEY_PATH="$$SSH_KEY_PATH" \
 			SSH_KEY_PASSPHRASE="$$RSA_KEY_PASSPHRASE" \
-			API_KEY="$$API_KEY"; \
+			API_KEY="$$API_KEY" \
 			MASTER_KEY="$$MASTER_KEY"; \
 		\
 		mkdir -p "/$$FORMATTED_API_NAME"; \

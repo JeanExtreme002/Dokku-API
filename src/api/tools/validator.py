@@ -3,11 +3,23 @@ from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 from starlette.status import HTTP_403_FORBIDDEN
 
-from src.api.config import settings
 from src.api.models import get_user
+from src.config import Config
 
-API_KEY = settings.API_KEY
-MASTER_KEY = settings.MASTER_KEY
+API_KEY = Config.API_KEY
+MASTER_KEY = Config.MASTER_KEY
+
+if MASTER_KEY is None:
+    raise ValueError("MASTER_KEY must be set in the environment variables")
+
+if " " in MASTER_KEY:
+    raise ValueError("MASTER_KEY must not contain spaces")
+
+if len(MASTER_KEY) < 8:
+    raise ValueError("MASTER_KEY must be at least 8 characters long")
+
+if " " in API_KEY:
+    raise ValueError("API_KEY must not contain spaces")
 
 
 class AuthPayload(BaseModel):
