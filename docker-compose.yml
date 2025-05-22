@@ -6,9 +6,29 @@ services:
     working_dir: /app
     volumes:
       - ./:/app
+      - "${RSA_KEY_FILE}:/tmp/id_rsa:ro"
+      - type: volume
+        source: dokku_api_secrets
+        target: /app/.secrets
     ports:
       - "${PORT}:${PORT}"
-    command: sh -c 'pip install poetry && poetry install --no-root; poetry run python -m src;'
+    command: >
+      bash -c '
+        set -e
+
+        cp /tmp/id_rsa /app/.secrets/id_rsa &&
+        chmod 600 /app/.secrets/id_rsa
+
+        RSA_KEY_PASSPHRASE="$$(awk '\''{printf "%s\\\\n", $$0}'\'' /app/.secrets/id_rsa)"
+
+        export SSH_KEY_PASSPHRASE=$${RSA_KEY_PASSPHRASE}
+        export SSH_KEY_PATH=.secrets/id_rsa
+
+        pip install poetry > /dev/null &&
+        poetry install --no-root > /dev/null
+
+        poetry run python -m src
+      '
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${PORT} || exit 1"]
       interval: 10s
@@ -49,3 +69,4 @@ services:
 
 volumes:
   mysql_data:
+  dokku_api_secrets:
