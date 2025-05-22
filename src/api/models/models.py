@@ -2,6 +2,7 @@ from typing import Type
 
 from fastapi import HTTPException
 from sqlalchemy import (Boolean, Column, ForeignKey, Integer, String, create_engine)
+from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
 from src.api.models.user import UserSchema
@@ -17,6 +18,11 @@ DATABASE_URL = Config.DATABASE.DB_URL
 
 if not DATABASE_URL:
     DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+if DATABASE_URL and DATABASE_URL.startswith("mysql://"):
+    url_obj = make_url(DATABASE_URL)
+    url_obj = url_obj.set(drivername="mysql+pymysql")
+    DATABASE_URL = str(url_obj)
 
 engine = create_engine(DATABASE_URL)
 
