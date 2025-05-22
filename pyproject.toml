@@ -45,6 +45,7 @@ coverage = "^7.6.4"
 yapf = "^0.43.0"
 black = "^25.1.0"
 commitizen = "^4.8.2"
+pre-commit = "^4.2.0"
 
 [build-system]
 requires = ["poetry-core"]

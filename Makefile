@@ -10,13 +10,15 @@ SSH_DIR       ?= $(HOME)/.ssh
 
 FORMATTED_API_NAME := $$(echo "$(API_NAME)" | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g')
 
-.PHONY:
+.PHONY: run
 run:  ## Run the API locally
 	@poetry run python -m src
 
-.PHONY:
+.PHONY: install
 install:  ## Install the API dependencies locally
-	@pip install poetry && poetry install --with dev --no-root
+	@command -v poetry >/dev/null 2>&1 || (echo "$(YELLOW)Installing Poetry...$(NC)" && pip install poetry)
+	@poetry install --with dev --no-root
+	@poetry run pre-commit install --hook-type pre-commit --hook-type pre-push
 
 .PHONY: test
 test:  ## Run unit tests
@@ -25,6 +27,10 @@ test:  ## Run unit tests
 .PHONY: lint
 lint:  ## Run lint
 	@poetry run flake8 src && poetry run yapf -r --diff src > /dev/null
+
+.PHONY: commit
+commit:  ## Commit changes on local repository
+	@poetry run cz commit
 
 .PHONY: lint-fix
 lint-fix:  ## Run lint fix
