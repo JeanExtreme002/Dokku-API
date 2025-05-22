@@ -8,7 +8,7 @@ NC=\033[0m # No Color
 TIMESTAMP     := $(shell date +%s)
 SSH_DIR       ?= $(HOME)/.ssh
 
-FORMATTED_API_NAME := $$(echo "$(API_NAME)" | tr '[:upper:]' '[:lower:]' | sed 's/ /_/g')
+FORMATTED_API_NAME := $$(echo "$(API_NAME)" | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g')
 
 .PHONY:
 run:  ## Run the API locally
@@ -44,10 +44,11 @@ lint-fix:  ## Run lint fix
 dokku-install:  ## Install and run the API on Dokku.
 	@{ \
 		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
-		REPO_NAME="dokku@$(SSH_HOSTNAME):$$FORMATTED_API_NAME"; \
 		\
 		echo "Creating Dokku app $$FORMATTED_API_NAME"; \
 		dokku apps:create $$FORMATTED_API_NAME && \
+		\
+		make dokku-create-db && \
 		\
 		make dokku-deploy; \
 	}
@@ -69,6 +70,24 @@ dokku-deploy:  ## Deploy the API to the Dokku (use dokku-install first).
 		dokku buildpacks:add $$FORMATTED_API_NAME https://github.com/heroku/heroku-buildpack-python.git && \
 		\
 		git push dokku; \
+	}
+
+.PHONY: dokku-create-db
+dokku-create-db:
+	@{ \
+		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
+		\
+		dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql; \
+		dokku mysql:create "$$FORMATTED_API_NAME-database"; \
+		dokku mysql:link "$$FORMATTED_API_NAME-database" $$FORMATTED_API_NAME; \
+	}
+
+.PHONY: dokku-destroy-db
+dokku-destroy-db:
+	@{ \
+		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
+		\
+		dokku mysql:destroy $$FORMATTED_API_NAME-database --force; \
 	}
 
 .PHONY: set-config
@@ -103,6 +122,7 @@ dokku-set-config:
 			SSH_KEY_PATH="$$SSH_KEY_PATH" \
 			SSH_KEY_PASSPHRASE="$$RSA_KEY_PASSPHRASE" \
 			API_KEY="$$API_KEY"; \
+			MASTER_KEY="$$MASTER_KEY"; \
 		\
 		mkdir -p "/$$FORMATTED_API_NAME"; \
 		cp $(RSA_KEY_FILE) /$$FORMATTED_API_NAME/id_rsa; \
@@ -120,10 +140,11 @@ dokku-set-config:
 dokku-uninstall:  ## Stop and uninstall the API on Dokku
 	@{ \
 		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
-		REPO_NAME="dokku@$(SSH_HOSTNAME):$$FORMATTED_API_NAME"; \
 		\
 		echo "Destroying Dokku app $$FORMATTED_API_NAME"; \
 		dokku apps:destroy $$FORMATTED_API_NAME --force; \
+		\
+		make dokku-destroy-db; \
 		\
 		rm -rf "/$$FORMATTED_API_NAME"; \
 	}

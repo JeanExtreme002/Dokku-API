@@ -13,7 +13,10 @@ DB_HOST = Config.DATABASE.HOST
 DB_PORT = Config.DATABASE.PORT
 DB_NAME = Config.DATABASE.DB_NAME
 
-DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = Config.DATABASE.DB_URL
+
+if not DATABASE_URL:
+    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 engine = create_engine(DATABASE_URL)
 
