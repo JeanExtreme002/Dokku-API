@@ -1,0 +1,70 @@
+{
+  "commitizen": {
+    "name": "cz_customize",
+    "customize": {
+      "message_template": "{{change_type}}({{scope}}): {{subject}}\n\n{{body}}",
+      "example": "feat(core): add support for JWT auth",
+      "schema": "<type>(<scope>): <subject>",
+      "schema_pattern": "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)\\([a-zA-Z0-9_-]+\\):\\s.{1,88}",
+      "bump_pattern": "^(feat|fix)",
+      "bump_map": {
+        "feat": "MINOR",
+        "fix": "PATCH"
+      },
+      "change_type_order": [
+        "feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert"
+      ],
+      "change_type_map": {
+        "feat": "Features",
+        "fix": "Bug Fixes",
+        "docs": "Documentation",
+        "style": "Styles",
+        "refactor": "Code Refactoring",
+        "perf": "Performance Improvements",
+        "test": "Tests",
+        "build": "Build System",
+        "ci": "Continuous Integration",
+        "chore": "Chores",
+        "revert": "Reverts"
+      },
+      "questions": [
+        {
+          "type": "list",
+          "name": "change_type",
+          "message": "Select the type of change that you're committing:",
+          "choices": [
+            {"value": "feat", "name": "feat:       A new feature"},
+            {"value": "fix", "name": "fix:        A bug fix"},
+            {"value": "docs", "name": "docs:       Documentation only changes"},
+            {"value": "style", "name": "style:      Changes that do not affect the meaning of the code (white-space, formatting, etc)"},
+            {"value": "refactor", "name": "refactor:   A code change that neither fixes a bug nor adds a feature"},
+            {"value": "perf", "name": "perf:       A code change that improves performance"},
+            {"value": "test", "name": "test:       Adding missing tests or correcting existing tests"},
+            {"value": "build", "name": "build:      Changes that affect the build system or external dependencies"},
+            {"value": "ci", "name": "ci:         Changes to CI configuration files and scripts"},
+            {"value": "chore", "name": "chore:      Other changes that don't modify src or test files"},
+            {"value": "revert", "name": "revert:     Reverts a previous commit"}
+          ]
+        },
+        {
+          "type": "list",
+          "name": "scope",
+          "message": "What is the scope of this change (e.g. component or file name):",
+          "choices": ["core", "github", "api", "api-commands", "api-models", "api-router", "api-tools"]
+        },
+        {
+          "type": "input",
+          "name": "subject",
+          "message": "Write a short, imperative tense description of the change: (max 88 chars)",
+          "validate": "(.{1,88})"
+        },
+        {
+          "type": "input",
+          "name": "body",
+          "message": "Provide a longer description of the change (press enter to skip):",
+          "default": ""
+        }
+      ]
+    }
+  }
+}
