@@ -1,7 +1,7 @@
 from typing import Type
 
 from fastapi import HTTPException
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, create_engine
+from sqlalchemy import (Boolean, Column, ForeignKey, Integer, String, create_engine)
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 

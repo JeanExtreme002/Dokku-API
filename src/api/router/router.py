@@ -10,9 +10,7 @@ from src.api.router.letsencrypt import get_router as letsencrypt_router
 from src.api.router.plugins import get_router as plugins_router
 from src.api.router.users import get_router as users_router
 from src.api.tools.validator import (
-    validate_api_key,
-    validate_master_key,
-    validate_user_credentials,
+    validate_api_key, validate_master_key, validate_user_credentials
 )
 
 
