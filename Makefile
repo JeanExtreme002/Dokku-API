@@ -122,7 +122,7 @@ dokku-set-config:
 			SSH_KEY_PATH="$$SSH_KEY_PATH" \
 			SSH_KEY_PASSPHRASE="$$RSA_KEY_PASSPHRASE" \
 			API_KEY="$$API_KEY" \
-			MASTER_KEY="$$MASTER_KEY"; \
+			MASTER_KEY=$(MASTER_KEY); \
 		\
 		mkdir -p "/$$FORMATTED_API_NAME"; \
 		cp $(RSA_KEY_FILE) /$$FORMATTED_API_NAME/id_rsa; \
