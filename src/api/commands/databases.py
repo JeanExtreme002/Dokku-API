@@ -7,18 +7,9 @@ from src.api.models import App, Service, create_resource, delete_resource
 from src.api.models.schema import UserSchema
 from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command
+from src.config import Config
 
-available_plugins = [
-    "postgres",
-    "mysql",
-    "mongodb",
-    "redis",
-    "mariadb",
-    "couchdb",
-    "cassandra",
-    "elasticsearch",
-    "influxdb",
-]
+available_databases = Config.AVAILABLE_DATABASES
 
 
 def parse_service_info(info_str: str) -> Dict:
@@ -38,11 +29,16 @@ def parse_service_info(info_str: str) -> Dict:
 class DatabasesCommands(ABC):
 
     @staticmethod
+    def list_available_databases() -> Tuple[bool, Any]:
+        return True, available_databases
+
+    @staticmethod
     def create_database(session_user: UserSchema, plugin_name: str,
                         database_name: str) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
+        available_databases = DatabasesCommands.list_available_databases()[1]
 
-        if plugin_name not in available_plugins:
+        if plugin_name not in available_databases:
             raise HTTPException(
                 status_code=404,
                 detail="Plugin not found",
@@ -58,9 +54,10 @@ class DatabasesCommands(ABC):
 
     @staticmethod
     def list_all_databases(session_user: UserSchema) -> Tuple[bool, Any]:
+        available_databases = DatabasesCommands.list_available_databases()[1]
         result = {}
 
-        for plugin_name in available_plugins:
+        for plugin_name in available_databases:
             success, data = DatabasesCommands.list_databases(session_user, plugin_name)
             result[plugin_name] = data if success else None
 

@@ -20,6 +20,10 @@ install:  ## Install the API dependencies locally
 	@poetry install --with dev --no-root
 	@poetry run pre-commit install --hook-type pre-commit --hook-type pre-push
 
+.PHONY: commit
+commit:  ## Commit changes on local repository
+	@poetry run cz commit
+
 .PHONY: test
 test:  ## Run unit tests
 	@poetry run coverage run -m unittest discover -s src.tests --verbose && poetry run coverage report;
@@ -27,10 +31,6 @@ test:  ## Run unit tests
 .PHONY: lint
 lint:  ## Run lint
 	@poetry run flake8 src && poetry run yapf -r --diff src > /dev/null
-
-.PHONY: commit
-commit:  ## Commit changes on local repository
-	@poetry run cz commit
 
 .PHONY: lint-fix
 lint-fix:  ## Run lint fix

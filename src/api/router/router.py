@@ -10,9 +10,7 @@ from src.api.router.domains import get_router as domains_router
 from src.api.router.letsencrypt import get_router as letsencrypt_router
 from src.api.router.quota import get_router as quota_router
 from src.api.tools.validator import (
-    validate_admin,
-    validate_api_key,
-    validate_user_credentials,
+    validate_admin, validate_api_key, validate_user_credentials
 )
 
 

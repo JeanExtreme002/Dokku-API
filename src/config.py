@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import dotenv
 
@@ -42,3 +43,5 @@ class Config:
 
     SSH_SERVER: SSHServerConfig = SSHServerConfig()
     DATABASE: DatabaseConfig = DatabaseConfig()
+
+    AVAILABLE_DATABASES: List[str] = os.getenv("AVAILABLE_DATABASES", "").split(",")
