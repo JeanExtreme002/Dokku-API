@@ -1,10 +1,16 @@
-from fastapi import Body, HTTPException, Security
+from typing import Optional
+
+from fastapi import Body, HTTPException, Request, Security
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
-from starlette.status import HTTP_403_FORBIDDEN
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
-from src.api.models import get_user
 from src.config import Config
+
+
+class UserCredentialsPayload(BaseModel):
+    access_token: str
+
 
 API_KEY = Config.API_KEY
 MASTER_KEY = Config.MASTER_KEY
@@ -22,48 +28,47 @@ if " " in API_KEY:
     raise ValueError("API_KEY must not contain spaces")
 
 
-class AuthPayload(BaseModel):
-    email: str
-    access_token: str
-
-
-def validate_master_key(
-    master_key_header: str = Security(
+def validate_admin(
+    request: Request,
+    master_key_header: Optional[str] = Security(
         APIKeyHeader(name="MASTER-KEY", auto_error=False)
-    )
-):
+    ),
+    payload: Optional[UserCredentialsPayload] = Body(default=None),
+) -> None:
     """
     Check if master key is valid.
     """
-    if master_key_header == MASTER_KEY:
-        return master_key_header
+    if request.state.session_user is not None and payload.access_token:
+        if request.state.session_user.is_admin:
+            return
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN, detail="User is not an admin"
+        )
 
-    raise HTTPException(
-        status_code=HTTP_403_FORBIDDEN, detail="Invalid or missing MASTER key"
-    )
+    if master_key_header != MASTER_KEY:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED, detail="Invalid or missing MASTER key"
+        )
 
 
-def validate_api_key(api_key: str):
+def validate_api_key(api_key: str) -> None:
     """
     Check if API key is valid.
     """
-    if api_key == API_KEY or api_key == MASTER_KEY:
-        return api_key
-
-    raise HTTPException(
-        status_code=HTTP_403_FORBIDDEN, detail="Invalid or missing API key"
-    )
+    if api_key != API_KEY and api_key != MASTER_KEY:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED, detail="Invalid or missing API key"
+        )
 
 
-def validate_user_credentials(payload: AuthPayload = Body(...)):
+def validate_user_credentials(
+    request: Request, payload: UserCredentialsPayload = Body(...)
+) -> None:
     """
-    Validate user credentials.
+    Check if request.state.session_user is set.
     """
-    user = get_user(payload.email)
-
-    if user.access_token == payload.access_token:
-        return payload
-
-    raise HTTPException(
-        status_code=HTTP_403_FORBIDDEN, detail="Invalid or missing access token"
-    )
+    if request.state.session_user is None and not payload.access_token:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing user credentials",
+        )

@@ -1,18 +1,14 @@
-from fastapi import APIRouter, Depends, FastAPI, Request, status
-from fastapi.openapi.models import APIKey
+from fastapi import APIRouter, FastAPI, status
 from fastapi.responses import JSONResponse
 
 from src.api.commands import PluginsCommands
-from src.api.tools import validate_api_key
 
 
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post("/", response_description="Return all plugins")
-    async def list_plugins(
-        request: Request, api_key: APIKey = Depends(validate_api_key)
-    ):
+    async def list_plugins():
         success, result = PluginsCommands.list_plugins()
 
         return JSONResponse(
@@ -24,11 +20,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post("/{plugin_name}", response_description="Check if plugin is installed")
-    async def plugin_installed(
-        request: Request,
-        plugin_name: str,
-        api_key: APIKey = Depends(validate_api_key),
-    ):
+    async def is_plugin_installed(plugin_name: str):
         success, result = PluginsCommands.is_plugin_installed(plugin_name)
 
         return JSONResponse(
@@ -39,13 +31,9 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
-    @router.post("/{plugin_name}", response_description="Install plugin")
-    async def install_plugin(
-        request: Request,
-        plugin_name: str,
-        api_key: APIKey = Depends(validate_api_key),
-    ):
-        success, result = PluginsCommands.install_plugin(plugin_name)
+    @router.post("/install/{plugin_name}", response_description="Install plugin")
+    async def install_plugin(plugin_name: str, plugin_url: str):
+        success, result = PluginsCommands.install_plugin(plugin_url, plugin_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -56,11 +44,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.delete("/{plugin_name}", response_description="Uninstall plugin")
-    async def uninstall_plugin(
-        request: Request,
-        plugin_name: str,
-        api_key: APIKey = Depends(validate_api_key),
-    ):
+    async def uninstall_plugin(plugin_name: str):
         success, result = PluginsCommands.uninstall_plugin(plugin_name)
 
         return JSONResponse(

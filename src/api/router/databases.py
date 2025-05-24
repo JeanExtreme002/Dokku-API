@@ -12,26 +12,9 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         plugin_name: str,
     ):
-        success, result = DatabasesCommands.list_databases(plugin_name)
-
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
-                "success": success,
-                "result": result
-            },
+        success, result = DatabasesCommands.list_databases(
+            request.state.session_user, plugin_name
         )
-
-    @router.post(
-        "/{plugin_name}/{database_name}",
-        response_description="Check if a database exists",
-    )
-    async def database_exists(
-        request: Request,
-        plugin_name: str,
-        database_name: str,
-    ):
-        success, result = DatabasesCommands.database_exists(plugin_name, database_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -50,7 +33,9 @@ def get_router(app: FastAPI) -> APIRouter:
         plugin_name: str,
         database_name: str,
     ):
-        success, result = DatabasesCommands.create_database(plugin_name, database_name)
+        success, result = DatabasesCommands.create_database(
+            request.state.session_user, plugin_name, database_name
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -69,7 +54,9 @@ def get_router(app: FastAPI) -> APIRouter:
         plugin_name: str,
         database_name: str,
     ):
-        success, result = DatabasesCommands.delete_database(plugin_name, database_name)
+        success, result = DatabasesCommands.delete_database(
+            request.state.session_user, plugin_name, database_name
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -89,7 +76,7 @@ def get_router(app: FastAPI) -> APIRouter:
         database_name: str,
     ):
         success, result = DatabasesCommands.database_linked_apps(
-            plugin_name, database_name
+            request.state.session_user, plugin_name, database_name
         )
 
         return JSONResponse(
@@ -111,7 +98,7 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
     ):
         success, result = DatabasesCommands.link_database(
-            plugin_name, database_name, app_name
+            request.state.session_user, plugin_name, database_name, app_name
         )
 
         return JSONResponse(
@@ -133,7 +120,7 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
     ):
         success, result = DatabasesCommands.unlink_database(
-            plugin_name, database_name, app_name
+            request.state.session_user, plugin_name, database_name, app_name
         )
 
         return JSONResponse(

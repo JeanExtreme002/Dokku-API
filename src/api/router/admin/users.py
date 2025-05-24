@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
+from src.api.commands import AppsCommands, DatabasesCommands
 from src.api.models import create_user, delete_user, get_user, get_users, update_user
 
 
@@ -20,6 +21,15 @@ def get_router(app: FastAPI) -> APIRouter:
 
     @router.delete("/", response_description="Delete user")
     async def delete_user_from_database(request: Request, email: str):
+        user = get_user(email)
+
+        for app_name in user.apps:
+            AppsCommands.delete_app(user, app_name)
+
+        for service_name in user.services:
+            plugin_name, database_name = service_name.split(":", maxsplit=1)
+            DatabasesCommands.delete_database(user, plugin_name, database_name)
+
         delete_user(email)
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
 

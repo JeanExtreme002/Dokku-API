@@ -1,9 +1,7 @@
-from fastapi import APIRouter, Depends, FastAPI, Request, status
-from fastapi.openapi.models import APIKey
+from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from src.api.commands import DomainsCommands
-from src.api.tools import validate_api_key
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -17,9 +15,10 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
         domain_name: str,
-        api_key: APIKey = Depends(validate_api_key),
     ):
-        success, result = DomainsCommands.set_domain(app_name, domain_name)
+        success, result = DomainsCommands.set_domain(
+            request.state.session_user, app_name, domain_name
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -37,9 +36,10 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
         domain_name: str,
-        api_key: APIKey = Depends(validate_api_key),
     ):
-        success, result = DomainsCommands.remove_domain(app_name, domain_name)
+        success, result = DomainsCommands.remove_domain(
+            request.state.session_user, app_name, domain_name
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

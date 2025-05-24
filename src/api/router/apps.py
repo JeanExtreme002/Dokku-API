@@ -9,7 +9,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
     @router.post("/", response_description="Return all applications")
     async def list_apps(request: Request):
-        success, result = AppsCommands.list_apps()
+        success, result = AppsCommands.list_apps(request.state.session_user)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -24,7 +24,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = AppsCommands.create_app(app_name)
+        success, result = AppsCommands.create_app(request.state.session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -39,7 +39,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = AppsCommands.delete_app(app_name)
+        success, result = AppsCommands.delete_app(request.state.session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

@@ -1,11 +1,20 @@
 from typing import List, Type
 
 from fastapi import HTTPException
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, create_engine
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    create_engine,
+    func,
+)
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
-from src.api.models.user import UserSchema
+from src.api.models.schema import UserSchema
 from src.config import Config
 
 DB_USER = Config.DATABASE.DB_USER
@@ -47,6 +56,9 @@ class User(Base):
     networks_quota = Column(Integer, nullable=False, default=0)
     storage_quota = Column(Integer, nullable=False, default=0)
     is_admin = Column(Boolean, nullable=False, default=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     apps = relationship("App", backref="user", cascade="all, delete")
     services = relationship("Service", backref="user", cascade="all, delete")
@@ -57,6 +69,9 @@ class User(Base):
 class Resource(Base):
     __abstract__ = True
     user_email = Column(String(255), ForeignKey("user.email"))
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
 
 class App(Resource):
@@ -79,6 +94,23 @@ class Storage(Resource):
     name = Column(String(255), primary_key=True)
 
 
+def get_user_schema(user: User) -> UserSchema:
+    return UserSchema(
+        email=user.email,
+        access_token=user.access_token,
+        apps_quota=user.apps_quota,
+        services_quota=user.services_quota,
+        networks_quota=user.networks_quota,
+        storage_quota=user.storage_quota,
+        apps=[app.name for app in user.apps],
+        services=[service.name for service in user.services],
+        networks=[network.name for network in user.networks],
+        storages=[storage.name for storage in user.storages],
+        created_at=user.created_at,
+        is_admin=user.is_admin,
+    )
+
+
 def get_users() -> List[str]:
     db = SessionLocal()
     users = db.query(User).all()
@@ -93,18 +125,17 @@ def get_user(email: str) -> UserSchema:
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    return UserSchema(
-        email=user.email,
-        access_token=user.access_token,
-        apps_quota=user.apps_quota,
-        services_quota=user.services_quota,
-        networks_quota=user.networks_quota,
-        storage_quota=user.storage_quota,
-        apps=[app.name for app in user.apps],
-        services=[service.name for service in user.services],
-        networks=[network.name for network in user.networks],
-        storages=[storage.name for storage in user.storages],
-    )
+    return get_user_schema(user)
+
+
+def get_user_by_access_token(access_token: str) -> UserSchema:
+    db = SessionLocal()
+    user = db.query(User).filter_by(access_token=access_token).first()
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+
+    return get_user_schema(user)
 
 
 def create_user(email: str, access_token: str) -> None:
@@ -163,6 +194,17 @@ def create_resource(email: str, name: str, resource_type: Type[Resource]) -> Non
 
     if db.query(ResourceType).filter_by(name=name, user_email=email).first():
         raise HTTPException(status_code=400, detail="Resource already exists")
+
+    quota_map = {
+        App: (db_user.apps_quota, db_user.apps),
+        Service: (db_user.services_quota, db_user.services),
+        Network: (db_user.networks_quota, db_user.networks),
+        Storage: (db_user.storage_quota, db_user.storages),
+    }
+    quota, resources = quota_map.get(ResourceType)
+
+    if quota <= len(resources):
+        raise HTTPException(status_code=403, detail="Quota exceeded")
 
     resource = ResourceType(name=name, user_email=email)
 

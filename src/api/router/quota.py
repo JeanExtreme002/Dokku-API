@@ -1,15 +1,13 @@
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from src.api.models import get_user
-
 
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post("/", response_description="Get user's quota")
-    async def get_quota(request: Request, email: str):
-        user = get_user(email)
+    async def get_quota(request: Request):
+        user = request.state.session_user
 
         quota = {
             "apps_quota": user.apps_quota,

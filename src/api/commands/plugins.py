@@ -1,42 +1,56 @@
+import re
 from abc import ABC
+from typing import Any, Dict, Tuple
 
 from src.api.tools.ssh import run_command, run_command_as_root
+
+
+def parse_plugins(text: str) -> Dict:
+    lines = text.strip().splitlines()
+    plugins = {}
+
+    for line in lines:
+        match = re.match(r"^\s*(\S+)\s+(\S+)\s+(enabled|disabled)\s+(.*)$", line)
+
+        if match:
+            name = match.group(1)
+            version = match.group(2)
+            status = match.group(3)
+            description = match.group(4).strip()
+
+            plugins[name] = {
+                "version": version,
+                "status": status,
+                "description": description,
+            }
+
+    return plugins
 
 
 class PluginsCommands(ABC):
 
     @staticmethod
-    def list_plugins():
-        command = "plugin:list"
-        return run_command(command)
+    def list_plugins() -> Tuple[bool, Any]:
+        success, message = run_command("plugin:list")
+        result = parse_plugins(message) if success else message
+
+        return success, result
 
     @staticmethod
-    def is_plugin_installed(plugin_name):
-        success, message = PluginsCommands.list_plugins()
+    def is_plugin_installed(plugin_name: str) -> Tuple[bool, Any]:
+        success, data = PluginsCommands.list_plugins()
 
         if not success:
-            return False, message
+            return False, data
 
-        for plugin in message.split("\n"):
-            if plugin_name in plugin:
-                return True, "Plugin is installed"
+        if plugin_name in data:
+            return True, "Plugin is installed"
         return False, "Plugin is not installed"
 
     @staticmethod
-    def install_plugin(plugin_name):
-        plugins_commands = {
-            "postgres": "plugin:install https://github.com/dokku/dokku-postgres.git",
-            "mysql": "plugin:install https://github.com/dokku/dokku-mysql.git mysql",
-            "letsencrypt":
-            "plugin:install https://github.com/dokku/dokku-letsencrypt.git",
-        }
-        command = plugins_commands.get(plugin_name)
+    def install_plugin(plugin_url: str, name: str) -> Tuple[bool, Any]:
+        return run_command_as_root(f"plugin:install {plugin_url} --name {name}")
 
-        if not command:
-            return False, "Plugin not found"
-
-        return run_command_as_root(command)
-
-    def uninstall_plugin(plugin_name):
-        command = f"plugin:uninstall {plugin_name}"
-        return run_command_as_root(command)
+    @staticmethod
+    def uninstall_plugin(plugin_name: str) -> Tuple[bool, Any]:
+        return run_command_as_root(f"plugin:uninstall {plugin_name}")

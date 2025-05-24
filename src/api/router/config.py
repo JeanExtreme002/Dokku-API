@@ -14,7 +14,9 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = ConfigCommands.list_config(app_name)
+        success, result = ConfigCommands.list_config(
+            request.state.session_user, app_name
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -34,7 +36,9 @@ def get_router(app: FastAPI) -> APIRouter:
         key: str,
         value: str,
     ):
-        success, result = ConfigCommands.set_config(app_name, key, value)
+        success, result = ConfigCommands.set_config(
+            request.state.session_user, app_name, key, value
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -53,7 +57,9 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         key: str,
     ):
-        success, result = ConfigCommands.unset_config(app_name, key)
+        success, result = ConfigCommands.unset_config(
+            request.state.session_user, app_name, key
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -71,7 +77,9 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = ConfigCommands.apply_config(app_name)
+        success, result = ConfigCommands.apply_config(
+            request.state.session_user, app_name
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
