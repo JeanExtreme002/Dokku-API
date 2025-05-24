@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 
 from fastapi import Body, HTTPException, Request, Security
@@ -71,4 +72,22 @@ def validate_user_credentials(
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED,
             detail="Invalid or missing user credentials",
+        )
+
+
+def validate_email_format(email: str) -> None:
+    """
+    Check if email is in valid format.
+    """
+    regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+
+    if not re.match(regex, email):
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Invalid email format",
+        )
+    if len(email) > 256:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Email is too long",
         )

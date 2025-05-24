@@ -1,10 +1,11 @@
 from abc import ABC
-from typing import Any, Tuple
+from typing import Any, Dict, Tuple
 
 from fastapi import HTTPException
 
-from src.api.models import Service, create_resource, delete_resource
+from src.api.models import App, Service, create_resource, delete_resource
 from src.api.models.schema import UserSchema
+from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command
 
 available_plugins = [
@@ -20,9 +21,9 @@ available_plugins = [
 ]
 
 
-def parse_service_info(info_str):
-    result = {}
+def parse_service_info(info_str: str) -> Dict:
     lines = info_str.splitlines()
+    result = {}
 
     for line in lines[1:]:
         if ":" in line:
@@ -39,11 +40,19 @@ class DatabasesCommands(ABC):
     @staticmethod
     def create_database(session_user: UserSchema, plugin_name: str,
                         database_name: str) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+
         if plugin_name not in available_plugins:
             raise HTTPException(
                 status_code=404,
                 detail="Plugin not found",
             )
+
+        _, message = run_command(f"{plugin_name}:exists {database_name}")
+
+        if "does not exist" not in message.lower():
+            raise HTTPException(status_code=403, detail="Database already exists")
+
         create_resource(session_user.email, f"{plugin_name}:{database_name}", Service)
         return run_command(f"{plugin_name}:create {database_name}")
 
@@ -69,13 +78,20 @@ class DatabasesCommands(ABC):
 
         for database_name in databases:
             success, message = run_command(f"{plugin_name}:info {database_name}")
-            result[database_name] = parse_service_info(message) if success else None
+            database_name = ResourceName(
+                session_user, database_name, Service, from_system=True
+            )
+
+            result[str(database_name)
+                   ] = (parse_service_info(message) if success else None)
 
         return True, result
 
     @staticmethod
     def delete_database(session_user: UserSchema, plugin_name: str,
                         database_name: str) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
                 status_code=404,
@@ -88,13 +104,18 @@ class DatabasesCommands(ABC):
     def database_linked_apps(
         session_user: UserSchema, plugin_name: str, database_name: str
     ) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
                 status_code=404,
                 detail="Database does not exist",
             )
         success, message = run_command(f"{plugin_name}:links {database_name}")
-        result = [app for app in message.split("\n") if app] if success else None
+        result = ([
+            str(ResourceName(session_user, app, App, from_system=True))
+            for app in message.split("\n") if app
+        ] if success else [])
 
         return success, result
 
@@ -102,6 +123,9 @@ class DatabasesCommands(ABC):
     def link_database(
         session_user: UserSchema, plugin_name: str, database_name: str, app_name: str
     ) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
                 status_code=404,
@@ -120,6 +144,9 @@ class DatabasesCommands(ABC):
     def unlink_database(
         session_user: UserSchema, plugin_name: str, database_name: str, app_name: str
     ) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
                 status_code=404,

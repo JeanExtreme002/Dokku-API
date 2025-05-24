@@ -15,6 +15,7 @@ from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
 from src.api.models.schema import UserSchema
+from src.api.tools import validate_email_format
 from src.config import Config
 
 DB_USER = Config.DATABASE.DB_USER
@@ -139,6 +140,8 @@ def get_user_by_access_token(access_token: str) -> UserSchema:
 
 
 def create_user(email: str, access_token: str) -> None:
+    validate_email_format(email)
+
     db = SessionLocal()
 
     if db.query(User).filter_by(email=email).first():

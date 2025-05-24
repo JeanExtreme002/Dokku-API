@@ -1,6 +1,7 @@
 from src.api.models.models import (
     App,
     Network,
+    Resource,
     Service,
     Storage,
     User,
