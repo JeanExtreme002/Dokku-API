@@ -61,8 +61,9 @@ async def push_to_dokku(
     repo_path: Path, dokku_host: str, app_name: str, branch: str = "main"
 ):
     env = os.environ.copy()
-    env["GIT_SSH_COMMAND"
-        ] = f"ssh -i {Config.SSH_SERVER.SSH_KEY_PATH} -o StrictHostKeyChecking=no"
+    env["GIT_SSH_COMMAND"] = (
+        f"ssh -i {Config.SSH_SERVER.SSH_KEY_PATH} -o StrictHostKeyChecking=no"
+    )
 
     try:
         subprocess.run(

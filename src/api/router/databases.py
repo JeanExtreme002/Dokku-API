@@ -68,14 +68,14 @@ def get_router(app: FastAPI) -> APIRouter:
 
     @router.post(
         "/links/{plugin_name}/{database_name}",
-        response_description="List linked apps",
+        response_description="Return all linked apps of a database",
     )
-    async def database_linked_apps(
+    async def get_linked_apps(
         request: Request,
         plugin_name: str,
         database_name: str,
     ):
-        success, result = DatabasesCommands.database_linked_apps(
+        success, result = DatabasesCommands.get_linked_apps(
             request.state.session_user, plugin_name, database_name
         )
 

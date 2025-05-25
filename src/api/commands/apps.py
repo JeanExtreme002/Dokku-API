@@ -6,7 +6,10 @@ from typing import Any, Dict, Tuple
 from fastapi import HTTPException
 
 from src.api.models import (
-    App, create_resource, delete_resource, get_app_deployment_token
+    App,
+    create_resource,
+    delete_resource,
+    get_app_deployment_token,
 )
 from src.api.models.schema import UserSchema
 from src.api.tools.name import ResourceName
@@ -94,3 +97,12 @@ class AppsCommands(ABC):
                 result[parsed_app_name]["info_type"] = "report" if success else None
 
         return True, result
+
+    @staticmethod
+    def get_logs(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        return run_command(f"logs {app_name}")

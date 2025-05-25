@@ -98,9 +98,8 @@ class DatabasesCommands(ABC):
         return run_command(f"--force {plugin_name}:destroy {database_name}")
 
     @staticmethod
-    def database_linked_apps(
-        session_user: UserSchema, plugin_name: str, database_name: str
-    ) -> Tuple[bool, Any]:
+    def get_linked_apps(session_user: UserSchema, plugin_name: str,
+                        database_name: str) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:

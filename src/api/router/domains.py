@@ -11,7 +11,7 @@ def get_router(app: FastAPI) -> APIRouter:
         "/{app_name}/{domain_name}",
         response_description="Set a domain for an application",
     )
-    async def domain_set(
+    async def set_domain(
         request: Request,
         app_name: str,
         domain_name: str,
@@ -32,7 +32,7 @@ def get_router(app: FastAPI) -> APIRouter:
         "/{app_name}/{domain_name}",
         response_description="Remove a domain from an application",
     )
-    async def domain_remove(
+    async def remove_domain(
         request: Request,
         app_name: str,
         domain_name: str,

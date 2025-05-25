@@ -40,7 +40,7 @@ class LetsencryptCommands(ABC):
         return run_command(f"letsencrypt:disable {app_name}")
 
     @staticmethod
-    def set_letsencrypt_mail(email: str) -> Tuple[bool, Any]:
+    def set_letsencrypt_email(email: str) -> Tuple[bool, Any]:
         return run_command(f"config:set --global DOKKU_LETSENCRYPT_EMAIL={email}")
 
     @staticmethod

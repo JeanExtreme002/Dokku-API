@@ -19,26 +19,6 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
-    @router.post(
-        "/deployment_token/{app_name}",
-        response_description="Return the deployment token of an application",
-    )
-    async def get_deployment_token(
-        request: Request,
-        app_name: str,
-    ):
-        success, result = AppsCommands.get_deployment_token(
-            request.state.session_user, app_name
-        )
-
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
-                "success": success,
-                "result": result
-            },
-        )
-
     @router.post("/{app_name}", response_description="Create an application")
     async def create_app(
         request: Request,
@@ -60,6 +40,43 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
     ):
         success, result = AppsCommands.delete_app(request.state.session_user, app_name)
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result
+            },
+        )
+
+    @router.post(
+        "/deployment_token/{app_name}",
+        response_description="Return the deployment token of an application",
+    )
+    async def get_deployment_token(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = AppsCommands.get_deployment_token(
+            request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result
+            },
+        )
+
+    @router.post(
+        "/logs/{app_name}", response_description="Return the logs of an application"
+    )
+    async def get_logs(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = AppsCommands.get_logs(request.state.session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

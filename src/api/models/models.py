@@ -3,7 +3,14 @@ from typing import List, Optional, Type
 
 from fastapi import HTTPException
 from sqlalchemy import (
-    Boolean, Column, DateTime, ForeignKey, Integer, String, create_engine, func
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    create_engine,
+    func,
 )
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
