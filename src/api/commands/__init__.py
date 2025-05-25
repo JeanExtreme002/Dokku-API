@@ -4,4 +4,5 @@ from src.api.commands.databases import DatabasesCommands
 from src.api.commands.domains import DomainsCommands
 from src.api.commands.git import GitCommands
 from src.api.commands.letsencrypt import LetsencryptCommands
+from src.api.commands.networks import NetworksCommands
 from src.api.commands.plugins import PluginsCommands

@@ -7,6 +7,7 @@ from fastapi import HTTPException
 
 from src.api.models import (
     App,
+    Network,
     create_resource,
     delete_resource,
     get_app_deployment_token,
@@ -16,8 +17,8 @@ from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command
 
 
-def parse_ps_report(message: str) -> Dict:
-    lines = message.strip().splitlines()
+def parse_ps_report(text: str) -> Dict:
+    lines = text.strip().splitlines()
     result = {}
 
     for line in lines:
@@ -35,6 +36,39 @@ def parse_ps_report(message: str) -> Dict:
         result[key] = value
 
     return result
+
+
+def parse_network_info(session_user: UserSchema, text: str) -> Dict:
+    result = {}
+    lines = text.strip().split("\n")
+
+    for line in lines:
+        if "=====>" in line:
+            continue
+
+        if ":" in line:
+            key, value = line.split(":", 1)
+            key = key.strip().lower().replace(" ", "_")
+            result[key] = value.strip()
+
+    network = result.get("network_attach_post_create")
+
+    if not network:
+        network = result.get("network_attach_post_deploy")
+
+    if not network:
+        network = result.get("network_computed_attach_post_create")
+
+    if not network:
+        network = result.get("network_computed_attach_post_deploy")
+
+    if not network:
+        network = result.get("network_computed_initial_network")
+
+    if network:
+        network = ResourceName(session_user, network, Network, from_system=True)
+
+    return {"network": str(network) if network else None}
 
 
 class AppsCommands(ABC):
@@ -106,3 +140,17 @@ class AppsCommands(ABC):
             raise HTTPException(status_code=404, detail="App does not exist")
 
         return run_command(f"logs {app_name}")
+
+    @staticmethod
+    def get_network(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        success, message = run_command(f"network:report {app_name}")
+
+        if not success:
+            return False, message
+
+        return True, parse_network_info(session_user, message)

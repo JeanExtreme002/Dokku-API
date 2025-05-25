@@ -9,6 +9,7 @@ from src.api.router.databases import get_router as databases_router
 from src.api.router.deploy import get_router as deploy_router
 from src.api.router.domains import get_router as domains_router
 from src.api.router.letsencrypt import get_router as letsencrypt_router
+from src.api.router.networks import get_router as networks_router
 from src.api.router.quota import get_router as quota_router
 from src.api.tools.validator import (
     validate_admin,
@@ -46,6 +47,13 @@ def get_router(app: FastAPI) -> APIRouter:
         databases_router(app),
         tags=["Databases"],
         prefix="/api/databases",
+        dependencies=[Depends(validate_api_key),
+                      Depends(validate_user_credentials)],
+    )
+    router.include_router(
+        networks_router(app),
+        tags=["Networks"],
+        prefix="/api/networks",
         dependencies=[Depends(validate_api_key),
                       Depends(validate_user_credentials)],
     )
