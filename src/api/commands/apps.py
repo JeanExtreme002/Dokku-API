@@ -6,10 +6,7 @@ from typing import Any, Dict, Tuple
 from fastapi import HTTPException
 
 from src.api.models import (
-    App,
-    create_resource,
-    delete_resource,
-    get_app_deployment_token,
+    App, create_resource, delete_resource, get_app_deployment_token
 )
 from src.api.models.schema import UserSchema
 from src.api.tools.name import ResourceName

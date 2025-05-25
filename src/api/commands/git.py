@@ -60,6 +60,10 @@ async def save_app_zip(file: UploadFile, dest_dir: Path) -> Tuple[Path, App]:
 async def push_to_dokku(
     repo_path: Path, dokku_host: str, app_name: str, branch: str = "main"
 ):
+    env = os.environ.copy()
+    env["GIT_SSH_COMMAND"
+        ] = f"ssh -i {Config.SSH_SERVER.SSH_KEY_PATH} -o StrictHostKeyChecking=no"
+
     try:
         subprocess.run(
             ["git", "remote", "remove", "dokku"],
@@ -81,6 +85,7 @@ async def push_to_dokku(
             ["git", "push", "dokku", branch],
             cwd=repo_path,
             check=True,
+            env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
