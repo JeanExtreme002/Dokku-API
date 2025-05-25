@@ -138,6 +138,9 @@ dokku-set-config:
 			dokku storage:mount $$FORMATTED_API_NAME /$$FORMATTED_API_NAME/:/$$FORMATTED_API_NAME/; \
 		fi; \
 		\
+		dokku nginx:set $$FORMATTED_API_NAME client-max-body-size $(CLIENT_MAX_BODY_SIZE); \
+		dokku proxy:build-config $$FORMATTED_API_NAME; \
+		\
 		printf "$(GREEN)Using API_KEY=$$API_KEY$(NC)\n"; \
 	}
 
