@@ -1,0 +1,127 @@
+import os
+import subprocess
+import zipfile
+from abc import ABC
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Tuple
+
+import aiofiles
+from fastapi import HTTPException, UploadFile
+
+from src.api.models import App, get_app_by_deploy_token
+from src.api.tools.name import ResourceName
+from src.config import Config
+
+
+async def save_app_zip(file: UploadFile, dest_dir: Path) -> Tuple[Path, App]:
+    temp_zip_path = dest_dir / "repository.zip"
+    git_path = dest_dir / ".git"
+
+    deploy_token_filename = ".deployment_token"
+    deploy_token_path = dest_dir / deploy_token_filename
+
+    async with aiofiles.open(temp_zip_path, "wb") as out_file:
+        content = await file.read()
+        await out_file.write(content)
+
+    try:
+        with zipfile.ZipFile(temp_zip_path, "r") as zip_ref:
+            zip_ref.extractall(dest_dir)
+
+            if not git_path.exists():
+                directories = [p for p in dest_dir.iterdir() if p.is_dir()]
+
+                if len(directories) == 1:
+                    dest_dir = dest_dir / directories[0]
+                    git_path = dest_dir / ".git"
+                    deploy_token_path = dest_dir / deploy_token_filename
+
+            if not git_path.exists():
+                error_message = ".git not found in the zip"
+                raise HTTPException(detail=error_message, status_code=400)
+
+            if not deploy_token_path.exists():
+                error_message = f"File '{deploy_token_filename}' not found in the zip"
+                raise HTTPException(detail=error_message, status_code=400)
+
+    except zipfile.BadZipFile:
+        raise HTTPException(detail="Bad zip file", status_code=400)
+
+    finally:
+        os.remove(temp_zip_path)
+
+    with open(deploy_token_path, "r") as deploy_token_file:
+        deploy_token = deploy_token_file.read().strip().strip("\n").strip("\r")
+
+    return dest_dir, get_app_by_deploy_token(deploy_token)
+
+
+async def push_to_dokku(
+    repo_path: Path, dokku_host: str, app_name: str, branch: str = "main"
+):
+    try:
+        subprocess.run(
+            ["git", "remote", "remove", "dokku"],
+            cwd=repo_path,
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        subprocess.run(
+            ["git", "remote", "add", "dokku", f"dokku@{dokku_host}:{app_name}"],
+            cwd=repo_path,
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        result = subprocess.run(
+            ["git", "push", "dokku", branch],
+            cwd=repo_path,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        return result.stdout.decode()
+
+    except subprocess.CalledProcessError as error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Git push failed: {error.stderr.decode() or str(error)}",
+        )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error while pushing to Dokku: {str(error)}",
+        )
+
+
+class GitCommands(ABC):
+
+    @staticmethod
+    async def deploy_application(file: UploadFile,
+                                 wait: bool = False) -> Tuple[bool, Any]:
+        filename = file.filename.split(".")[0]
+
+        SSH_HOSTNAME = Config.SSH_SERVER.SSH_HOSTNAME
+        BASE_DIR = Path("/tmp")
+        BRANCH = "main"
+
+        timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S").split(".")[0]
+
+        dest_dir = BASE_DIR / f"dokku-api-deploy-{filename}-{timestamp}"
+        dest_dir.mkdir(parents=True, exist_ok=True)
+
+        dest_dir, app = await save_app_zip(file, dest_dir)
+        app_name = ResourceName(app.user, app.name, App, from_system=True).for_system()
+
+        task = push_to_dokku(dest_dir, SSH_HOSTNAME, app_name, branch=BRANCH)
+        result = "Deploying application..."
+
+        if wait:
+            result = await task
+
+        return True, result

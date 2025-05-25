@@ -1,8 +1,16 @@
-from typing import List, Type
+import secrets
+from typing import List, Optional, Type
 
 from fastapi import HTTPException
 from sqlalchemy import (
-    Boolean, Column, DateTime, ForeignKey, Integer, String, create_engine, func
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    create_engine,
+    func,
 )
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
@@ -40,6 +48,10 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+def generate_token(size: int) -> str:
+    return secrets.token_urlsafe(size)
+
+
 class User(Base):
     __tablename__ = "user"
 
@@ -71,6 +83,22 @@ class Resource(Base):
 class App(Resource):
     __tablename__ = "app"
     name = Column(String(255), primary_key=True)
+    deploy_token = Column(String(1024), nullable=True)
+
+    def __init__(
+        self,
+        name: str,
+        deploy_token: Optional[str] = None,
+        user_email: Optional[str] = None,
+        created_at: Optional[DateTime] = None,
+    ):
+        self.name = name
+        self.deploy_token = deploy_token
+        self.user_email = user_email
+        self.created_at = created_at
+
+        if self.deploy_token is None:
+            self.deploy_token = f"{name}-{generate_token(512)}"
 
 
 class Service(Resource):
@@ -223,6 +251,28 @@ def delete_resource(email: str, name: str, resource_type: Type[Resource]) -> Non
 
     db.delete(resource)
     db.commit()
+
+
+def get_app_by_deploy_token(deploy_token: str) -> App:
+    db = SessionLocal()
+
+    app = db.query(App).filter_by(deploy_token=deploy_token).first()
+
+    if not app:
+        raise HTTPException(status_code=404, detail="App not found")
+
+    return app
+
+
+def get_app_deployment_token(name: str) -> str:
+    db = SessionLocal()
+
+    app = db.query(App).filter_by(name=name).first()
+
+    if not app:
+        raise HTTPException(status_code=404, detail="App not found")
+
+    return app.deploy_token
 
 
 Base.metadata.create_all(bind=engine)

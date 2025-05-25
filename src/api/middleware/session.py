@@ -14,6 +14,10 @@ class SessionUserMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         request.state.session_user = None
+
+        if not request.headers.get("content-type", "").startswith("application/json"):
+            return await call_next(request)
+
         body_bytes = await request.body()
 
         try:

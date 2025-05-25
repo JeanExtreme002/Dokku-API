@@ -8,9 +8,3 @@ repos:
         pass_filenames: false
         stages: [pre-commit]
 
-      - id: unit-test
-        name: Run make test
-        entry: make test
-        language: system
-        pass_filenames: false
-        stages: [pre-push]

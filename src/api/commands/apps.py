@@ -5,7 +5,12 @@ from typing import Any, Dict, Tuple
 
 from fastapi import HTTPException
 
-from src.api.models import App, create_resource, delete_resource
+from src.api.models import (
+    App,
+    create_resource,
+    delete_resource,
+    get_app_deployment_token,
+)
 from src.api.models.schema import UserSchema
 from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command
@@ -45,6 +50,18 @@ class AppsCommands(ABC):
 
         create_resource(session_user.email, app_name, App)
         return run_command(f"apps:create {app_name}")
+
+    @staticmethod
+    def get_deployment_token(session_user: UserSchema,
+                             app_name: str) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        deploy_token = get_app_deployment_token(app_name)
+
+        return True, deploy_token
 
     @staticmethod
     def delete_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
