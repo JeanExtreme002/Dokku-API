@@ -50,6 +50,24 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
+        "/{app_name}/url",
+        response_description="Return the application URL",
+    )
+    async def get_app_url(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = AppsCommands.get_app_url(request.state.session_user, app_name)
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result
+            },
+        )
+
+    @router.post(
         "/{app_name}/info",
         response_description="Return information about an application",
     )

@@ -127,6 +127,15 @@ class AppsCommands(ABC):
         return run_command(f"--force apps:destroy {app_name}")
 
     @staticmethod
+    def get_app_url(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        return run_command(f"url {app_name}")
+
+    @staticmethod
     def get_app_info(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
