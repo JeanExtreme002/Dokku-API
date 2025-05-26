@@ -1,12 +1,16 @@
 import json
 import re
 from abc import ABC
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, List, Tuple
 
 from fastapi import HTTPException
 
 from src.api.models import (
-    App, Network, create_resource, delete_resource, get_app_deployment_token
+    App,
+    Network,
+    create_resource,
+    delete_resource,
+    get_app_deployment_token,
 )
 from src.api.models.schema import UserSchema
 from src.api.tools.name import ResourceName
@@ -65,6 +69,25 @@ def parse_network_info(session_user: UserSchema, text: str) -> Dict:
         network = ResourceName(session_user, network, Network, from_system=True)
 
     return {"network": str(network) if network else None}
+
+
+def parse_port_mappings(text: str) -> List:
+    lines = text.strip().splitlines()
+
+    ports = []
+
+    for line in lines:
+        parts = line.strip().split()
+
+        if len(parts) == 3:
+            scheme, host_port, container_port = parts
+            ports.append({
+                "procotol": scheme,
+                "origin": int(host_port),
+                "dest": int(container_port),
+            })
+
+    return ports
 
 
 class AppsCommands(ABC):
@@ -155,3 +178,52 @@ class AppsCommands(ABC):
             return False, message
 
         return True, parse_network_info(session_user, message)
+
+    @staticmethod
+    def list_port_mappings(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        success, message = run_command(f"ports:list {app_name}")
+
+        if "no port mappings" in message.lower():
+            return True, []
+
+        if not success:
+            return False, message
+
+        return True, parse_port_mappings(message)
+
+    @staticmethod
+    def add_port_mapping(
+        session_user: UserSchema,
+        app_name: str,
+        origin_port: int,
+        dest_port: int,
+        protocol: str,
+    ) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        return run_command(f"ports:add {app_name} {protocol}:{origin_port}:{dest_port}")
+
+    @staticmethod
+    def remove_port_mapping(
+        session_user: UserSchema,
+        app_name: str,
+        origin_port: int,
+        dest_port: int,
+        protocol: str,
+    ) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        return run_command(
+            f"ports:remove {app_name} {protocol}:{origin_port}:{dest_port}"
+        )

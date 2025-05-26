@@ -124,4 +124,70 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
+    @router.post(
+        "/{app_name}/ports",
+        response_description="Return all ports of an application",
+    )
+    async def list_port_mappings(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = AppsCommands.list_port_mappings(
+            request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result
+            },
+        )
+
+    @router.post(
+        "/{app_name}/ports/{protocol}/{origin_port}/{dest_port}",
+        response_description="Add a port mapping to an application",
+    )
+    async def add_port_mapping(
+        request: Request,
+        app_name: str,
+        origin_port: int,
+        dest_port: int,
+        protocol: str = "http",
+    ):
+        success, result = AppsCommands.add_port_mapping(
+            request.state.session_user, app_name, origin_port, dest_port, protocol
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result
+            },
+        )
+
+    @router.delete(
+        "/{app_name}/ports/{protocol}/{origin_port}/{dest_port}",
+        response_description="Remove a port mapping from an application",
+    )
+    async def remove_port_mapping(
+        request: Request,
+        app_name: str,
+        origin_port: int,
+        dest_port: int,
+        protocol: str = "http",
+    ):
+        success, result = AppsCommands.remove_port_mapping(
+            request.state.session_user, app_name, origin_port, dest_port, protocol
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result
+            },
+        )
+
     return router
