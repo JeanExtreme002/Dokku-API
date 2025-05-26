@@ -4,7 +4,7 @@ from fastapi import APIRouter, FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 from src.api.commands import AppsCommands, DatabasesCommands
-from src.api.models import create_user, delete_user, get_user, get_users, update_user
+from src.api.models import (create_user, delete_user, get_user, get_users, update_user)
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -14,12 +14,12 @@ def get_router(app: FastAPI) -> APIRouter:
     async def get_all_users(request: Request):
         return JSONResponse(status_code=status.HTTP_200_OK, content=get_users())
 
-    @router.post("/", response_description="Create a new user")
+    @router.post("/{email}", response_description="Create a new user")
     async def create_new_user(request: Request, email: str, access_token: str):
         create_user(email, access_token)
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
 
-    @router.delete("/", response_description="Delete user")
+    @router.delete("/{email}", response_description="Delete user")
     async def delete_user_from_database(request: Request, email: str):
         user = get_user(email)
 
@@ -33,7 +33,7 @@ def get_router(app: FastAPI) -> APIRouter:
         delete_user(email)
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
 
-    @router.put("/email", response_description="Update the user's email")
+    @router.put("/{email}/email", response_description="Update the user's email")
     async def update_email(request: Request, email: str, new_email: str):
         user = get_user(email)
         user.email = new_email
@@ -42,7 +42,9 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
 
-    @router.put("/accessToken", response_description="Update the user's access token")
+    @router.put(
+        "/{email}/access-token", response_description="Update the user's access token"
+    )
     async def update_access_token(
         request: Request,
         email: str,
@@ -64,7 +66,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
 
-    @router.put("/quota", response_description="Update the user's quotas")
+    @router.put("/{email}/quota", response_description="Update the user's quotas")
     async def update_quota(
         request: Request,
         email: str,
@@ -90,7 +92,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
 
-    @router.put("/admin", response_description="Set a the user as admin or not")
+    @router.put("/{email}/admin", response_description="Set a the user as admin or not")
     async def set_admin(request: Request, email: str, is_admin: bool):
         user = get_user(email)
         user.is_admin = is_admin

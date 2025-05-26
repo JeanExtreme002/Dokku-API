@@ -86,7 +86,7 @@ class NetworksCommands(ABC):
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        return run_command(f"network:set {app_name} attach-post-create {network_name}")
+        return run_command(f"network:set {app_name} initial-network {network_name}")
 
     @staticmethod
     def get_linked_apps(session_user: UserSchema,

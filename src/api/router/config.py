@@ -27,6 +27,27 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
+        "/{app_name}/{key}",
+        response_description="Return value of application configuration key",
+    )
+    async def get_config(
+        request: Request,
+        app_name: str,
+        key: str,
+    ):
+        success, result = ConfigCommands.get_config(
+            request.state.session_user, app_name, key
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result
+            },
+        )
+
+    @router.post(
         "/{app_name}/{key}/{value}",
         response_description="Set application configuration key (without restart)",
     )
@@ -70,8 +91,8 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/keys/apply/restart",
-        response_description="Apply application configuration (with restart)",
+        "/{app_name}/apply",
+        response_description="Apply application configuration changes (with restart)",
     )
     async def apply_config(
         request: Request,

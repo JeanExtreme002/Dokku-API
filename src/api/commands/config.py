@@ -44,6 +44,18 @@ class ConfigCommands(ABC):
         return success, parse_env_vars(message)
 
     @staticmethod
+    def get_config(session_user: UserSchema, app_name: str,
+                   key: str) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(
+                status_code=404,
+                detail="App does not exist",
+            )
+        return run_command(f"config:get {app_name} {key}")
+
+    @staticmethod
     def set_config(session_user: UserSchema, app_name: str, key: str,
                    value: str) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()

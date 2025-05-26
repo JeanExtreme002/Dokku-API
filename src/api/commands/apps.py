@@ -6,11 +6,7 @@ from typing import Any, Dict, Tuple
 from fastapi import HTTPException
 
 from src.api.models import (
-    App,
-    Network,
-    create_resource,
-    delete_resource,
-    get_app_deployment_token,
+    App, Network, create_resource, delete_resource, get_app_deployment_token
 )
 from src.api.models.schema import UserSchema
 from src.api.tools.name import ResourceName
@@ -108,27 +104,32 @@ class AppsCommands(ABC):
         return run_command(f"--force apps:destroy {app_name}")
 
     @staticmethod
+    def get_app_info(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        success, message = run_command(f"ps:inspect {app_name}")
+        result = {}
+
+        if success:
+            result["data"] = json.loads(message)
+            result["info_origin"] = "inspect"
+        else:
+            success, message = run_command(f"ps:report {app_name}")
+            result["data"] = parse_ps_report(message) if success else None
+            result["info_orihin"] = "report" if success else None
+
+        return success, result
+
+    @staticmethod
     def list_apps(session_user: UserSchema) -> Tuple[bool, Any]:
         result = {}
 
         for app_name in session_user.apps:
-            parsed_app_name = ResourceName(
-                session_user, app_name, App, from_system=True
-            )
-            parsed_app_name = str(parsed_app_name)
-
-            success, message = run_command(f"ps:inspect {app_name}")
-            result[parsed_app_name] = {}
-
-            if success:
-                result[parsed_app_name]["data"] = json.loads(message)
-                result[parsed_app_name]["info_type"] = "inspect"
-            else:
-                success, message = run_command(f"ps:report {app_name}")
-                result[parsed_app_name]["data"] = (
-                    parse_ps_report(message) if success else None
-                )
-                result[parsed_app_name]["info_type"] = "report" if success else None
+            app_name = str(ResourceName(session_user, app_name, App, from_system=True))
+            result[app_name] = AppsCommands.get_app_info(session_user, app_name)[1]
 
         return True, result
 

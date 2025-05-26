@@ -20,7 +20,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/enable/auto/renewal",
+        "/enable-auto-renewal",
         response_description="Enable automatic LetsEncrypt renewal",
     )
     async def enable_letsencrypt_auto_renewal():

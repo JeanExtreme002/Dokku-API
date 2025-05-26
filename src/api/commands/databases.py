@@ -1,3 +1,4 @@
+import re
 from abc import ABC
 from typing import Any, Dict, Tuple
 
@@ -24,6 +25,16 @@ def parse_service_info(info_str: str) -> Dict:
             result[key] = value
 
     return result
+
+
+def extract_database_uri(text):
+    pattern = re.compile(
+        r"\b(?:[a-z]+)://(?:[^:@\s]+):(?:[^:@\s]+)@(?:[^:@\s]+):\d+/\S+\b",
+        re.IGNORECASE,
+    )
+
+    match = pattern.search(text)
+    return match.group(0) if match else None
 
 
 class DatabasesCommands(ABC):
@@ -74,13 +85,13 @@ class DatabasesCommands(ABC):
         result = {}
 
         for database_name in databases:
-            success, message = run_command(f"{plugin_name}:info {database_name}")
-            database_name = ResourceName(
-                session_user, database_name, Service, from_system=True
+            database_name = str(
+                ResourceName(session_user, database_name, Service, from_system=True)
             )
-
-            result[str(database_name)
-                   ] = (parse_service_info(message) if success else None)
+            _, data = DatabasesCommands.get_database_info(
+                session_user, plugin_name, database_name
+            )
+            result[database_name] = data
 
         return True, result
 
@@ -96,6 +107,20 @@ class DatabasesCommands(ABC):
             )
         delete_resource(session_user.email, f"{plugin_name}:{database_name}", Service)
         return run_command(f"--force {plugin_name}:destroy {database_name}")
+
+    @staticmethod
+    def get_database_info(
+        session_user: UserSchema, plugin_name: str, database_name: str
+    ) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+
+        if f"{plugin_name}:{database_name}" not in session_user.services:
+            raise HTTPException(
+                status_code=404,
+                detail="Database does not exist",
+            )
+        success, message = run_command(f"{plugin_name}:info {database_name}")
+        return success, parse_service_info(message) if success else None
 
     @staticmethod
     def get_linked_apps(session_user: UserSchema, plugin_name: str,
@@ -156,3 +181,22 @@ class DatabasesCommands(ABC):
         return run_command(
             f"--no-restart {plugin_name}:unlink {database_name} {app_name}"
         )
+
+    @staticmethod
+    def get_database_uri(
+        session_user: UserSchema, plugin_name: str, database_name: str
+    ) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+
+        if f"{plugin_name}:{database_name}" not in session_user.services:
+            raise HTTPException(
+                status_code=404,
+                detail="Database does not exist",
+            )
+
+        success, message = run_command(f"{plugin_name}:info {database_name}")
+
+        if not success:
+            return False, None
+
+        return True, extract_database_uri(message)

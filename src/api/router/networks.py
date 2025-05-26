@@ -7,7 +7,7 @@ from src.api.commands import NetworksCommands
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
-    @router.post("/", response_description="Return all networks")
+    @router.post("/list", response_description="Return all networks")
     async def list_networks(request: Request):
         success, result = NetworksCommands.list_networks(request.state.session_user)
 
@@ -54,7 +54,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/links/{network_name}",
+        "/{network_name}/linked-apps",
         response_description="Return all apps linked to a network",
     )
     async def get_linked_apps(
@@ -74,7 +74,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/set{network_name}/{app_name}", response_description="Set network to app"
+        "/{network_name}/link/{app_name}", response_description="Set network to app"
     )
     async def set_network_to_app(
         request: Request,

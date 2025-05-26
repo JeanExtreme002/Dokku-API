@@ -38,6 +38,9 @@ class Config:
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").lower()
     MAX_CONNECTIONS_PER_REQUEST = int(os.getenv("MAX_CONNECTIONS_PER_REQUEST", "1"))
 
+    API_NAME: str = os.getenv("API_NAME")
+    API_VERSION_NUMBER: str = os.getenv("API_VERSION_NUMBER")
+
     API_KEY: str = os.getenv("API_KEY")
     MASTER_KEY: str = os.getenv("MASTER_KEY")
 

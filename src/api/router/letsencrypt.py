@@ -8,7 +8,7 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post(
-        "/app/{app_name}",
+        "/{app_name}",
         response_description="Enable LetsEncrypt for an application",
     )
     async def enable_letsencrypt_app(
@@ -28,7 +28,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.delete(
-        "/app/{app_name}",
+        "/{app_name}",
         response_description="Disable LetsEncrypt for an application",
     )
     async def disable_letsencrypt_app(
