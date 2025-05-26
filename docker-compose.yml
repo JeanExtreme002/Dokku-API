@@ -22,7 +22,7 @@ services:
         RSA_KEY_PASSPHRASE="$$(awk '\''{printf "%s\\\\n", $$0}'\'' /app/.secrets/id_rsa)"
 
         export SSH_KEY_PASSPHRASE=$${RSA_KEY_PASSPHRASE}
-        export SSH_KEY_PATH=.secrets/id_rsa
+        export SSH_KEY_PATH=/app/.secrets/id_rsa
 
         pip install poetry > /dev/null &&
         poetry install --no-root > /dev/null

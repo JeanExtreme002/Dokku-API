@@ -1,3 +1,4 @@
+import logging
 from typing import Tuple
 
 from paramiko.client import AutoAddPolicy, SSHClient
@@ -61,6 +62,11 @@ def run_command(command: str) -> Tuple[bool, str]:
         or failure and the output or error message.
     """
     success, message = __execute_command(command, "dokku")
+
+    if success:
+        logging.info(f"Command executed successfully: {command}")
+    else:
+        logging.warning(f"Command execution failed: {command}\nError: {message}")
     return success, message
 
 
@@ -75,4 +81,10 @@ def run_command_as_root(command: str) -> Tuple[bool, str]:
         or failure and the output or error message.
     """
     success, message = __execute_command(command, "root")
+
+    if success:
+        logging.info(f"Command executed successfully: {command}")
+    else:
+        logging.warning(f"Command execution failed: {command}\nError: {message}")
+
     return success, message

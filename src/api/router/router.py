@@ -6,11 +6,12 @@ from src.api.router.apps import get_router as apps_router
 from src.api.router.base import get_router as base_router
 from src.api.router.config import get_router as config_router
 from src.api.router.databases import get_router as databases_router
-from src.api.router.deploy import get_router as deploy_router
 from src.api.router.domains import get_router as domains_router
+from src.api.router.git import get_router as git_router
 from src.api.router.letsencrypt import get_router as letsencrypt_router
 from src.api.router.networks import get_router as networks_router
 from src.api.router.quota import get_router as quota_router
+from src.api.router.upload import get_router as upload_router
 from src.api.tools.validator import (
     validate_admin,
     validate_api_key,
@@ -24,10 +25,17 @@ def get_router(app: FastAPI) -> APIRouter:
     router.include_router(base_router(router), tags=["Base"])
     router.include_router(api_router(router), tags=["Api"], prefix="/api")
     router.include_router(
-        deploy_router(app),
+        upload_router(app),
         tags=["Deploy"],
         prefix="/api/deploy",
         dependencies=[Depends(validate_api_key)],
+    )
+    router.include_router(
+        git_router(app),
+        tags=["Deploy"],
+        prefix="/api/deploy",
+        dependencies=[Depends(validate_api_key),
+                      Depends(validate_user_credentials)],
     )
     router.include_router(
         apps_router(app),

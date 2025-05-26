@@ -259,7 +259,7 @@ def get_app_by_deploy_token(deploy_token: str) -> App:
     app = db.query(App).filter_by(deploy_token=deploy_token).first()
 
     if not app:
-        raise HTTPException(status_code=404, detail="App not found")
+        raise HTTPException(status_code=404, detail="App does not exist")
 
     return app
 
@@ -270,7 +270,7 @@ def get_app_deployment_token(name: str) -> str:
     app = db.query(App).filter_by(name=name).first()
 
     if not app:
-        raise HTTPException(status_code=404, detail="App not found")
+        raise HTTPException(status_code=404, detail="App does not exist")
 
     return app.deploy_token
 

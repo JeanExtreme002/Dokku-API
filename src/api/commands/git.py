@@ -1,3 +1,4 @@
+import asyncio
 import os
 import subprocess
 import zipfile
@@ -10,7 +11,9 @@ import aiofiles
 from fastapi import HTTPException, UploadFile
 
 from src.api.models import App, get_app_by_deploy_token
+from src.api.models.schema import UserSchema
 from src.api.tools.name import ResourceName
+from src.api.tools.ssh import run_command
 from src.config import Config
 
 
@@ -62,7 +65,7 @@ async def push_to_dokku(
 ):
     env = os.environ.copy()
     env["GIT_SSH_COMMAND"] = (
-        f"ssh -i {Config.SSH_SERVER.SSH_KEY_PATH} -o StrictHostKeyChecking=no"
+        f"ssh -i /app/{Config.SSH_SERVER.SSH_KEY_PATH} -o StrictHostKeyChecking=no"
     )
 
     try:
@@ -106,6 +109,23 @@ async def push_to_dokku(
 
 
 class GitCommands(ABC):
+
+    @staticmethod
+    async def deploy_application_by_url(
+        session_user: UserSchema, app_name: str, repo_url: str, branch: str
+    ) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        success, message = run_command(f"git:sync {app_name} {repo_url} {branch}")
+
+        asyncio.create_task(
+            asyncio.to_thread(lambda: run_command(f"ps:rebuild {app_name}"))
+        )
+
+        return success, message
 
     @staticmethod
     async def deploy_application(file: UploadFile,
