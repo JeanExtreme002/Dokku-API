@@ -13,9 +13,7 @@ from src.api.router.networks import get_router as networks_router
 from src.api.router.quota import get_router as quota_router
 from src.api.router.upload import get_router as upload_router
 from src.api.tools.validator import (
-    validate_admin,
-    validate_api_key,
-    validate_user_credentials,
+    validate_admin, validate_api_key, validate_user_credentials
 )
 
 

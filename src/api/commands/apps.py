@@ -5,12 +5,9 @@ from typing import Any, Dict, List, Tuple
 
 from fastapi import HTTPException
 
+from src.api.commands.databases import DatabasesCommands
 from src.api.models import (
-    App,
-    Network,
-    create_resource,
-    delete_resource,
-    get_app_deployment_token,
+    App, Network, Service, create_resource, delete_resource, get_app_deployment_token
 )
 from src.api.models.schema import UserSchema
 from src.api.tools.name import ResourceName
@@ -236,3 +233,30 @@ class AppsCommands(ABC):
         return run_command(
             f"ports:remove {app_name} {protocol}:{origin_port}:{dest_port}"
         )
+
+    @staticmethod
+    def get_linked_databases(session_user: UserSchema,
+                             app_name: str) -> Tuple[bool, Any]:
+        sys_app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if sys_app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        result = {}
+
+        for db_name in session_user.services:
+            plugin_name, db_name = db_name.split(":", maxsplit=1)
+            db_name = str(
+                ResourceName(session_user, db_name, Service, from_system=True)
+            )
+
+            success, data = DatabasesCommands.get_linked_apps(
+                session_user, plugin_name, db_name
+            )
+
+            if success and app_name in data:
+                result[plugin_name] = result.get(plugin_name, []) + [
+                    db_name,
+                ]
+
+        return True, result

@@ -70,7 +70,9 @@ class DatabasesCommands(ABC):
 
         for plugin_name in available_databases:
             success, data = DatabasesCommands.list_databases(session_user, plugin_name)
-            result[plugin_name] = data if success else None
+
+            if success and data:
+                result[plugin_name] = data
 
         return True, result
 

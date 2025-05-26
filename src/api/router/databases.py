@@ -7,7 +7,24 @@ from src.api.commands import DatabasesCommands
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
-    @router.post("/{plugin_name}/list", response_description="Return all databases")
+    @router.post("/list", response_description="Return all databases")
+    async def list_all_databases(request: Request):
+        success, result = DatabasesCommands.list_all_databases(
+            request.state.session_user
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result
+            },
+        )
+
+    @router.post(
+        "/{plugin_name}/list",
+        response_description="Return all databases, given a plugin name",
+    )
     async def list_databases(
         request: Request,
         plugin_name: str,

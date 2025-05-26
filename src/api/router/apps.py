@@ -125,6 +125,26 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
+        "/{app_name}/databases",
+        response_description="Return all databases linked to an application",
+    )
+    async def get_linked_databases(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = AppsCommands.get_linked_databases(
+            request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result
+            },
+        )
+
+    @router.post(
         "/{app_name}/network",
         response_description="Return the network of an application",
     )

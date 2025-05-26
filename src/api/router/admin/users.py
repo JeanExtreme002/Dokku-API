@@ -4,7 +4,7 @@ from fastapi import APIRouter, FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 from src.api.commands import AppsCommands, DatabasesCommands
-from src.api.models import create_user, delete_user, get_user, get_users, update_user
+from src.api.models import (create_user, delete_user, get_user, get_users, update_user)
 
 
 def get_router(app: FastAPI) -> APIRouter:
