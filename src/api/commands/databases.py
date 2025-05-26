@@ -13,7 +13,7 @@ from src.config import Config
 available_databases = Config.AVAILABLE_DATABASES
 
 
-def parse_service_info(info_str: str) -> Dict:
+def parse_service_info(plugin_name: str, info_str: str) -> Dict:
     lines = info_str.splitlines()
     result = {}
 
@@ -24,6 +24,7 @@ def parse_service_info(info_str: str) -> Dict:
             value = value.strip()
             result[key] = value
 
+    result["plugin_name"] = plugin_name
     return result
 
 
@@ -122,7 +123,7 @@ class DatabasesCommands(ABC):
                 detail="Database does not exist",
             )
         success, message = run_command(f"{plugin_name}:info {database_name}")
-        return success, parse_service_info(message) if success else None
+        return success, parse_service_info(plugin_name, message) if success else None
 
     @staticmethod
     def get_linked_apps(session_user: UserSchema, plugin_name: str,

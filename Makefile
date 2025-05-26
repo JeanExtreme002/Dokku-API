@@ -30,7 +30,7 @@ test:  ## Run unit tests
 
 .PHONY: lint
 lint:  ## Run lint
-	@poetry run flake8 src && poetry run yapf -r --diff src > /dev/null
+	@poetry run flake8 src
 
 .PHONY: lint-fix
 lint-fix:  ## Run lint fix

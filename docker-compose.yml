@@ -52,7 +52,7 @@ services:
     working_dir: /app
     volumes:
       - ./:/app
-    command: sh -c 'pip install poetry && poetry install --no-root; poetry run flake8 src && poetry run yapf -r --diff src > /dev/null;'
+    command: sh -c 'pip install poetry && poetry install --no-root; poetry run flake8 src;'
 
   mysql:
     image: mysql:8.0

@@ -11,9 +11,12 @@ from src.api.router.git import get_router as git_router
 from src.api.router.letsencrypt import get_router as letsencrypt_router
 from src.api.router.networks import get_router as networks_router
 from src.api.router.quota import get_router as quota_router
+from src.api.router.search import get_router as search_router
 from src.api.router.upload import get_router as upload_router
 from src.api.tools.validator import (
-    validate_admin, validate_api_key, validate_user_credentials
+    validate_admin,
+    validate_api_key,
+    validate_user_credentials,
 )
 
 
@@ -32,6 +35,13 @@ def get_router(app: FastAPI) -> APIRouter:
         git_router(app),
         tags=["Deploy"],
         prefix="/api/deploy",
+        dependencies=[Depends(validate_api_key),
+                      Depends(validate_user_credentials)],
+    )
+    router.include_router(
+        search_router(app),
+        tags=["Search"],
+        prefix="/api/search",
         dependencies=[Depends(validate_api_key),
                       Depends(validate_user_credentials)],
     )
