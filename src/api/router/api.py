@@ -16,7 +16,7 @@ def get_router(app: FastAPI) -> APIRouter:
             "app_name": Config.API_NAME,
             "version": Config.API_VERSION_NUMBER,
             "dokku_status": success,
-            "dokku_version": dokku_version,
+            "dokku_version": dokku_version if success else None,
         }
         return JSONResponse(status_code=status.HTTP_200_OK, content=result)
 
