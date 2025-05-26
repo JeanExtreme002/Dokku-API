@@ -16,7 +16,7 @@ from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
 from src.api.models.schema import UserSchema
-from src.api.tools import validate_email_format
+from src.api.tools import hash_access_token, validate_email_format
 from src.config import Config
 
 DB_USER = Config.DATABASE.DB_USER
@@ -152,6 +152,9 @@ def get_user(email: str) -> UserSchema:
 
 def get_user_by_access_token(access_token: str) -> UserSchema:
     db = SessionLocal()
+
+    access_token = hash_access_token(access_token)
+
     user = db.query(User).filter_by(access_token=access_token).first()
 
     if not user:
@@ -170,7 +173,7 @@ def create_user(email: str, access_token: str) -> None:
 
     db_user = User(
         email=email,
-        access_token=access_token,
+        access_token=hash_access_token(access_token),
     )
     db.add(db_user)
     db.commit()
