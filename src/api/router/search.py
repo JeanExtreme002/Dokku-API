@@ -25,7 +25,9 @@ def get_router(app: FastAPI) -> APIRouter:
 
             if query in app_name:
                 details = AppsCommands.get_app_info(user, app_name)[1]
-                data = result.get("apps", []) + [{app_name: details},]
+                data = result.get("apps", []) + [
+                    {app_name: details},
+                ]
                 result["apps"] = data
 
         for service_name in user.services:
@@ -38,7 +40,9 @@ def get_router(app: FastAPI) -> APIRouter:
                 details = DatabasesCommands.get_database_info(
                     user, plugin_name, service_name
                 )[1]
-                data = result.get("services", []) + [{service_name: details},]
+                data = result.get("services", []) + [
+                    {service_name: details},
+                ]
                 result["services"] = data
 
         for network_name in user.networks:
@@ -47,19 +51,23 @@ def get_router(app: FastAPI) -> APIRouter:
             ).lower()
 
             if query in network_name:
-                data = result.get("networks", []) + [network_name,]
+                data = result.get("networks", []) + [
+                    network_name,
+                ]
                 result["networks"] = data
 
         for available_database in DatabasesCommands.list_available_databases()[1]:
             if query in available_database:
-                data = result.get("available_databases", []) + [available_database,]
+                data = result.get("available_databases", []) + [
+                    available_database,
+                ]
                 result["available_databases"] = data
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
                 "success": True,
-                "result": result
+                "result": result,
             },
         )
 

@@ -32,7 +32,10 @@ if " " in API_KEY:
 def validate_admin(
     request: Request,
     master_key_header: Optional[str] = Security(
-        APIKeyHeader(name="MASTER-KEY", auto_error=False)
+        APIKeyHeader(
+            name="MASTER-KEY",
+            auto_error=False,
+        )
     ),
     payload: Optional[UserCredentialsPayload] = Body(default=None),
 ) -> None:
@@ -63,7 +66,8 @@ def validate_api_key(api_key: str) -> None:
 
 
 def validate_user_credentials(
-    request: Request, payload: UserCredentialsPayload = Body(...)
+    request: Request,
+    payload: UserCredentialsPayload = Body(...),
 ) -> None:
     """
     Check if request.state.session_user is set.

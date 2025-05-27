@@ -23,7 +23,8 @@ def parse_network_info(message: str) -> Dict:
 
         key = (
             match.group(1).strip().strip(":").lower().replace(" ", "_")
-            if match else line.strip()
+            if match
+            else line.strip()
         )
         value = match.group(2).strip() if match else ""
 
@@ -75,8 +76,11 @@ class NetworksCommands(ABC):
         return True, result
 
     @staticmethod
-    def set_network_to_app(session_user: UserSchema, network_name: str,
-                           app_name: str) -> Tuple[bool, Any]:
+    def set_network_to_app(
+        session_user: UserSchema,
+        network_name: str,
+        app_name: str,
+    ) -> Tuple[bool, Any]:
         network_name = ResourceName(session_user, network_name, Network).for_system()
         app_name = ResourceName(session_user, app_name, App).for_system()
 
@@ -89,10 +93,13 @@ class NetworksCommands(ABC):
         return run_command(f"network:set {app_name} initial-network {network_name}")
 
     @staticmethod
-    def get_linked_apps(session_user: UserSchema,
-                        network_name: str) -> Tuple[bool, Any]:
-        sys_network_name = ResourceName(session_user, network_name,
-                                        Network).for_system()
+    def get_linked_apps(
+        session_user: UserSchema,
+        network_name: str,
+    ) -> Tuple[bool, Any]:
+        sys_network_name = ResourceName(
+            session_user, network_name, Network
+        ).for_system()
 
         if sys_network_name not in session_user.networks:
             raise HTTPException(status_code=404, detail="Network does not exist")

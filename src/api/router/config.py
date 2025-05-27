@@ -8,7 +8,8 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post(
-        "/{app_name}", response_description="Return application configurations"
+        "/{app_name}",
+        response_description="Return application configurations",
     )
     async def list_config(
         request: Request,
@@ -22,7 +23,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -43,7 +44,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -65,7 +66,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -86,7 +87,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -106,7 +107,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 

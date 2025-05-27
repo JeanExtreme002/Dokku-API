@@ -30,20 +30,14 @@ test:  ## Run unit tests
 
 .PHONY: lint
 lint:  ## Run lint
-	@poetry run flake8 src
+	@poetry run flake8 src && poetry run black --check src
 
 .PHONY: lint-fix
 lint-fix:  ## Run lint fix
 	@{ \
 		poetry run isort src; \
 		\
-		EXIT_CODE=$$(poetry run flake8 src > /dev/null 2>&1; echo $$?); \
-		\
-		if [ "$$EXIT_CODE" -ne 0 ]; then \
-		  poetry run black src --quiet; \
-		fi; \
-		\
-		poetry run yapf -r -i src; \
+		poetry run black src; \
 	}
 
 .PHONY: dokku-install

@@ -43,7 +43,6 @@ aiofiles = "^24.1.0"
 flake8 = "^7.1.0"
 isort = "^6.0.1"
 coverage = "^7.6.4"
-yapf = "^0.43.0"
 black = "^25.1.0"
 commitizen = "^4.8.2"
 pre-commit = "^4.2.0"
@@ -52,10 +51,6 @@ pre-commit = "^4.2.0"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.yapf]
-based_on_style = "pep8"
-spaces_before_comment = 2
-column_limit = 88
-split_before_logical_operator = true
-dedent_closing_brackets = true
-coalesce_brackets = true
+[tool.black]
+line-length = 88
+target-version = ["py39"]

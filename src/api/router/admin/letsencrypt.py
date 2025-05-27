@@ -13,10 +13,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={
-                "success": success,
-                "result": result
-            },
+            content={"success": success, "result": result},
         )
 
     @router.post(
@@ -28,10 +25,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={
-                "success": success,
-                "result": result
-            },
+            content={"success": success, "result": result},
         )
 
     return router

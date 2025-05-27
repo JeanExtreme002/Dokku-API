@@ -28,8 +28,10 @@ class LetsencryptCommands(ABC):
         return success, message
 
     @staticmethod
-    def disable_letsencrypt(session_user: UserSchema,
-                            app_name: str) -> Tuple[bool, Any]:
+    def disable_letsencrypt(
+        session_user: UserSchema,
+        app_name: str,
+    ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:

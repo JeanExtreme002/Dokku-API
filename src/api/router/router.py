@@ -29,76 +29,98 @@ def get_router(app: FastAPI) -> APIRouter:
         upload_router(app),
         tags=["Deploy"],
         prefix="/api/deploy",
-        dependencies=[Depends(validate_api_key)],
+        dependencies=[
+            Depends(validate_api_key),
+        ],
     )
     router.include_router(
         git_router(app),
         tags=["Deploy"],
         prefix="/api/deploy",
-        dependencies=[Depends(validate_api_key),
-                      Depends(validate_user_credentials)],
+        dependencies=[
+            Depends(validate_api_key),
+            Depends(validate_user_credentials),
+        ],
     )
     router.include_router(
         search_router(app),
         tags=["Search"],
         prefix="/api/search",
-        dependencies=[Depends(validate_api_key),
-                      Depends(validate_user_credentials)],
+        dependencies=[
+            Depends(validate_api_key),
+            Depends(validate_user_credentials),
+        ],
     )
     router.include_router(
         apps_router(app),
         tags=["Apps"],
         prefix="/api/apps",
-        dependencies=[Depends(validate_api_key),
-                      Depends(validate_user_credentials)],
+        dependencies=[
+            Depends(validate_api_key),
+            Depends(validate_user_credentials),
+        ],
     )
     router.include_router(
         config_router(app),
         tags=["Config"],
         prefix="/api/config",
-        dependencies=[Depends(validate_api_key),
-                      Depends(validate_user_credentials)],
+        dependencies=[
+            Depends(validate_api_key),
+            Depends(validate_user_credentials),
+        ],
     )
     router.include_router(
         databases_router(app),
         tags=["Databases"],
         prefix="/api/databases",
-        dependencies=[Depends(validate_api_key),
-                      Depends(validate_user_credentials)],
+        dependencies=[
+            Depends(validate_api_key),
+            Depends(validate_user_credentials),
+        ],
     )
     router.include_router(
         networks_router(app),
         tags=["Networks"],
         prefix="/api/networks",
-        dependencies=[Depends(validate_api_key),
-                      Depends(validate_user_credentials)],
+        dependencies=[
+            Depends(validate_api_key),
+            Depends(validate_user_credentials),
+        ],
     )
     router.include_router(
         domains_router(app),
         tags=["Domains"],
         prefix="/api/domains",
-        dependencies=[Depends(validate_api_key),
-                      Depends(validate_user_credentials)],
+        dependencies=[
+            Depends(validate_api_key),
+            Depends(validate_user_credentials),
+        ],
     )
     router.include_router(
         letsencrypt_router(app),
         tags=["Letsencrypt"],
         prefix="/api/letsencrypt",
-        dependencies=[Depends(validate_api_key),
-                      Depends(validate_user_credentials)],
+        dependencies=[
+            Depends(validate_api_key),
+            Depends(validate_user_credentials),
+        ],
     )
     router.include_router(
         quota_router(app),
         tags=["Quota"],
         prefix="/api/quota",
-        dependencies=[Depends(validate_api_key),
-                      Depends(validate_user_credentials)],
+        dependencies=[
+            Depends(validate_api_key),
+            Depends(validate_user_credentials),
+        ],
     )
     router.include_router(
         admin_router(app),
         tags=["Admin"],
         prefix="/api/admin",
-        dependencies=[Depends(validate_admin)],
+        dependencies=[
+            Depends(validate_admin),
+        ],
     )
 
     return router

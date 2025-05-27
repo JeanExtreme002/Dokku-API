@@ -45,8 +45,11 @@ class DatabasesCommands(ABC):
         return True, available_databases
 
     @staticmethod
-    def create_database(session_user: UserSchema, plugin_name: str,
-                        database_name: str) -> Tuple[bool, Any]:
+    def create_database(
+        session_user: UserSchema,
+        plugin_name: str,
+        database_name: str,
+    ) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
         available_databases = DatabasesCommands.list_available_databases()[1]
 
@@ -80,7 +83,8 @@ class DatabasesCommands(ABC):
     @staticmethod
     def list_databases(session_user: UserSchema, plugin_name: str) -> Tuple[bool, Any]:
         plugins = [
-            plugin for plugin in session_user.services
+            plugin
+            for plugin in session_user.services
             if plugin.startswith(plugin_name + ":")
         ]
         databases = [plugin.split(":", maxsplit=1)[1] for plugin in plugins]
@@ -99,8 +103,11 @@ class DatabasesCommands(ABC):
         return True, result
 
     @staticmethod
-    def delete_database(session_user: UserSchema, plugin_name: str,
-                        database_name: str) -> Tuple[bool, Any]:
+    def delete_database(
+        session_user: UserSchema,
+        plugin_name: str,
+        database_name: str,
+    ) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:
@@ -113,7 +120,9 @@ class DatabasesCommands(ABC):
 
     @staticmethod
     def get_database_info(
-        session_user: UserSchema, plugin_name: str, database_name: str
+        session_user: UserSchema,
+        plugin_name: str,
+        database_name: str,
     ) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
 
@@ -126,8 +135,11 @@ class DatabasesCommands(ABC):
         return success, parse_service_info(plugin_name, message) if success else None
 
     @staticmethod
-    def get_linked_apps(session_user: UserSchema, plugin_name: str,
-                        database_name: str) -> Tuple[bool, Any]:
+    def get_linked_apps(
+        session_user: UserSchema,
+        plugin_name: str,
+        database_name: str,
+    ) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:
@@ -136,16 +148,24 @@ class DatabasesCommands(ABC):
                 detail="Database does not exist",
             )
         success, message = run_command(f"{plugin_name}:links {database_name}")
-        result = ([
-            str(ResourceName(session_user, app, App, from_system=True))
-            for app in message.split("\n") if app
-        ] if success else [])
+        result = (
+            [
+                str(ResourceName(session_user, app, App, from_system=True))
+                for app in message.split("\n")
+                if app
+            ]
+            if success
+            else []
+        )
 
         return success, result
 
     @staticmethod
     def link_database(
-        session_user: UserSchema, plugin_name: str, database_name: str, app_name: str
+        session_user: UserSchema,
+        plugin_name: str,
+        database_name: str,
+        app_name: str,
     ) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
         app_name = ResourceName(session_user, app_name, App).for_system()
@@ -166,7 +186,10 @@ class DatabasesCommands(ABC):
 
     @staticmethod
     def unlink_database(
-        session_user: UserSchema, plugin_name: str, database_name: str, app_name: str
+        session_user: UserSchema,
+        plugin_name: str,
+        database_name: str,
+        app_name: str,
     ) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
         app_name = ResourceName(session_user, app_name, App).for_system()
@@ -187,7 +210,9 @@ class DatabasesCommands(ABC):
 
     @staticmethod
     def get_database_uri(
-        session_user: UserSchema, plugin_name: str, database_name: str
+        session_user: UserSchema,
+        plugin_name: str,
+        database_name: str,
     ) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
 

@@ -23,7 +23,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -43,7 +43,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 

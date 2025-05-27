@@ -15,7 +15,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -30,7 +30,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -45,7 +45,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -63,7 +63,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -83,7 +83,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -103,12 +103,13 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
     @router.post(
-        "/{app_name}/logs", response_description="Return the logs of an application"
+        "/{app_name}/logs",
+        response_description="Return the logs of an application",
     )
     async def get_logs(
         request: Request,
@@ -120,7 +121,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -140,7 +141,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -158,7 +159,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -178,7 +179,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -201,7 +202,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -224,7 +225,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 

@@ -31,7 +31,8 @@ def parse_ps_report(text: str) -> Dict:
 
         key = (
             match.group(1).strip().strip(":").lower().replace(" ", "_")
-            if match else line.strip()
+            if match
+            else line.strip()
         )
         value = match.group(2).strip() if match else ""
 
@@ -83,11 +84,13 @@ def parse_port_mappings(text: str) -> List:
 
         if len(parts) == 3:
             scheme, host_port, container_port = parts
-            ports.append({
-                "procotol": scheme,
-                "origin": int(host_port),
-                "dest": int(container_port),
-            })
+            ports.append(
+                {
+                    "procotol": scheme,
+                    "origin": int(host_port),
+                    "dest": int(container_port),
+                }
+            )
 
     return ports
 
@@ -107,8 +110,10 @@ class AppsCommands(ABC):
         return run_command(f"apps:create {app_name}")
 
     @staticmethod
-    def get_deployment_token(session_user: UserSchema,
-                             app_name: str) -> Tuple[bool, Any]:
+    def get_deployment_token(
+        session_user: UserSchema,
+        app_name: str,
+    ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -240,8 +245,10 @@ class AppsCommands(ABC):
         )
 
     @staticmethod
-    def get_linked_databases(session_user: UserSchema,
-                             app_name: str) -> Tuple[bool, Any]:
+    def get_linked_databases(
+        session_user: UserSchema,
+        app_name: str,
+    ) -> Tuple[bool, Any]:
         sys_app_name = ResourceName(session_user, app_name, App).for_system()
 
         if sys_app_name not in session_user.apps:

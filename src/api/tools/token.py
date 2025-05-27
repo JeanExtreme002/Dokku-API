@@ -11,5 +11,5 @@ def hash_access_token(access_token: str) -> str:
     Returns:
         str: The hashed access token.
     """
-    access_token_bytes = access_token.encode('utf-8')
+    access_token_bytes = access_token.encode("utf-8")
     return hashlib.sha512(access_token_bytes).hexdigest()

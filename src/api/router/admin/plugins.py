@@ -13,10 +13,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={
-                "success": success,
-                "result": result
-            },
+            content={"success": success, "result": result},
         )
 
     @router.post("/{plugin_name}", response_description="Install plugin")
@@ -25,10 +22,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={
-                "success": success,
-                "result": result
-            },
+            content={"success": success, "result": result},
         )
 
     @router.delete("/{plugin_name}", response_description="Uninstall plugin")
@@ -37,24 +31,19 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={
-                "success": success,
-                "result": result
-            },
+            content={"success": success, "result": result},
         )
 
     @router.post(
-        "/check/{plugin_name}", response_description="Check if plugin is installed"
+        "/check/{plugin_name}",
+        response_description="Check if plugin is installed",
     )
     async def is_plugin_installed(plugin_name: str):
         success, result = PluginsCommands.is_plugin_installed(plugin_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={
-                "success": success,
-                "result": result
-            },
+            content={"success": success, "result": result},
         )
 
     return router

@@ -1566,21 +1566,6 @@ files = [
 ]
 
 [[package]]
-name = "yapf"
-version = "0.43.0"
-description = "A formatter for Python code"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "yapf-0.43.0-py3-none-any.whl", hash = "sha256:224faffbc39c428cb095818cf6ef5511fdab6f7430a10783fdfb292ccf2852ca"},
-    {file = "yapf-0.43.0.tar.gz", hash = "sha256:00d3aa24bfedff9420b2e0d5d9f5ab6d9d4268e72afbf59bb3fa542781d5218e"},
-]
-
-[package.dependencies]
-platformdirs = ">=3.5.1"
-tomli = {version = ">=2.0.1", markers = "python_version < \"3.11\""}
-
-[[package]]
 name = "zipp"
 version = "3.21.0"
 description = "Backport of pathlib-compatible object wrapper for zip files"
@@ -1602,4 +1587,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d40d0c96fb0b9f7a0cb3f350096f03cc640902400d4ec390e799355945252ad7"
+content-hash = "47f84208f2f07c43ae8e42be88832297edd294c9c963fb0d7d9bde943a8e0673"

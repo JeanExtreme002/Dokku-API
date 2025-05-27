@@ -23,12 +23,17 @@ class ResourceName:
         alphanumeric = "abcdefghijklmnopqrstuvwxyz0123456789"
 
         if not from_system:
-            self.__name = "".join([(char if char in alphanumeric else self.__separator)
-                                   for char in self.__name])
+            self.__name = "".join(
+                [
+                    (char if char in alphanumeric else self.__separator)
+                    for char in self.__name
+                ]
+            )
 
         self.__name = (
             self.__name.split(self.__separator, maxsplit=1)[1]
-            if from_system else self.__name
+            if from_system
+            else self.__name
         )
 
     def for_system(self) -> str:

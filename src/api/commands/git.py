@@ -61,7 +61,10 @@ async def save_app_zip(file: UploadFile, dest_dir: Path) -> Tuple[Path, App]:
 
 
 async def push_to_dokku(
-    repo_path: Path, dokku_host: str, app_name: str, branch: str = "main"
+    repo_path: Path,
+    dokku_host: str,
+    app_name: str,
+    branch: str = "main",
 ):
     env = os.environ.copy()
     env["GIT_SSH_COMMAND"] = (
@@ -112,7 +115,10 @@ class GitCommands(ABC):
 
     @staticmethod
     async def deploy_application_by_url(
-        session_user: UserSchema, app_name: str, repo_url: str, branch: str
+        session_user: UserSchema,
+        app_name: str,
+        repo_url: str,
+        branch: str,
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
@@ -128,8 +134,10 @@ class GitCommands(ABC):
         return success, message
 
     @staticmethod
-    async def deploy_application(file: UploadFile,
-                                 wait: bool = False) -> Tuple[bool, Any]:
+    async def deploy_application(
+        file: UploadFile,
+        wait: bool = False,
+    ) -> Tuple[bool, Any]:
         filename = file.filename.split(".")[0]
 
         SSH_HOSTNAME = Config.SSH_SERVER.SSH_HOSTNAME

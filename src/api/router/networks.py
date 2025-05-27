@@ -15,7 +15,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -32,7 +32,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -49,7 +49,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
@@ -69,12 +69,13 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
     @router.post(
-        "/{network_name}/link/{app_name}", response_description="Set network to app"
+        "/{network_name}/link/{app_name}",
+        response_description="Set network to app",
     )
     async def set_network_to_app(
         request: Request,
@@ -89,7 +90,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK,
             content={
                 "success": success,
-                "result": result
+                "result": result,
             },
         )
 
