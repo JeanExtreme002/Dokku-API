@@ -36,38 +36,42 @@ def parse_network_info(message: str) -> Dict:
 class NetworksCommands(ABC):
 
     @staticmethod
-    def create_network(session_user: UserSchema, network_name: str) -> Tuple[bool, Any]:
+    async def create_network(
+        session_user: UserSchema, network_name: str
+    ) -> Tuple[bool, Any]:
         network_name = ResourceName(session_user, network_name, Network).for_system()
 
-        _, message = run_command(f"network:exists {network_name}")
+        _, message = await run_command(f"network:exists {network_name}")
 
         if "does not exist" not in message.lower():
             raise HTTPException(status_code=403, detail="Network already exists")
 
-        create_resource(session_user.email, network_name, Network)
-        return run_command(f"network:create {network_name}")
+        await create_resource(session_user.email, network_name, Network)
+        return await run_command(f"network:create {network_name}")
 
     @staticmethod
-    def delete_network(session_user: UserSchema, network_name: str) -> Tuple[bool, Any]:
+    async def delete_network(
+        session_user: UserSchema, network_name: str
+    ) -> Tuple[bool, Any]:
         network_name = ResourceName(session_user, network_name, Network).for_system()
 
         if network_name not in session_user.networks:
             raise HTTPException(status_code=404, detail="Network does not exist")
 
-        delete_resource(session_user.email, network_name, Network)
-        return run_command(f"--force network:destroy {network_name}")
+        await delete_resource(session_user.email, network_name, Network)
+        return await run_command(f"--force network:destroy {network_name}")
 
     @staticmethod
-    def list_networks(session_user: UserSchema) -> Tuple[bool, Any]:
+    async def list_networks(session_user: UserSchema) -> Tuple[bool, Any]:
         result = {}
 
         for network_name in session_user.networks:
             parsed_network_name = ResourceName(
                 session_user, network_name, Network, from_system=True
             )
-            parsed_network_name = str(network_name)
+            parsed_network_name = str(parsed_network_name)
 
-            success, message = run_command(f"network:info {network_name}")
+            success, message = await run_command(f"network:info {network_name}")
             result[parsed_network_name] = None
 
             if not success:
@@ -76,7 +80,7 @@ class NetworksCommands(ABC):
         return True, result
 
     @staticmethod
-    def set_network_to_app(
+    async def set_network_to_app(
         session_user: UserSchema,
         network_name: str,
         app_name: str,
@@ -90,10 +94,12 @@ class NetworksCommands(ABC):
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        return run_command(f"network:set {app_name} initial-network {network_name}")
+        return await run_command(
+            f"network:set {app_name} initial-network {network_name}"
+        )
 
     @staticmethod
-    def get_linked_apps(
+    async def get_linked_apps(
         session_user: UserSchema,
         network_name: str,
     ) -> Tuple[bool, Any]:
@@ -110,7 +116,7 @@ class NetworksCommands(ABC):
             app_name = ResourceName(session_user, app_name, App, from_system=True)
             app_name = str(app_name)
 
-            success, data = AppsCommands.get_network(session_user, app_name)
+            success, data = await AppsCommands.get_network(session_user, app_name)
 
             if success and data.get("network", "") == network_name:
                 results.append(app_name)

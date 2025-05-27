@@ -15,7 +15,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = ConfigCommands.list_config(
+        success, result = await ConfigCommands.list_config(
             request.state.session_user, app_name
         )
 
@@ -36,7 +36,7 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         key: str,
     ):
-        success, result = ConfigCommands.get_config(
+        success, result = await ConfigCommands.get_config(
             request.state.session_user, app_name, key
         )
 
@@ -58,7 +58,7 @@ def get_router(app: FastAPI) -> APIRouter:
         key: str,
         value: str,
     ):
-        success, result = ConfigCommands.set_config(
+        success, result = await ConfigCommands.set_config(
             request.state.session_user, app_name, key, value
         )
 
@@ -79,7 +79,7 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         key: str,
     ):
-        success, result = ConfigCommands.unset_config(
+        success, result = await ConfigCommands.unset_config(
             request.state.session_user, app_name, key
         )
 
@@ -99,7 +99,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = ConfigCommands.apply_config(
+        success, result = await ConfigCommands.apply_config(
             request.state.session_user, app_name
         )
 

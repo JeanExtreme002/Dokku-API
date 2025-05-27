@@ -9,7 +9,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
     @router.post("/list", response_description="Return all applications")
     async def list_apps(request: Request):
-        success, result = AppsCommands.list_apps(request.state.session_user)
+        success, result = await AppsCommands.list_apps(request.state.session_user)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -24,7 +24,9 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = AppsCommands.create_app(request.state.session_user, app_name)
+        success, result = await AppsCommands.create_app(
+            request.state.session_user, app_name
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -39,7 +41,9 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = AppsCommands.delete_app(request.state.session_user, app_name)
+        success, result = await AppsCommands.delete_app(
+            request.state.session_user, app_name
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -57,7 +61,9 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = AppsCommands.get_app_url(request.state.session_user, app_name)
+        success, result = await AppsCommands.get_app_url(
+            request.state.session_user, app_name
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -75,7 +81,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = AppsCommands.get_app_info(
+        success, result = await AppsCommands.get_app_info(
             request.state.session_user, app_name
         )
 
@@ -95,7 +101,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = AppsCommands.get_deployment_token(
+        success, result = await AppsCommands.get_deployment_token(
             request.state.session_user, app_name
         )
 
@@ -115,7 +121,9 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = AppsCommands.get_logs(request.state.session_user, app_name)
+        success, result = await AppsCommands.get_logs(
+            request.state.session_user, app_name
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -133,7 +141,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = AppsCommands.get_linked_databases(
+        success, result = await AppsCommands.get_linked_databases(
             request.state.session_user, app_name
         )
 
@@ -153,7 +161,9 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = AppsCommands.get_network(request.state.session_user, app_name)
+        success, result = await AppsCommands.get_network(
+            request.state.session_user, app_name
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -171,7 +181,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = AppsCommands.list_port_mappings(
+        success, result = await AppsCommands.list_port_mappings(
             request.state.session_user, app_name
         )
 
@@ -194,7 +204,7 @@ def get_router(app: FastAPI) -> APIRouter:
         dest_port: int,
         protocol: str = "http",
     ):
-        success, result = AppsCommands.add_port_mapping(
+        success, result = await AppsCommands.add_port_mapping(
             request.state.session_user, app_name, origin_port, dest_port, protocol
         )
 
@@ -217,7 +227,7 @@ def get_router(app: FastAPI) -> APIRouter:
         dest_port: int,
         protocol: str = "http",
     ):
-        success, result = AppsCommands.remove_port_mapping(
+        success, result = await AppsCommands.remove_port_mapping(
             request.state.session_user, app_name, origin_port, dest_port, protocol
         )
 

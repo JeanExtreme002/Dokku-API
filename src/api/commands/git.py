@@ -57,7 +57,34 @@ async def save_app_zip(file: UploadFile, dest_dir: Path) -> Tuple[Path, App]:
     with open(deploy_token_path, "r") as deploy_token_file:
         deploy_token = deploy_token_file.read().strip().strip("\n").strip("\r")
 
-    return dest_dir, get_app_by_deploy_token(deploy_token)
+    app, user = await get_app_by_deploy_token(deploy_token)
+    return dest_dir, app, user
+
+
+async def run_git_command(
+    *args,
+    cwd: Path,
+    env: dict = None,
+    check: bool = True,
+    suppress_errors: bool = False,
+):
+    process = await asyncio.create_subprocess_exec(
+        *args,
+        cwd=str(cwd),
+        env=env,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await process.communicate()
+
+    if check and process.returncode != 0:
+        if suppress_errors:
+            return None
+        raise subprocess.CalledProcessError(
+            process.returncode, args, output=stdout, stderr=stderr
+        )
+
+    return stdout.decode(), stderr.decode()
 
 
 async def push_to_dokku(
@@ -67,36 +94,41 @@ async def push_to_dokku(
     branch: str = "main",
 ):
     env = os.environ.copy()
+
     env["GIT_SSH_COMMAND"] = (
-        f"ssh -i /app/{Config.SSH_SERVER.SSH_KEY_PATH} -o StrictHostKeyChecking=no"
+        f"ssh -i {Config.SSH_SERVER.SSH_KEY_PATH} -o StrictHostKeyChecking=no"
     )
 
     try:
-        subprocess.run(
-            ["git", "remote", "remove", "dokku"],
+        await run_git_command(
+            "git",
+            "remote",
+            "remove",
+            "dokku",
             cwd=repo_path,
             check=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            suppress_errors=True,
         )
-
-        subprocess.run(
-            ["git", "remote", "add", "dokku", f"dokku@{dokku_host}:{app_name}"],
+        await run_git_command(
+            "git",
+            "remote",
+            "add",
+            "dokku",
+            f"dokku@{dokku_host}:{app_name}",
             cwd=repo_path,
             check=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            suppress_errors=True,
         )
 
-        result = subprocess.run(
-            ["git", "push", "dokku", branch],
+        stdout, _ = await run_git_command(
+            "git",
+            "push",
+            "dokku",
+            branch,
             cwd=repo_path,
-            check=True,
             env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
         )
-        return result.stdout.decode()
+        return stdout
 
     except subprocess.CalledProcessError as error:
         raise HTTPException(
@@ -125,11 +157,8 @@ class GitCommands(ABC):
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        success, message = run_command(f"git:sync {app_name} {repo_url} {branch}")
-
-        asyncio.create_task(
-            asyncio.to_thread(lambda: run_command(f"ps:rebuild {app_name}"))
-        )
+        success, message = await run_command(f"git:sync {app_name} {repo_url} {branch}")
+        asyncio.create_task(run_command(f"ps:rebuild {app_name}"))
 
         return success, message
 
@@ -149,13 +178,15 @@ class GitCommands(ABC):
         dest_dir = BASE_DIR / f"dokku-api-deploy-{filename}-{timestamp}"
         dest_dir.mkdir(parents=True, exist_ok=True)
 
-        dest_dir, app = await save_app_zip(file, dest_dir)
-        app_name = ResourceName(app.user, app.name, App, from_system=True).for_system()
+        dest_dir, app, user = await save_app_zip(file, dest_dir)
+        app_name = ResourceName(user, app.name, App, from_system=True).for_system()
 
         task = push_to_dokku(dest_dir, SSH_HOSTNAME, app_name, branch=BRANCH)
         result = "Deploying application..."
 
-        if wait:
+        if not wait:
+            asyncio.create_task(task)
+        else:
             result = await task
 
         return True, result

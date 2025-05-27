@@ -10,7 +10,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
     @router.get("/", response_description="Return details about the API")
     async def get_details(request: Request):
-        success, dokku_version = get_dokku_version()
+        success, dokku_version = await get_dokku_version()
 
         result = {
             "app_name": Config.API_NAME,
@@ -22,7 +22,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
     @router.get("/list-databases", response_description="List available databases")
     async def list_available_databases(request: Request):
-        success, result = DatabasesCommands.list_available_databases()
+        success, result = await DatabasesCommands.list_available_databases()
 
         result = {
             "success": success,

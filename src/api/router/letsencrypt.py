@@ -15,7 +15,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = LetsencryptCommands.enable_letsencrypt(
+        success, result = await LetsencryptCommands.enable_letsencrypt(
             request.state.session_user, app_name
         )
 
@@ -35,7 +35,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = LetsencryptCommands.disable_letsencrypt(
+        success, result = await LetsencryptCommands.disable_letsencrypt(
             request.state.session_user, app_name
         )
 

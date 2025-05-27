@@ -1,9 +1,14 @@
+import asyncio
+
 import uvicorn
 
+from src.api.models import init_models
 from src.config import Config
 
 
 def main() -> None:
+
+    asyncio.run(init_models())
 
     uvicorn.run(
         "src.api.app:get_app",

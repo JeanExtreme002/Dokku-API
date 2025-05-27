@@ -98,19 +98,19 @@ def parse_port_mappings(text: str) -> List:
 class AppsCommands(ABC):
 
     @staticmethod
-    def create_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def create_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
-        _, message = run_command(f"apps:exists {app_name}")
+        _, message = await run_command(f"apps:exists {app_name}")
 
         if "does not exist" not in message.lower():
             raise HTTPException(status_code=403, detail="App already exists")
 
-        create_resource(session_user.email, app_name, App)
-        return run_command(f"apps:create {app_name}")
+        await create_resource(session_user.email, app_name, App)
+        return await run_command(f"apps:create {app_name}")
 
     @staticmethod
-    def get_deployment_token(
+    async def get_deployment_token(
         session_user: UserSchema,
         app_name: str,
     ) -> Tuple[bool, Any]:
@@ -119,76 +119,78 @@ class AppsCommands(ABC):
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        deploy_token = get_app_deployment_token(app_name)
+        deploy_token = await get_app_deployment_token(app_name)
 
         return True, deploy_token
 
     @staticmethod
-    def delete_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def delete_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        delete_resource(session_user.email, app_name, App)
-        return run_command(f"--force apps:destroy {app_name}")
+        await delete_resource(session_user.email, app_name, App)
+        return await run_command(f"--force apps:destroy {app_name}")
 
     @staticmethod
-    def get_app_url(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def get_app_url(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        return run_command(f"url {app_name}")
+        return await run_command(f"url {app_name}")
 
     @staticmethod
-    def get_app_info(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def get_app_info(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        success, message = run_command(f"ps:inspect {app_name}")
+        success, message = await run_command(f"ps:inspect {app_name}")
         result = {}
 
         if success:
             result["data"] = json.loads(message)
             result["info_origin"] = "inspect"
         else:
-            success, message = run_command(f"ps:report {app_name}")
+            success, message = await run_command(f"ps:report {app_name}")
             result["data"] = parse_ps_report(message) if success else None
-            result["info_orihin"] = "report" if success else None
+            result["info_origin"] = "report" if success else None
 
         return success, result
 
     @staticmethod
-    def list_apps(session_user: UserSchema) -> Tuple[bool, Any]:
+    async def list_apps(session_user: UserSchema) -> Tuple[bool, Any]:
         result = {}
 
         for app_name in session_user.apps:
             app_name = str(ResourceName(session_user, app_name, App, from_system=True))
-            result[app_name] = AppsCommands.get_app_info(session_user, app_name)[1]
+            result[app_name] = (
+                await AppsCommands.get_app_info(session_user, app_name)
+            )[1]
 
         return True, result
 
     @staticmethod
-    def get_logs(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def get_logs(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        return run_command(f"logs {app_name}")
+        return await run_command(f"logs {app_name}")
 
     @staticmethod
-    def get_network(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def get_network(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        success, message = run_command(f"network:report {app_name}")
+        success, message = await run_command(f"network:report {app_name}")
 
         if not success:
             return False, message
@@ -196,13 +198,15 @@ class AppsCommands(ABC):
         return True, parse_network_info(session_user, message)
 
     @staticmethod
-    def list_port_mappings(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def list_port_mappings(
+        session_user: UserSchema, app_name: str
+    ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        success, message = run_command(f"ports:list {app_name}")
+        success, message = await run_command(f"ports:list {app_name}")
 
         if "no port mappings" in message.lower():
             return True, []
@@ -213,7 +217,7 @@ class AppsCommands(ABC):
         return True, parse_port_mappings(message)
 
     @staticmethod
-    def add_port_mapping(
+    async def add_port_mapping(
         session_user: UserSchema,
         app_name: str,
         origin_port: int,
@@ -225,10 +229,12 @@ class AppsCommands(ABC):
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        return run_command(f"ports:add {app_name} {protocol}:{origin_port}:{dest_port}")
+        return await run_command(
+            f"ports:add {app_name} {protocol}:{origin_port}:{dest_port}"
+        )
 
     @staticmethod
-    def remove_port_mapping(
+    async def remove_port_mapping(
         session_user: UserSchema,
         app_name: str,
         origin_port: int,
@@ -240,12 +246,12 @@ class AppsCommands(ABC):
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        return run_command(
+        return await run_command(
             f"ports:remove {app_name} {protocol}:{origin_port}:{dest_port}"
         )
 
     @staticmethod
-    def get_linked_databases(
+    async def get_linked_databases(
         session_user: UserSchema,
         app_name: str,
     ) -> Tuple[bool, Any]:
@@ -262,7 +268,7 @@ class AppsCommands(ABC):
                 ResourceName(session_user, db_name, Service, from_system=True)
             )
 
-            success, data = DatabasesCommands.get_linked_apps(
+            success, data = await DatabasesCommands.get_linked_apps(
                 session_user, plugin_name, db_name
             )
 

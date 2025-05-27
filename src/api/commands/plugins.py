@@ -30,15 +30,15 @@ def parse_plugins(text: str) -> Dict:
 class PluginsCommands(ABC):
 
     @staticmethod
-    def list_plugins() -> Tuple[bool, Any]:
-        success, message = run_command("plugin:list")
+    async def list_plugins() -> Tuple[bool, Any]:
+        success, message = await run_command("plugin:list")
         result = parse_plugins(message) if success else message
 
         return success, result
 
     @staticmethod
-    def is_plugin_installed(plugin_name: str) -> Tuple[bool, Any]:
-        success, data = PluginsCommands.list_plugins()
+    async def is_plugin_installed(plugin_name: str) -> Tuple[bool, Any]:
+        success, data = await PluginsCommands.list_plugins()
 
         if not success:
             return False, data
@@ -48,9 +48,9 @@ class PluginsCommands(ABC):
         return False, "Plugin is not installed"
 
     @staticmethod
-    def install_plugin(plugin_url: str, name: str) -> Tuple[bool, Any]:
-        return run_command_as_root(f"plugin:install {plugin_url} --name {name}")
+    async def install_plugin(plugin_url: str, name: str) -> Tuple[bool, Any]:
+        return await run_command_as_root(f"plugin:install {plugin_url} --name {name}")
 
     @staticmethod
-    def uninstall_plugin(plugin_name: str) -> Tuple[bool, Any]:
-        return run_command_as_root(f"plugin:uninstall {plugin_name}")
+    async def uninstall_plugin(plugin_name: str) -> Tuple[bool, Any]:
+        return await run_command_as_root(f"plugin:uninstall {plugin_name}")

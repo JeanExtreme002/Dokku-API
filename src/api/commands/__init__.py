@@ -11,8 +11,8 @@ from src.api.commands.plugins import PluginsCommands
 from src.api.tools.ssh import run_command
 
 
-def get_dokku_version() -> Tuple[bool, str]:
+async def get_dokku_version() -> Tuple[bool, str]:
     """
     Get the version of Dokku installed on the server.
     """
-    return run_command("version")
+    return await run_command("version")

@@ -38,6 +38,7 @@ requests = "^2.32.3"
 pymysql = "^1.1.1"
 sqlalchemy = "^2.0.41"
 aiofiles = "^24.1.0"
+asyncmy = "^0.2.10"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.1.0"

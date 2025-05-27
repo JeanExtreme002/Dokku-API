@@ -12,7 +12,9 @@ from src.api.tools.ssh import run_command
 class LetsencryptCommands(ABC):
 
     @staticmethod
-    def enable_letsencrypt(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def enable_letsencrypt(
+        session_user: UserSchema, app_name: str
+    ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -20,7 +22,7 @@ class LetsencryptCommands(ABC):
                 status_code=404,
                 detail="App does not exist",
             )
-        success, message = run_command(f"letsencrypt:enable {app_name}")
+        success, message = await run_command(f"letsencrypt:enable {app_name}")
 
         if "retrieval failed" in message:
             return False, message
@@ -28,7 +30,7 @@ class LetsencryptCommands(ABC):
         return success, message
 
     @staticmethod
-    def disable_letsencrypt(
+    async def disable_letsencrypt(
         session_user: UserSchema,
         app_name: str,
     ) -> Tuple[bool, Any]:
@@ -39,12 +41,12 @@ class LetsencryptCommands(ABC):
                 status_code=404,
                 detail="App does not exist",
             )
-        return run_command(f"letsencrypt:disable {app_name}")
+        return await run_command(f"letsencrypt:disable {app_name}")
 
     @staticmethod
-    def set_letsencrypt_email(email: str) -> Tuple[bool, Any]:
-        return run_command(f"config:set --global DOKKU_LETSENCRYPT_EMAIL={email}")
+    async def set_letsencrypt_email(email: str) -> Tuple[bool, Any]:
+        return await run_command(f"config:set --global DOKKU_LETSENCRYPT_EMAIL={email}")
 
     @staticmethod
-    def enable_letsencrypt_auto_renewal() -> Tuple[bool, Any]:
-        return run_command("letsencrypt:cron-job --add")
+    async def enable_letsencrypt_auto_renewal() -> Tuple[bool, Any]:
+        return await run_command("letsencrypt:cron-job --add")

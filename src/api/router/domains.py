@@ -16,7 +16,7 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         domain_name: str,
     ):
-        success, result = DomainsCommands.set_domain(
+        success, result = await DomainsCommands.set_domain(
             request.state.session_user, app_name, domain_name
         )
 
@@ -37,7 +37,7 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         domain_name: str,
     ):
-        success, result = DomainsCommands.remove_domain(
+        success, result = await DomainsCommands.remove_domain(
             request.state.session_user, app_name, domain_name
         )
 

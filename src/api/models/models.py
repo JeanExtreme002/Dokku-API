@@ -1,5 +1,5 @@
 import secrets
-from typing import List, Optional, Type
+from typing import List, Optional, Tuple, Type
 
 from fastapi import HTTPException
 from sqlalchemy import (
@@ -9,11 +9,12 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
-    create_engine,
     func,
+    select,
 )
 from sqlalchemy.engine.url import make_url
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.orm import declarative_base, relationship, selectinload
 
 from src.api.models.schema import UserSchema
 from src.api.tools import hash_access_token, validate_email_format
@@ -29,7 +30,7 @@ DATABASE_URL = Config.DATABASE.DB_URL
 
 if not DATABASE_URL:
     DATABASE_URL = (
-        f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        f"mysql+asyncmy://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
 
 if DATABASE_URL.startswith("mysql://"):
@@ -40,11 +41,11 @@ if DATABASE_URL.startswith("mysql://"):
     port = f":{url_obj.port}" if url_obj.port else ""
     database = f"/{url_obj.database}" if url_obj.database else ""
 
-    DATABASE_URL = f"mysql+pymysql://{user}:{password}@{host}{port}{database}"
+    DATABASE_URL = f"mysql+asyncmy://{user}:{password}@{host}{port}{database}"
 
-engine = create_engine(DATABASE_URL)
+engine = create_async_engine(DATABASE_URL, echo=False)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+AsyncSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False)
 Base = declarative_base()
 
 
@@ -55,8 +56,8 @@ def generate_token(size: int) -> str:
 class User(Base):
     __tablename__ = "user"
 
-    email = Column(String(255), primary_key=True)
-    access_token = Column(String(1024), nullable=True)
+    email = Column(String(100), primary_key=True)
+    access_token = Column(String(500), unique=True)
     apps_quota = Column(Integer, nullable=False, default=0)
     services_quota = Column(Integer, nullable=False, default=0)
     networks_quota = Column(Integer, nullable=False, default=0)
@@ -66,15 +67,15 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    apps = relationship("App", backref="user", cascade="all, delete")
-    services = relationship("Service", backref="user", cascade="all, delete")
-    networks = relationship("Network", backref="user", cascade="all, delete")
-    storages = relationship("Storage", backref="user", cascade="all, delete")
+    apps = relationship("App", back_populates="user", cascade="all, delete")
+    services = relationship("Service", back_populates="user", cascade="all, delete")
+    networks = relationship("Network", back_populates="user", cascade="all, delete")
+    storages = relationship("Storage", back_populates="user", cascade="all, delete")
 
 
 class Resource(Base):
     __abstract__ = True
-    user_email = Column(String(255), ForeignKey("user.email"))
+
     created_at = Column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -84,6 +85,9 @@ class App(Resource):
     __tablename__ = "app"
     name = Column(String(255), primary_key=True)
     deploy_token = Column(String(1024), nullable=True)
+
+    user_email = Column(String(255), ForeignKey("user.email"))
+    user = relationship("User", back_populates="apps", foreign_keys=[user_email])
 
     def __init__(
         self,
@@ -105,15 +109,32 @@ class Service(Resource):
     __tablename__ = "service"
     name = Column(String(255), primary_key=True)
 
+    user_email = Column(String(255), ForeignKey("user.email"))
+    user = relationship("User", back_populates="services", foreign_keys=[user_email])
+
 
 class Network(Resource):
     __tablename__ = "network"
     name = Column(String(255), primary_key=True)
 
+    user_email = Column(String(255), ForeignKey("user.email"))
+    user = relationship("User", back_populates="networks", foreign_keys=[user_email])
+
 
 class Storage(Resource):
     __tablename__ = "storage"
     name = Column(String(255), primary_key=True)
+
+    user_email = Column(String(255), ForeignKey("user.email"))
+    user = relationship("User", back_populates="storages", foreign_keys=[user_email])
+
+
+USER_EAGER_LOAD = [
+    selectinload(User.apps),
+    selectinload(User.services),
+    selectinload(User.networks),
+    selectinload(User.storages),
+]
 
 
 def get_user_schema(user: User) -> UserSchema:
@@ -133,16 +154,20 @@ def get_user_schema(user: User) -> UserSchema:
     )
 
 
-def get_users() -> List[str]:
-    db = SessionLocal()
-    users = db.query(User).all()
+async def get_users() -> List[str]:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(User))
+        users = result.scalars().all()
 
     return [user.email for user in users]
 
 
-def get_user(email: str) -> UserSchema:
-    db = SessionLocal()
-    user = db.query(User).filter_by(email=email).first()
+async def get_user(email: str) -> UserSchema:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(User).options(*USER_EAGER_LOAD).filter_by(email=email)
+        )
+        user = result.scalar_one_or_none()
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -150,12 +175,14 @@ def get_user(email: str) -> UserSchema:
     return get_user_schema(user)
 
 
-def get_user_by_access_token(access_token: str) -> UserSchema:
-    db = SessionLocal()
-
+async def get_user_by_access_token(access_token: str) -> UserSchema:
     access_token = hash_access_token(access_token)
 
-    user = db.query(User).filter_by(access_token=access_token).first()
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(User).options(*USER_EAGER_LOAD).filter_by(access_token=access_token)
+        )
+        user = result.scalar_one_or_none()
 
     if not user:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -163,114 +190,138 @@ def get_user_by_access_token(access_token: str) -> UserSchema:
     return get_user_schema(user)
 
 
-def create_user(email: str, access_token: str) -> None:
+async def create_user(email: str, access_token: str) -> None:
+    access_token = hash_access_token(access_token)
     validate_email_format(email)
 
-    db = SessionLocal()
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(User).filter_by(email=email))
 
-    if db.query(User).filter_by(email=email).first():
-        raise HTTPException(status_code=400, detail="User already exists")
+        if result.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail="User already exists")
 
-    db_user = User(
-        email=email,
-        access_token=hash_access_token(access_token),
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+        db_user = User(
+            email=email,
+            access_token=access_token,
+        )
+        db.add(db_user)
 
-
-def update_user(email: str, user: UserSchema) -> None:
-    db = SessionLocal()
-    db_user = db.query(User).filter_by(email=email).first()
-
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    db_user.email = user.email
-    db_user.is_admin = user.is_admin
-    db_user.access_token = user.access_token
-    db_user.apps_quota = user.apps_quota
-    db_user.services_quota = user.services_quota
-    db_user.networks_quota = user.networks_quota
-    db_user.storage_quota = user.storage_quota
-
-    db.commit()
-    db.refresh(db_user)
+        await db.commit()
+        await db.refresh(db_user)
 
 
-def delete_user(email: str) -> None:
-    db = SessionLocal()
-    db_user = db.query(User).filter_by(email=email).first()
+async def update_user(email: str, user: UserSchema) -> None:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(User).options(*USER_EAGER_LOAD).filter_by(email=email)
+        )
+        db_user = result.scalar_one_or_none()
 
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
 
-    db.delete(db_user)
-    db.commit()
+        db_user.email = user.email
+        db_user.is_admin = user.is_admin
+        db_user.access_token = user.access_token
+        db_user.apps_quota = user.apps_quota
+        db_user.services_quota = user.services_quota
+        db_user.networks_quota = user.networks_quota
+        db_user.storage_quota = user.storage_quota
+
+        await db.commit()
+        await db.refresh(db_user)
 
 
-def create_resource(email: str, name: str, resource_type: Type[Resource]) -> None:
+async def delete_user(email: str) -> None:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(User).filter_by(email=email))
+        db_user = result.scalar_one_or_none()
+
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        await db.delete(db_user)
+        await db.commit()
+
+
+async def create_resource(email: str, name: str, resource_type: Type[Resource]) -> None:
     ResourceType = resource_type
 
-    db = SessionLocal()
-    db_user = db.query(User).filter_by(email=email).first()
+    async with AsyncSessionLocal() as db:
+        user_result = await db.execute(
+            select(User).options(*USER_EAGER_LOAD).filter_by(email=email)
+        )
 
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        db_user = user_result.scalar_one_or_none()
 
-    if db.query(ResourceType).filter_by(name=name, user_email=email).first():
-        raise HTTPException(status_code=400, detail="Resource already exists")
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
 
-    quota_map = {
-        App: (db_user.apps_quota, db_user.apps),
-        Service: (db_user.services_quota, db_user.services),
-        Network: (db_user.networks_quota, db_user.networks),
-        Storage: (db_user.storage_quota, db_user.storages),
-    }
-    quota, resources = quota_map.get(ResourceType)
+        existing_result = await db.execute(
+            select(ResourceType).filter_by(name=name, user_email=email)
+        )
 
-    if quota <= len(resources):
-        raise HTTPException(status_code=403, detail="Quota exceeded")
+        if existing_result.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail="Resource already exists")
 
-    resource = ResourceType(name=name, user_email=email)
+        quota_map = {
+            App: (db_user.apps_quota, db_user.apps),
+            Service: (db_user.services_quota, db_user.services),
+            Network: (db_user.networks_quota, db_user.networks),
+            Storage: (db_user.storage_quota, db_user.storages),
+        }
+        quota, resources = quota_map.get(ResourceType)
 
-    db.add(resource)
-    db.commit()
-    db.refresh(resource)
+        if quota <= len(resources):
+            raise HTTPException(status_code=403, detail="Quota exceeded")
 
+        resource = ResourceType(name=name, user_email=db_user.email)
 
-def delete_resource(email: str, name: str, resource_type: Type[Resource]) -> None:
-    db = SessionLocal()
-    db_user = db.query(User).filter_by(email=email).first()
+        db.add(resource)
 
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    resource = db.query(resource_type).filter_by(name=name, user_email=email).first()
-
-    if not resource:
-        raise HTTPException(status_code=404, detail="Resource not found")
-
-    db.delete(resource)
-    db.commit()
+        await db.commit()
+        await db.refresh(resource)
 
 
-def get_app_by_deploy_token(deploy_token: str) -> App:
-    db = SessionLocal()
+async def delete_resource(email: str, name: str, resource_type: Type[Resource]) -> None:
+    async with AsyncSessionLocal() as db:
+        user_result = await db.execute(select(User).filter_by(email=email))
+        db_user = user_result.scalar_one_or_none()
 
-    app = db.query(App).filter_by(deploy_token=deploy_token).first()
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        resource_result = await db.execute(
+            select(resource_type).filter_by(name=name, user_email=email)
+        )
+        resource = resource_result.scalar_one_or_none()
+
+        if not resource:
+            raise HTTPException(status_code=404, detail="Resource not found")
+
+        await db.delete(resource)
+        await db.commit()
+
+
+async def get_app_by_deploy_token(deploy_token: str) -> Tuple[App, UserSchema]:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(App)
+            .options(selectinload(App.user).options(*USER_EAGER_LOAD))
+            .filter_by(deploy_token=deploy_token)
+        )
+        app = result.scalar_one_or_none()
 
     if not app:
         raise HTTPException(status_code=404, detail="App does not exist")
 
-    return app
+    return app, get_user_schema(app.user)
 
 
-def get_app_deployment_token(name: str) -> str:
-    db = SessionLocal()
-
-    app = db.query(App).filter_by(name=name).first()
+async def get_app_deployment_token(name: str) -> str:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(App).filter_by(name=name))
+        app = result.scalar_one_or_none()
 
     if not app:
         raise HTTPException(status_code=404, detail="App does not exist")
@@ -278,4 +329,6 @@ def get_app_deployment_token(name: str) -> str:
     return app.deploy_token
 
 
-Base.metadata.create_all(bind=engine)
+async def init_models():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)

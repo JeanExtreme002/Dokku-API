@@ -9,7 +9,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
     @router.post("/list", response_description="Return all databases")
     async def list_all_databases(request: Request):
-        success, result = DatabasesCommands.list_all_databases(
+        success, result = await DatabasesCommands.list_all_databases(
             request.state.session_user
         )
 
@@ -29,7 +29,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         plugin_name: str,
     ):
-        success, result = DatabasesCommands.list_databases(
+        success, result = await DatabasesCommands.list_databases(
             request.state.session_user, plugin_name
         )
 
@@ -50,7 +50,7 @@ def get_router(app: FastAPI) -> APIRouter:
         plugin_name: str,
         database_name: str,
     ):
-        success, result = DatabasesCommands.create_database(
+        success, result = await DatabasesCommands.create_database(
             request.state.session_user, plugin_name, database_name
         )
 
@@ -71,7 +71,7 @@ def get_router(app: FastAPI) -> APIRouter:
         plugin_name: str,
         database_name: str,
     ):
-        success, result = DatabasesCommands.delete_database(
+        success, result = await DatabasesCommands.delete_database(
             request.state.session_user, plugin_name, database_name
         )
 
@@ -92,7 +92,7 @@ def get_router(app: FastAPI) -> APIRouter:
         plugin_name: str,
         database_name: str,
     ):
-        success, result = DatabasesCommands.get_database_uri(
+        success, result = await DatabasesCommands.get_database_uri(
             request.state.session_user, plugin_name, database_name
         )
 
@@ -113,7 +113,7 @@ def get_router(app: FastAPI) -> APIRouter:
         plugin_name: str,
         database_name: str,
     ):
-        success, result = DatabasesCommands.get_database_info(
+        success, result = await DatabasesCommands.get_database_info(
             request.state.session_user, plugin_name, database_name
         )
 
@@ -134,7 +134,7 @@ def get_router(app: FastAPI) -> APIRouter:
         plugin_name: str,
         database_name: str,
     ):
-        success, result = DatabasesCommands.get_linked_apps(
+        success, result = await DatabasesCommands.get_linked_apps(
             request.state.session_user, plugin_name, database_name
         )
 
@@ -156,7 +156,7 @@ def get_router(app: FastAPI) -> APIRouter:
         database_name: str,
         app_name: str,
     ):
-        success, result = DatabasesCommands.link_database(
+        success, result = await DatabasesCommands.link_database(
             request.state.session_user, plugin_name, database_name, app_name
         )
 
@@ -178,7 +178,7 @@ def get_router(app: FastAPI) -> APIRouter:
         database_name: str,
         app_name: str,
     ):
-        success, result = DatabasesCommands.unlink_database(
+        success, result = await DatabasesCommands.unlink_database(
             request.state.session_user, plugin_name, database_name, app_name
         )
 

@@ -24,7 +24,7 @@ def get_router(app: FastAPI) -> APIRouter:
             app_name = str(ResourceName(user, app_name, App, from_system=True)).lower()
 
             if query in app_name:
-                details = AppsCommands.get_app_info(user, app_name)[1]
+                details = (await AppsCommands.get_app_info(user, app_name))[1]
                 data = result.get("apps", []) + [
                     {app_name: details},
                 ]
@@ -37,8 +37,10 @@ def get_router(app: FastAPI) -> APIRouter:
             ).lower()
 
             if query in service_name:
-                details = DatabasesCommands.get_database_info(
-                    user, plugin_name, service_name
+                details = (
+                    await DatabasesCommands.get_database_info(
+                        user, plugin_name, service_name
+                    )
                 )[1]
                 data = result.get("services", []) + [
                     {service_name: details},
@@ -56,7 +58,9 @@ def get_router(app: FastAPI) -> APIRouter:
                 ]
                 result["networks"] = data
 
-        for available_database in DatabasesCommands.list_available_databases()[1]:
+        for available_database in (await DatabasesCommands.list_available_databases())[
+            1
+        ]:
             if query in available_database:
                 data = result.get("available_databases", []) + [
                     available_database,

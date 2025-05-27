@@ -9,7 +9,9 @@ def get_router(app: FastAPI) -> APIRouter:
 
     @router.post("/list", response_description="Return all networks")
     async def list_networks(request: Request):
-        success, result = NetworksCommands.list_networks(request.state.session_user)
+        success, result = await NetworksCommands.list_networks(
+            request.state.session_user
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -24,7 +26,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         network_name: str,
     ):
-        success, result = NetworksCommands.create_network(
+        success, result = await NetworksCommands.create_network(
             request.state.session_user, network_name
         )
 
@@ -41,7 +43,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         network_name: str,
     ):
-        success, result = NetworksCommands.delete_network(
+        success, result = await NetworksCommands.delete_network(
             request.state.session_user, network_name
         )
 
@@ -61,7 +63,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         network_name: str,
     ):
-        success, result = NetworksCommands.get_linked_apps(
+        success, result = await NetworksCommands.get_linked_apps(
             request.state.session_user, network_name
         )
 
@@ -82,7 +84,7 @@ def get_router(app: FastAPI) -> APIRouter:
         network_name: str,
         app_name: str,
     ):
-        success, result = NetworksCommands.set_network_to_app(
+        success, result = await NetworksCommands.set_network_to_app(
             request.state.session_user, network_name, app_name
         )
 

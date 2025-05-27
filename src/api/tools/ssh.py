@@ -51,7 +51,7 @@ def __execute_command(command: str, username: str) -> Tuple[bool, str]:
         client.close()
 
 
-def run_command(command: str) -> Tuple[bool, str]:
+async def run_command(command: str) -> Tuple[bool, str]:
     """
     Run a command on the remote server via SSH.
 
@@ -70,7 +70,7 @@ def run_command(command: str) -> Tuple[bool, str]:
     return success, message
 
 
-def run_command_as_root(command: str) -> Tuple[bool, str]:
+async def run_command_as_root(command: str) -> Tuple[bool, str]:
     """
     Run a command on the remote server via SSH as root.
 

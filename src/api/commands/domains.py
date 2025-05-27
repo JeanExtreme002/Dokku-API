@@ -12,7 +12,7 @@ from src.api.tools.ssh import run_command
 class DomainsCommands(ABC):
 
     @staticmethod
-    def set_domain(
+    async def set_domain(
         session_user: UserSchema,
         app_name: str,
         domain: str,
@@ -24,10 +24,10 @@ class DomainsCommands(ABC):
                 status_code=404,
                 detail="App does not exist",
             )
-        return run_command(f"domains:set {app_name} {domain}")
+        return await run_command(f"domains:set {app_name} {domain}")
 
     @staticmethod
-    def remove_domain(
+    async def remove_domain(
         session_user: UserSchema,
         app_name: str,
         domain: str,
@@ -39,4 +39,4 @@ class DomainsCommands(ABC):
                 status_code=404,
                 detail="App does not exist",
             )
-        return run_command(f"domains:remove {app_name} {domain}")
+        return await run_command(f"domains:remove {app_name} {domain}")

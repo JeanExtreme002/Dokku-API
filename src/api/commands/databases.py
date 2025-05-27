@@ -41,17 +41,17 @@ def extract_database_uri(text):
 class DatabasesCommands(ABC):
 
     @staticmethod
-    def list_available_databases() -> Tuple[bool, Any]:
+    async def list_available_databases() -> Tuple[bool, Any]:
         return True, available_databases
 
     @staticmethod
-    def create_database(
+    async def create_database(
         session_user: UserSchema,
         plugin_name: str,
         database_name: str,
     ) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
-        available_databases = DatabasesCommands.list_available_databases()[1]
+        available_databases = (await DatabasesCommands.list_available_databases())[1]
 
         if plugin_name not in available_databases:
             raise HTTPException(
@@ -59,21 +59,25 @@ class DatabasesCommands(ABC):
                 detail="Plugin not found",
             )
 
-        _, message = run_command(f"{plugin_name}:exists {database_name}")
+        _, message = await run_command(f"{plugin_name}:exists {database_name}")
 
         if "does not exist" not in message.lower():
             raise HTTPException(status_code=403, detail="Database already exists")
 
-        create_resource(session_user.email, f"{plugin_name}:{database_name}", Service)
-        return run_command(f"{plugin_name}:create {database_name}")
+        await create_resource(
+            session_user.email, f"{plugin_name}:{database_name}", Service
+        )
+        return await run_command(f"{plugin_name}:create {database_name}")
 
     @staticmethod
-    def list_all_databases(session_user: UserSchema) -> Tuple[bool, Any]:
-        available_databases = DatabasesCommands.list_available_databases()[1]
+    async def list_all_databases(session_user: UserSchema) -> Tuple[bool, Any]:
+        available_databases = (await DatabasesCommands.list_available_databases())[1]
         result = {}
 
         for plugin_name in available_databases:
-            success, data = DatabasesCommands.list_databases(session_user, plugin_name)
+            success, data = await DatabasesCommands.list_databases(
+                session_user, plugin_name
+            )
 
             if success and data:
                 result[plugin_name] = data
@@ -81,7 +85,9 @@ class DatabasesCommands(ABC):
         return True, result
 
     @staticmethod
-    def list_databases(session_user: UserSchema, plugin_name: str) -> Tuple[bool, Any]:
+    async def list_databases(
+        session_user: UserSchema, plugin_name: str
+    ) -> Tuple[bool, Any]:
         plugins = [
             plugin
             for plugin in session_user.services
@@ -95,7 +101,7 @@ class DatabasesCommands(ABC):
             database_name = str(
                 ResourceName(session_user, database_name, Service, from_system=True)
             )
-            _, data = DatabasesCommands.get_database_info(
+            _, data = await DatabasesCommands.get_database_info(
                 session_user, plugin_name, database_name
             )
             result[database_name] = data
@@ -103,7 +109,7 @@ class DatabasesCommands(ABC):
         return True, result
 
     @staticmethod
-    def delete_database(
+    async def delete_database(
         session_user: UserSchema,
         plugin_name: str,
         database_name: str,
@@ -115,11 +121,13 @@ class DatabasesCommands(ABC):
                 status_code=404,
                 detail="Database does not exist",
             )
-        delete_resource(session_user.email, f"{plugin_name}:{database_name}", Service)
-        return run_command(f"--force {plugin_name}:destroy {database_name}")
+        await delete_resource(
+            session_user.email, f"{plugin_name}:{database_name}", Service
+        )
+        return await run_command(f"--force {plugin_name}:destroy {database_name}")
 
     @staticmethod
-    def get_database_info(
+    async def get_database_info(
         session_user: UserSchema,
         plugin_name: str,
         database_name: str,
@@ -131,11 +139,11 @@ class DatabasesCommands(ABC):
                 status_code=404,
                 detail="Database does not exist",
             )
-        success, message = run_command(f"{plugin_name}:info {database_name}")
+        success, message = await run_command(f"{plugin_name}:info {database_name}")
         return success, parse_service_info(plugin_name, message) if success else None
 
     @staticmethod
-    def get_linked_apps(
+    async def get_linked_apps(
         session_user: UserSchema,
         plugin_name: str,
         database_name: str,
@@ -147,7 +155,7 @@ class DatabasesCommands(ABC):
                 status_code=404,
                 detail="Database does not exist",
             )
-        success, message = run_command(f"{plugin_name}:links {database_name}")
+        success, message = await run_command(f"{plugin_name}:links {database_name}")
         result = (
             [
                 str(ResourceName(session_user, app, App, from_system=True))
@@ -161,7 +169,7 @@ class DatabasesCommands(ABC):
         return success, result
 
     @staticmethod
-    def link_database(
+    async def link_database(
         session_user: UserSchema,
         plugin_name: str,
         database_name: str,
@@ -180,12 +188,12 @@ class DatabasesCommands(ABC):
                 status_code=404,
                 detail="App does not exist",
             )
-        return run_command(
+        return await run_command(
             f"--no-restart {plugin_name}:link {database_name} {app_name}"
         )
 
     @staticmethod
-    def unlink_database(
+    async def unlink_database(
         session_user: UserSchema,
         plugin_name: str,
         database_name: str,
@@ -204,12 +212,12 @@ class DatabasesCommands(ABC):
                 status_code=404,
                 detail="App does not exist",
             )
-        return run_command(
+        return await run_command(
             f"--no-restart {plugin_name}:unlink {database_name} {app_name}"
         )
 
     @staticmethod
-    def get_database_uri(
+    async def get_database_uri(
         session_user: UserSchema,
         plugin_name: str,
         database_name: str,
@@ -222,7 +230,7 @@ class DatabasesCommands(ABC):
                 detail="Database does not exist",
             )
 
-        success, message = run_command(f"{plugin_name}:info {database_name}")
+        success, message = await run_command(f"{plugin_name}:info {database_name}")
 
         if not success:
             return False, None

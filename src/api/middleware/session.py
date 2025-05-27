@@ -24,7 +24,9 @@ class SessionUserMiddleware(BaseHTTPMiddleware):
             body = json.loads(body_bytes)
 
             if isinstance(body, dict) and (access_token := body.get("access_token")):
-                request.state.session_user = get_user_by_access_token(access_token)
+                request.state.session_user = await get_user_by_access_token(
+                    access_token
+                )
 
         except HTTPException as error:
             return JSONResponse(
