@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+  merge_group:
+    types:
+      - checks_requested
+  push:
+    branches:
+      - main
+
+env:
+  CI: '1'
+  TZ: America/Sao_Paulo
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  ci:
+    name: CI
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || github.event_name == 'merge_group' }}
+
+    permissions:
+      actions: read
+      checks: write
+      contents: write
+      id-token: write
+      pull-requests: write
+      repository-projects: read
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      # Checkout
+      - name: Checkout [branch]
+        if: ${{github.event_name != 'pull_request'}}
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Checkout [PR]
+        if: ${{github.event_name == 'pull_request'}}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{github.event.pull_request.head.sha}}
+          fetch-depth: 0
+
+      - name: Checkout [Merge Group]
+        if: ${{github.event_name == 'merge_group'}}
+        uses: actions/checkout@v2
+        with:
+          ref: ${{github.event.merge_group.head_ref}}
+          fetch-depth: 0
+
+      # Setup
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      # Tests
+      - name: Lint and Tests
+        if: ${{github.event_name != 'merge_group'}}
+        run: |
+          make lint
+          make test

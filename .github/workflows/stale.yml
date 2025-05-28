@@ -1,0 +1,22 @@
+name: Stale
+
+on:
+  schedule:
+    - cron: '0 0 */7 * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v5.1.1
+        with:
+          days-before-issue-close: 60
+          days-before-issue-stale: 30
+          close-issue-message: Issue closed due to inactivity.
+          stale-issue-message: Issue marked stale due to inactivity. It will be closed if it has no interactions in the month week.
+          stale-issue-label: stale

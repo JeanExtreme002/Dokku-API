@@ -1,0 +1,31 @@
+name: Setup
+description: Setup Python, dependencies, caching, etc.
+inputs:
+  python-version:
+    description: Python version to use
+    required: false
+    default: '3.9'
+runs:
+  using: composite
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: 'poetry'
+
+    - name: Install Poetry
+      shell: bash
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Configure Poetry
+      shell: bash
+      run: |
+        poetry config virtualenvs.create false
+
+    - name: Install Python dependencies
+      shell: bash
+      run: make install
+
