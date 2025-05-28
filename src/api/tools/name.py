@@ -18,23 +18,24 @@ class ResourceName:
     ):
         self.__username = user.email.split("@", maxsplit=1)[0]
         self.__separator = {App: "-"}.get(resource_type, "_")
+
+        self.__username = self.__username.lower()
         self.__name = name.lower()
 
-        alphanumeric = "abcdefghijklmnopqrstuvwxyz0123456789"
+        allowed = "abcdefghijklmnopqrstuvwxyz0123456789"
 
-        if not from_system:
-            self.__name = "".join(
-                [
-                    (char if char in alphanumeric else self.__separator)
-                    for char in self.__name
-                ]
-            )
-
-        self.__name = (
-            self.__name.split(self.__separator, maxsplit=1)[1]
-            if from_system
-            else self.__name
+        self.__username = "".join(
+            [
+                (char if char in allowed else self.__separator)
+                for char in self.__username
+            ]
         )
+        self.__name = "".join(
+            [(char if char in allowed else self.__separator) for char in self.__name]
+        )
+
+        if from_system:
+            self.__name = self.__name.lstrip(self.__username + self.__separator)
 
     def for_system(self) -> str:
         """

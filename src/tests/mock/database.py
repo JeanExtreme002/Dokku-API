@@ -16,6 +16,11 @@ MockUser = UserSchema(
     storage_quota=1,
 )
 
+MockApp = App(name="test-app", deploy_token="deploy123", user_email=MockUser.email)
+MockService = Service(name="test-service", user_email=MockUser.email)
+MockNetwork = Network(name="test-network", user_email=MockUser.email)
+MockStorage = Storage(name="test-storage", user_email=MockUser.email)
+
 
 def mock_all_models(test_func):
     @functools.wraps(test_func)
@@ -34,10 +39,10 @@ def mock_all_models(test_func):
                 networks_quota=MockUser.networks_quota,
                 storage_quota=MockUser.storage_quota,
             )
-            app = App(name="test-app", deploy_token="deploy123", user_email=user.email)
-            service = Service(name="test-service", user_email=user.email)
-            network = Network(name="test-network", user_email=user.email)
-            storage = Storage(name="test-storage", user_email=user.email)
+            app = MockApp
+            service = MockService
+            network = MockService
+            storage = MockStorage
 
             user.apps = [app]
             user.services = [service]
