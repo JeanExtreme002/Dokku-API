@@ -1,4 +1,6 @@
-include .env
+ifeq ($(filter help install,$(MAKECMDGOALS)),)
+  include .env
+endif
 
 RED=\033[0;31m
 YELLOW=\033[0;33m
