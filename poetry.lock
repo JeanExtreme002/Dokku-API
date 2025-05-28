@@ -706,6 +706,27 @@ files = [
 ]
 
 [[package]]
+name = "httpcore"
+version = "1.0.8"
+description = "A minimal low-level HTTP client."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "httpcore-1.0.8-py3-none-any.whl", hash = "sha256:5254cf149bcb5f75e9d1b2b9f729ea4a4b883d1ad7379fc632b727cec23674be"},
+    {file = "httpcore-1.0.8.tar.gz", hash = "sha256:86e94505ed24ea06514883fd44d2bc02d90e77e7979c8eb71b90f41d364a1bad"},
+]
+
+[package.dependencies]
+certifi = "*"
+h11 = ">=0.13,<0.15"
+
+[package.extras]
+asyncio = ["anyio (>=4.0,<5.0)"]
+http2 = ["h2 (>=3,<5)"]
+socks = ["socksio (==1.*)"]
+trio = ["trio (>=0.22.0,<1.0)"]
+
+[[package]]
 name = "httptools"
 version = "0.6.4"
 description = "A collection of framework independent HTTP protocol utils."
@@ -759,6 +780,30 @@ files = [
 
 [package.extras]
 test = ["Cython (>=0.29.24)"]
+
+[[package]]
+name = "httpx"
+version = "0.28.1"
+description = "The next generation HTTP client."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad"},
+    {file = "httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc"},
+]
+
+[package.dependencies]
+anyio = "*"
+certifi = "*"
+httpcore = "==1.*"
+idna = "*"
+
+[package.extras]
+brotli = ["brotli", "brotlicffi"]
+cli = ["click (==8.*)", "pygments (==2.*)", "rich (>=10,<14)"]
+http2 = ["h2 (>=3,<5)"]
+socks = ["socksio (==1.*)"]
+zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "identify"
@@ -839,6 +884,30 @@ MarkupSafe = ">=2.0"
 
 [package.extras]
 i18n = ["Babel (>=2.7)"]
+
+[[package]]
+name = "limits"
+version = "2.4.0"
+description = "Rate limiting utilities"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "limits-2.4.0-py3-none-any.whl", hash = "sha256:21b9d7ddebbe90ad23cce724c9f3e8ad62f132cef6051ec910249421679cb4db"},
+    {file = "limits-2.4.0.tar.gz", hash = "sha256:8e22b63df26310207a77b75bd474599f0a4613a7d9163650ed3a428e9cc7ae35"},
+]
+
+[package.dependencies]
+setuptools = "*"
+
+[package.extras]
+all = ["coredis[hiredis] (>=2.0.0,<3)", "emcache (>=0.6.1)", "motor (>=2.5,<3)", "pymemcache (>3,<4.0.0)", "pymongo (>3,<5)", "redis (>3,<5.0.0)", "redis-py-cluster (>=2.0.0,<3)"]
+async-memcached = ["emcache (>=0.6.1)"]
+async-mongodb = ["motor (>=2.5,<3)"]
+async-redis = ["coredis[hiredis] (>=2.0.0,<3)"]
+memcached = ["pymemcache (>3,<4.0.0)"]
+mongodb = ["pymongo (>3,<5)"]
+redis = ["redis (>3,<5.0.0)"]
+rediscluster = ["redis-py-cluster (>=2.0.0,<3)"]
 
 [[package]]
 name = "markupsafe"
@@ -1264,6 +1333,20 @@ files = [
 prompt_toolkit = ">=2.0,<4.0"
 
 [[package]]
+name = "redis"
+version = "3.5.3"
+description = "Python client for Redis key-value store"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+files = [
+    {file = "redis-3.5.3-py2.py3-none-any.whl", hash = "sha256:432b788c4530cfe16d8d943a09d40ca6c16149727e4afe8c2c9d5580c59d9f24"},
+    {file = "redis-3.5.3.tar.gz", hash = "sha256:0e7e0cfca8660dea8b7d5cd8c4f6c5e29e11f31158c0b0ae91a397f00e5a05a2"},
+]
+
+[package.extras]
+hiredis = ["hiredis (>=0.1.3)"]
+
+[[package]]
 name = "requests"
 version = "2.32.3"
 description = "Python HTTP for Humans."
@@ -1285,6 +1368,26 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
+name = "setuptools"
+version = "80.9.0"
+description = "Easily download, build, install, upgrade, and uninstall Python packages"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "setuptools-80.9.0-py3-none-any.whl", hash = "sha256:062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922"},
+    {file = "setuptools-80.9.0.tar.gz", hash = "sha256:f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c"},
+]
+
+[package.extras]
+check = ["pytest-checkdocs (>=2.4)", "pytest-ruff (>=0.2.1)", "ruff (>=0.8.0)"]
+core = ["importlib_metadata (>=6)", "jaraco.functools (>=4)", "jaraco.text (>=3.7)", "more_itertools", "more_itertools (>=8.8)", "packaging (>=24.2)", "platformdirs (>=4.2.2)", "tomli (>=2.0.1)", "wheel (>=0.43.0)"]
+cover = ["pytest-cov"]
+doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "pyproject-hooks (!=1.1)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier", "towncrier (<24.7)"]
+enabler = ["pytest-enabler (>=2.2)"]
+test = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.7.2)", "jaraco.test (>=5.5)", "packaging (>=24.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.*)", "pytest-home (>=0.5)", "pytest-perf", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel (>=0.44.0)"]
+type = ["importlib_metadata (>=7.0.2)", "jaraco.develop (>=7.21)", "mypy (==1.14.*)", "pytest-mypy"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -1294,6 +1397,24 @@ files = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
 ]
+
+[[package]]
+name = "slowapi"
+version = "0.1.9"
+description = "A rate limiting extension for Starlette and Fastapi"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "slowapi-0.1.9-py3-none-any.whl", hash = "sha256:cfad116cfb84ad9d763ee155c1e5c5cbf00b0d47399a769b227865f5df576e36"},
+    {file = "slowapi-0.1.9.tar.gz", hash = "sha256:639192d0f1ca01b1c6d95bf6c71d794c3a9ee189855337b4821f7f457dddad77"},
+]
+
+[package.dependencies]
+limits = ">=2.3"
+redis = {version = ">=3.4.1,<4.0.0", optional = true, markers = "extra == \"redis\""}
+
+[package.extras]
+redis = ["redis (>=3.4.1,<4.0.0)"]
 
 [[package]]
 name = "sniffio"
@@ -1652,4 +1773,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "54286c062da8cddeac969d0fade7923f382ecf669010d6f54d1ae72ab13e4a78"
+content-hash = "333a52478aee3f68a2e540b459e1fea6b95d979a0cef70c078f7112b32340b69"

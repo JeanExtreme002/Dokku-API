@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.api.middleware import SessionUserMiddleware
+from src.api.middleware.rate_limiter import RateLimiterMiddleware
 from src.api.router import get_router
 from src.config import Config
 
@@ -32,6 +33,7 @@ def get_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    _app.add_middleware(RateLimiterMiddleware(_app))
     _app.add_middleware(SessionUserMiddleware)
 
     _app.include_router(get_router(_app))
