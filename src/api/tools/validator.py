@@ -90,7 +90,7 @@ def validate_email_format(email: str) -> None:
             status_code=HTTP_401_UNAUTHORIZED,
             detail="Invalid email format",
         )
-    if len(email) > 256:
+    if len(email) > 100:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED,
             detail="Email is too long",

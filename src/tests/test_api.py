@@ -8,7 +8,7 @@ app = get_app()
 client = TestClient(app)
 
 
-class FastAPITest(IsolatedAsyncioTestCase):
+class TestFastAPI(IsolatedAsyncioTestCase):
 
     def test_api_health(self):
         """

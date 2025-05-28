@@ -48,7 +48,3 @@ class TestResourceName(unittest.TestCase):
         self.assertEqual(rname.normalized(), "my_resource_name")
         self.assertEqual(str(rname), "my_resource_name")
         self.assertEqual(rname.for_system(), "john_doe_my_resource_name")
-
-
-if __name__ == "__main__":
-    unittest.main()
