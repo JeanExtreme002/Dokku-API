@@ -13,6 +13,10 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
+    - name: Generate .env fro .env.sample
+      shell: bash
+      run: cp .env.sample .env
+
     - name: Install Python dependencies
       shell: bash
       run: make install
