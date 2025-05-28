@@ -14,18 +14,7 @@ runs:
         python-version: ${{ inputs.python-version }}
         cache: 'poetry'
 
-    - name: Install Poetry
-      shell: bash
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-    - name: Configure Poetry
-      shell: bash
-      run: |
-        poetry config virtualenvs.create false
-
     - name: Install Python dependencies
       shell: bash
-      run: poetry install --no-interaction --no-root
+      run: make install
 
