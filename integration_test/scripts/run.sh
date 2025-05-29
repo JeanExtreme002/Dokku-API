@@ -29,10 +29,6 @@ export PATH="/tmp/dokku-wrapper:$PATH"
 
 # Configure environment variables
 $INTEGRATION_TEST_DIR/scripts/configure-env.sh "$DIR"
-git config --global user.email "you@example.com"
-git config --global user.name "Your Name"
-git add .
-git commit -m "dsafa"
 
 # Clean up Dokku
 set +e
