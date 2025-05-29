@@ -47,7 +47,7 @@ dokku-install:  ## Install and run the API on Dokku.
 	@{ \
 		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
 		\
-		echo "Creating Dokku app $$FORMATTED_API_NAME"; \
+		echo "Creating Dokku app '$$FORMATTED_API_NAME'"; \
 		dokku apps:create $$FORMATTED_API_NAME && \
 		\
 		make dokku-create-db && \
@@ -122,7 +122,7 @@ dokku-set-config:
 			SSH_HOSTNAME='$(SSH_HOSTNAME)' \
 			SSH_PORT='$(SSH_PORT)' \
 			SSH_KEY_PATH="$$SSH_KEY_PATH" \
-			SSH_KEY_PASSPHRASE="$$RSA_KEY_PASSPHRASE" \
+			SSH_KEY_PASSPHRASE="\"$$RSA_KEY_PASSPHRASE\"" \
 			API_KEY="$$API_KEY" \
 			MASTER_KEY=$(MASTER_KEY); \
 		\

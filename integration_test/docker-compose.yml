@@ -1,0 +1,35 @@
+services:
+  dokku:
+    image: dokku/dokku:0.35.19
+    container_name: dokku
+    ports:
+      - "3022:22"
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - "/var/lib/dokku:/mnt/dokku"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      DOKKU_HOSTNAME: dokku
+      DOKKU_HOST_ROOT: /var/lib/dokku/home/dokku
+      DOKKU_LIB_HOST_ROOT: /var/lib/dokku/var/lib/dokku
+    networks:
+      - integration-test-dokku-net
+
+  integration_test:
+    build:
+      context: ..
+      dockerfile: integration_test/Dockerfile
+    depends_on:
+      - dokku
+    environment:
+      - DOKKU_HOST=dokku
+      - DIR=/app
+      - INTEGRATION_TEST_DIR=/app/integration_test
+    networks:
+      - integration-test-dokku-net
+    entrypoint: integration_test/scripts/run.sh
+
+networks:
+  integration-test-dokku-net:
+    driver: bridge

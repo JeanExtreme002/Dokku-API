@@ -30,7 +30,7 @@ DATABASE_URL = Config.DATABASE.DB_URL
 
 if not DATABASE_URL:
     DATABASE_URL = (
-        f"mysql+asyncmy://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        f"mysql+aiomysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
 
 if DATABASE_URL.startswith("mysql://"):
@@ -41,7 +41,7 @@ if DATABASE_URL.startswith("mysql://"):
     port = f":{url_obj.port}" if url_obj.port else ""
     database = f"/{url_obj.database}" if url_obj.database else ""
 
-    DATABASE_URL = f"mysql+asyncmy://{user}:{password}@{host}{port}{database}"
+    DATABASE_URL = f"mysql+aiomysql://{user}:{password}@{host}{port}{database}"
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 

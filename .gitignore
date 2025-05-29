@@ -132,6 +132,7 @@ venv.bak/
 
 # Secrets
 .secrets
+.ssh
 
 # Spyder project settings
 .spyderproject
