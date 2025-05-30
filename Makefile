@@ -30,6 +30,10 @@ commit:  ## Commit changes on local repository
 test:  ## Run unit tests
 	@poetry run coverage run -m unittest discover -s src.tests --verbose && poetry run coverage report;
 
+.PHONY: integration-test
+integration-test:  ## Run integration tests
+	@cd integration_test && python test_app.py http://0.0.0.0:5000 $(MASTER_KEY) $(API_KEY);
+
 .PHONY: lint
 lint:  ## Run lint
 	@poetry run flake8 src && poetry run black --check src
