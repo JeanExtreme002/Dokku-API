@@ -13,7 +13,6 @@ MockUser = UserSchema(
     apps_quota=1,
     services_quota=1,
     networks_quota=1,
-    storage_quota=1,
 )
 
 

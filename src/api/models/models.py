@@ -62,7 +62,6 @@ class User(Base):
     apps_quota = Column(Integer, nullable=False, default=0)
     services_quota = Column(Integer, nullable=False, default=0)
     networks_quota = Column(Integer, nullable=False, default=0)
-    storage_quota = Column(Integer, nullable=False, default=0)
     is_admin = Column(Boolean, nullable=False, default=False)
     created_at = Column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -71,7 +70,6 @@ class User(Base):
     apps = relationship("App", back_populates="user", cascade="all, delete")
     services = relationship("Service", back_populates="user", cascade="all, delete")
     networks = relationship("Network", back_populates="user", cascade="all, delete")
-    storages = relationship("Storage", back_populates="user", cascade="all, delete")
 
 
 class Resource(Base):
@@ -122,19 +120,10 @@ class Network(Resource):
     user = relationship("User", back_populates="networks", foreign_keys=[user_email])
 
 
-class Storage(Resource):
-    __tablename__ = "storage"
-    name = Column(String(255), primary_key=True)
-
-    user_email = Column(String(255), ForeignKey("user.email"))
-    user = relationship("User", back_populates="storages", foreign_keys=[user_email])
-
-
 USER_EAGER_LOAD = [
     selectinload(User.apps),
     selectinload(User.services),
     selectinload(User.networks),
-    selectinload(User.storages),
 ]
 
 
@@ -146,11 +135,9 @@ def get_user_schema(user: User) -> UserSchema:
         apps_quota=user.apps_quota,
         services_quota=user.services_quota,
         networks_quota=user.networks_quota,
-        storage_quota=user.storage_quota,
         apps=[app.name for app in user.apps],
         services=[service.name for service in user.services],
         networks=[network.name for network in user.networks],
-        storages=[storage.name for storage in user.storages],
         created_at=user.created_at,
         is_admin=user.is_admin,
     )
@@ -228,7 +215,6 @@ async def update_user(email: str, user: UserSchema) -> None:
         db_user.apps_quota = user.apps_quota
         db_user.services_quota = user.services_quota
         db_user.networks_quota = user.networks_quota
-        db_user.storage_quota = user.storage_quota
 
         await db.commit()
         await db.refresh(db_user)
@@ -270,7 +256,6 @@ async def create_resource(email: str, name: str, resource_type: Type[Resource]) 
             App: (db_user.apps_quota, db_user.apps),
             Service: (db_user.services_quota, db_user.services),
             Network: (db_user.networks_quota, db_user.networks),
-            Storage: (db_user.storage_quota, db_user.storages),
         }
         quota, resources = quota_map.get(ResourceType)
 

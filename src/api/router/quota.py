@@ -13,7 +13,6 @@ def get_router(app: FastAPI) -> APIRouter:
             "apps_quota": user.apps_quota,
             "services_quota": user.services_quota,
             "networks_quota": user.networks_quota,
-            "storage_quota": user.storage_quota,
         }
 
         return JSONResponse(status_code=status.HTTP_200_OK, content=quota)

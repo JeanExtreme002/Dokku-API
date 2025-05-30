@@ -1,6 +1,7 @@
 import requests
 import secrets
 import sys
+import time
 
 if len(sys.argv) != 4:
     print(sys.argv)
@@ -12,7 +13,9 @@ API_KEY = sys.argv[3]
 
 print(f"Testing API at {BASE_URL} with MASTER_KEY={MASTER_KEY} and API_KEY={API_KEY}")
 
-user_email = f"test{secrets.token_hex(16)}@example.com"
+test_id = str(time.time()).replace(".", "")
+
+user_email = f"test{test_id}@example.com"
 user_token = secrets.token_urlsafe(256)
 user_app = "test-app"
 user_app_repo_url = "https://github.com/heroku/ruby-getting-started"
@@ -22,6 +25,7 @@ user_database = "test_database"
 user_network = "test_network"
 
 # Check base endpoints
+print("Test: Checking base endpoints...")
 response = requests.get(BASE_URL)
 assert response.status_code == 200
 
@@ -46,6 +50,7 @@ assert response_json["result"] == [
 ]
 
 # Create a new user
+print("Test: Creating a new user...")
 response = requests.post(
     BASE_URL + f"/api/admin/users/{user_email}?access_token={user_token}",
     headers={"MASTER-KEY": MASTER_KEY, "Content-Type": "application/json"}
@@ -53,6 +58,7 @@ response = requests.post(
 assert response.status_code == 201
 
 # Must not create with a existing email.
+print("Test: Must not create with an existing email...")
 response = requests.post(
     BASE_URL + f"/api/admin/users/{user_email}",
     params={"access_token": user_token + "new"},
@@ -61,6 +67,7 @@ response = requests.post(
 assert response.status_code != 201
 
 # Must not create with a existing token.
+print("Test: Must not create with an existing token...")
 response = requests.post(
     BASE_URL + f"/api/admin/users/{user_email + 'new'}",
     params={"access_token": user_token},
@@ -69,6 +76,7 @@ response = requests.post(
 assert response.status_code != 201
 
 # Create a new user again (double-check)
+print("Test: Creating a new user again (double-check)...")
 response = requests.post(
     BASE_URL + f"/api/admin/users/{user_email + 'new'}",
     params={"access_token": user_token + "new"},
@@ -77,6 +85,7 @@ response = requests.post(
 assert response.status_code == 201
 
 # Check user credentials
+print("Test: Checking user credentials...")
 response = requests.post(
     BASE_URL + "/api/apps/list", 
     params={"api_key": "invalid"}, 
@@ -101,11 +110,11 @@ assert response.status_code == 200
 assert response_json == {
     "apps_quota": 0,
     "services_quota": 0,
-    "networks_quota": 0,
-    "storage_quota": 0
+    "networks_quota": 0
 }
 
 # Check admin credentials
+print("Test: Checking admin credentials...")
 response = requests.post(
     BASE_URL + "/api/admin/users/list", 
     headers={"MASTER-KEY": "invalid_key"}
@@ -114,6 +123,7 @@ response_json = response.json()
 assert response.status_code == 401
 
 # Increase user quota
+print("Test: Increasing user quota...")
 response = requests.put(
     BASE_URL + f"/api/admin/users/{user_email}/quota",
     params={
@@ -135,11 +145,11 @@ assert response.status_code == 200
 assert response_json == {
     "apps_quota": 1,
     "services_quota": 1,
-    "networks_quota": 1,
-    "storage_quota": 0
+    "networks_quota": 1
 }
 
 # Create new app
+print("Test: Creating a new app...")
 response = requests.post(
     BASE_URL + f"/api/apps/{user_app}", 
     params={"api_key": API_KEY}, 
@@ -148,6 +158,7 @@ response = requests.post(
 assert response.status_code == 201
 
 # Must not exceed quota
+print("Test: Must not exceed quota when creating a new app...")
 response = requests.post(
     BASE_URL + f"/api/apps/{user_app + 'new'}", 
     params={"api_key": API_KEY}, 
@@ -158,6 +169,7 @@ assert response.status_code == 403
 assert response_json == {"detail": "Quota exceeded"}
 
 # Get app information
+print("Test: Getting app information...")
 response = requests.post(
     BASE_URL + f"/api/apps/{user_app}/info", 
     params={"api_key": API_KEY}, 
@@ -168,6 +180,7 @@ assert response.status_code == 200
 assert response_json["result"]["data"]["deployed"] == "false"
 
 # Get app URL
+print("Test: Getting app URL...")
 response = requests.post(
     BASE_URL + f"/api/apps/{user_app}/url",
     params={"api_key": API_KEY},
@@ -176,6 +189,7 @@ response = requests.post(
 assert response.status_code == 200
 
 # Get app logs
+print("Test: Getting app logs...")
 response = requests.post(
     BASE_URL + f"/api/apps/{user_app}/logs",
     params={"api_key": API_KEY},
@@ -184,6 +198,7 @@ response = requests.post(
 assert response.status_code == 200
 
 # Get app deployment token
+print("Test: Getting app deployment token...")
 response = requests.post(
     BASE_URL + f"/api/apps/{user_app}/deployment-token",
     params={"api_key": API_KEY},
@@ -194,6 +209,7 @@ assert response.status_code == 200
 assert len(response_json["result"]) > 0
 
 # Set app configuration
+print("Test: Setting app configuration...")
 response = requests.post(
     BASE_URL + f"/api/config/{user_app}",
     params={"api_key": API_KEY},
@@ -221,6 +237,7 @@ assert response.status_code == 200
 assert response_json["result"] == {user_app_key: user_app_key_value}
 
 # Create new database
+print("Test: Creating a new database...")
 response = requests.post(
     BASE_URL + f"/api/databases/mysql/{user_database}", 
     params={"api_key": API_KEY}, 
@@ -229,6 +246,7 @@ response = requests.post(
 assert response.status_code == 201
 
 # Must not exceed quota
+print("Test: Must not exceed quota when creating a new database...")
 response = requests.post(
     BASE_URL + f"/api/databases/mysql/{user_database + 'new'}", 
     params={"api_key": API_KEY}, 
@@ -239,6 +257,7 @@ assert response.status_code == 403
 assert response_json == {"detail": "Quota exceeded"}
 
 # Get database information
+print("Test: Getting database information...")
 response = requests.post(
     BASE_URL + f"/api/databases/mysql/{user_database}/info", 
     params={"api_key": API_KEY}, 
@@ -249,6 +268,7 @@ assert response.status_code == 200
 assert response_json["result"]["plugin_name"] == "mysql"
 
 # Link app to database
+print("Test: Linking app to database...")
 response = requests.post(
     BASE_URL + f"/api/databases/mysql/{user_database}/linked-apps", 
     params={"api_key": API_KEY}, 
@@ -293,6 +313,7 @@ assert response.status_code == 200
 assert response_json["result"] == {'mysql': [user_database]}
 
 # Create new network
+print("Test: Creating a new network...")
 response = requests.post(
     BASE_URL + f"/api/networks/{user_network}", 
     params={"api_key": API_KEY}, 
@@ -301,6 +322,7 @@ response = requests.post(
 assert response.status_code == 201
 
 # Must not exceed quota
+print("Test: Must not exceed quota when creating a new network...")
 response = requests.post(
     BASE_URL + f"/api/networks/{user_network + 'new'}", 
     params={"api_key": API_KEY}, 
@@ -311,6 +333,7 @@ assert response.status_code == 403
 assert response_json == {"detail": "Quota exceeded"}
 
 # Link app to network
+print("Test: Linking app to network...")
 response = requests.post(
     BASE_URL + f"/api/apps/{user_app}/network", 
     params={"api_key": API_KEY}, 
@@ -347,6 +370,7 @@ assert response.status_code == 200
 assert response_json["result"] == [user_app,]
 
 # Deploy application
+print("Test: Deploying application...")
 response = requests.put(
     BASE_URL + f"/api/deploy/{user_app}",
     params={"api_key": API_KEY, "repo_url": user_app_repo_url},

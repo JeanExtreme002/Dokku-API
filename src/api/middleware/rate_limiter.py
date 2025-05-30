@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIMiddleware
 
-RATE_LIMIT = ["120 per minute"]
+RATE_LIMIT = ["1200 per minute"]
 
 
 def get_ip_address(request: Request) -> str:

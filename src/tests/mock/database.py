@@ -1,7 +1,7 @@
 import functools
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from src.api.models.models import App, Network, Service, Storage, User
+from src.api.models.models import App, Network, Service, User
 from src.api.models.schema import UserSchema
 from src.api.tools import hash_access_token
 
@@ -14,13 +14,11 @@ MockUser = UserSchema(
     apps_quota=1,
     services_quota=1,
     networks_quota=1,
-    storage_quota=1,
 )
 
 MockApp = App(name="test-app", deploy_token="deploy123", user_email=MockUser.email)
 MockService = Service(name="test-service", user_email=MockUser.email)
 MockNetwork = Network(name="test-network", user_email=MockUser.email)
-MockStorage = Storage(name="test-storage", user_email=MockUser.email)
 
 
 def mock_all_models(test_func):
@@ -39,17 +37,14 @@ def mock_all_models(test_func):
                 apps_quota=MockUser.apps_quota,
                 services_quota=MockUser.services_quota,
                 networks_quota=MockUser.networks_quota,
-                storage_quota=MockUser.storage_quota,
             )
             app = MockApp
             service = MockService
             network = MockService
-            storage = MockStorage
 
             user.apps = [app]
             user.services = [service]
             user.networks = [network]
-            user.storages = [storage]
 
             def execute_side_effect(statement):
                 mock_result = MagicMock()
@@ -109,7 +104,6 @@ def mock_all_models(test_func):
                 app=app,
                 service=service,
                 network=network,
-                storage=storage,
                 mock_session=mock_session,
                 mock_sessionmaker=mock_sessionmaker,
                 **kwargs,

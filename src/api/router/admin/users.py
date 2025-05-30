@@ -76,7 +76,6 @@ def get_router(app: FastAPI) -> APIRouter:
         apps_quota: Optional[int] = None,
         services_quota: Optional[int] = None,
         networks_quota: Optional[int] = None,
-        storage_quota: Optional[int] = None,
     ):
         user = await get_user(email)
 
@@ -86,9 +85,6 @@ def get_router(app: FastAPI) -> APIRouter:
         )
         user.networks_quota = (
             networks_quota if networks_quota is not None else user.networks_quota
-        )
-        user.storage_quota = (
-            storage_quota if storage_quota is not None else user.storage_quota
         )
 
         await update_user(email, user)

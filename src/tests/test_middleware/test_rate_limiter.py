@@ -29,7 +29,7 @@ class TestRateLimiting(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(response.status_code, 200, msg=f"Failed at request {i+1}")
 
     async def test_global_rate_limit_exceeded(self):
-        for i in range(500):
+        for i in range(2000):
             response = await self.client.get("/")
 
         response = await self.client.get("/")

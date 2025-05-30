@@ -3,7 +3,6 @@ from src.api.models.models import (
     Network,
     Resource,
     Service,
-    Storage,
     User,
     create_resource,
     create_user,
