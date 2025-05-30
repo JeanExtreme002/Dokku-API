@@ -20,7 +20,6 @@ run:  ## Run the API locally
 install:  ## Install the API dependencies locally
 	@command -v poetry >/dev/null 2>&1 || (echo "$(YELLOW)Installing Poetry...$(NC)" && pip install poetry)
 	@poetry install --with dev --no-root
-	@poetry run pre-commit install --hook-type pre-commit --hook-type pre-push
 
 .PHONY: commit
 commit:  ## Commit changes on local repository
