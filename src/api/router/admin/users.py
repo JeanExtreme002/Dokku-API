@@ -19,7 +19,7 @@ def get_router(app: FastAPI) -> APIRouter:
     @router.post("/{email}", response_description="Create a new user")
     async def create_new_user(request: Request, email: str, access_token: str):
         await create_user(email, access_token)
-        return JSONResponse(status_code=status.HTTP_200_OK, content={})
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content={})
 
     @router.delete("/{email}", response_description="Delete user")
     async def delete_user_from_database(request: Request, email: str):

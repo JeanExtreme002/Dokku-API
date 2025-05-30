@@ -55,7 +55,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
         return JSONResponse(
-            status_code=status.HTTP_200_OK,
+            status_code=status.HTTP_201_CREATED,
             content={
                 "success": success,
                 "result": result,
