@@ -1,15 +1,25 @@
 import requests
 import secrets
+import sys
 
-BASE_URL = "http://0.0.0.0:5000"
-MASTER_KEY = "abc12345678"
-API_KEY = "abc123"
+if len(sys.argv) != 4:
+    print(sys.argv)
+    raise ValueError("Usage: python test_app.py <base_url> <master_key> <api_key>")
+
+BASE_URL = sys.argv[1]
+MASTER_KEY = sys.argv[2]
+API_KEY = sys.argv[3]
+
+print(f"Testing API at {BASE_URL} with MASTER_KEY={MASTER_KEY} and API_KEY={API_KEY}")
 
 user_email = f"test{secrets.token_hex(16)}@example.com"
 user_token = secrets.token_urlsafe(256)
 user_app = "test-app"
-user_database = "test-database"
-user_network = "test-network"
+user_app_repo_url = "https://github.com/heroku/ruby-getting-started"
+user_app_key = f"key{secrets.token_hex(8)}"
+user_app_key_value = secrets.token_hex(8)
+user_database = "test_database"
+user_network = "test_network"
 
 # Check base endpoints
 response = requests.get(BASE_URL)
@@ -157,6 +167,59 @@ response_json = response.json()
 assert response.status_code == 200
 assert response_json["result"]["data"]["deployed"] == "false"
 
+# Get app URL
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/url",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+assert response.status_code == 200
+
+# Get app logs
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/logs",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+assert response.status_code == 200
+
+# Get app deployment token
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/deployment-token",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert len(response_json["result"]) > 0
+
+# Set app configuration
+response = requests.post(
+    BASE_URL + f"/api/config/{user_app}",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["result"] == {}
+
+response = requests.post(
+    BASE_URL + f"/api/config/{user_app}/{user_app_key}/{user_app_key_value}",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+
+response = requests.post(
+    BASE_URL + f"/api/config/{user_app}",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["result"] == {user_app_key: user_app_key_value}
+
 # Create new database
 response = requests.post(
     BASE_URL + f"/api/databases/mysql/{user_database}", 
@@ -184,3 +247,111 @@ response = requests.post(
 response_json = response.json()
 assert response.status_code == 200
 assert response_json["result"]["plugin_name"] == "mysql"
+
+# Link app to database
+response = requests.post(
+    BASE_URL + f"/api/databases/mysql/{user_database}/linked-apps", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["result"] == []
+
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/databases", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["result"] == {}
+
+response = requests.post(
+    BASE_URL + f"/api/databases/mysql/{user_database}/link/{user_app}", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+assert response.status_code == 200
+
+response = requests.post(
+    BASE_URL + f"/api/databases/mysql/{user_database}/linked-apps", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["result"] == [user_app,]
+
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/databases", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["result"] == {'mysql': [user_database]}
+
+# Create new network
+response = requests.post(
+    BASE_URL + f"/api/networks/{user_network}", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+assert response.status_code == 201
+
+# Must not exceed quota
+response = requests.post(
+    BASE_URL + f"/api/networks/{user_network + 'new'}", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 403
+assert response_json == {"detail": "Quota exceeded"}
+
+# Link app to network
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/network", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["result"] == {'network': None}
+
+response = requests.post(
+    BASE_URL + f"/api/networks/{user_network}/link/{user_app}", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/network", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["result"] == {'network': user_network}
+
+response = requests.post(
+    BASE_URL + f"/api/networks/{user_network}/linked-apps", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["result"] == [user_app,]
+
+# Deploy application
+response = requests.put(
+    BASE_URL + f"/api/deploy/{user_app}",
+    params={"api_key": API_KEY, "repo_url": user_app_repo_url},
+    json={"access_token": user_token}
+)
+assert response.status_code == 200
+
+print("All tests passed successfully!")

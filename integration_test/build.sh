@@ -20,4 +20,5 @@ docker exec dokku bash -c "echo \"$KEY_CONTENT\" >> /root/.ssh/authorized_keys"
 
 # Run test
 set -e
-docker compose up integration_test --build
+DOKKU_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' dokku)
+DOKKU_HOST="$DOKKU_HOST" docker compose up integration_test --build

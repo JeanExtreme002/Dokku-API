@@ -56,7 +56,8 @@ def generate_token(size: int) -> str:
 class User(Base):
     __tablename__ = "user"
 
-    email = Column(String(100), primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(100), unique=True)
     access_token = Column(String(500), unique=True)
     apps_quota = Column(Integer, nullable=False, default=0)
     services_quota = Column(Integer, nullable=False, default=0)
@@ -139,6 +140,7 @@ USER_EAGER_LOAD = [
 
 def get_user_schema(user: User) -> UserSchema:
     return UserSchema(
+        id=user.id,
         email=user.email,
         access_token=user.access_token,
         apps_quota=user.apps_quota,

@@ -23,9 +23,9 @@ services:
     depends_on:
       - dokku
     environment:
-      - DOKKU_HOST=dokku
+      - DOKKU_HOST
       - DIR=/app
-      - INTEGRATION_TEST_DIR=/app/integration_test
+      - INTEGRATION_TEST_DIR=integration_test
     networks:
       - integration-test-dokku-net
     entrypoint: integration_test/scripts/run.sh

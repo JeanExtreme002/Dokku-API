@@ -16,32 +16,24 @@ class ResourceName:
         resource_type: Type[Resource],
         from_system: bool = False,
     ):
-        self.__username = user.email.split("@", maxsplit=1)[0]
+        self.__user = user.id
         self.__separator = {App: "-"}.get(resource_type, "_")
-
-        self.__username = self.__username.lower()
         self.__name = name.lower()
 
         allowed = "abcdefghijklmnopqrstuvwxyz0123456789"
 
-        self.__username = "".join(
-            [
-                (char if char in allowed else self.__separator)
-                for char in self.__username
-            ]
-        )
         self.__name = "".join(
             [(char if char in allowed else self.__separator) for char in self.__name]
         )
 
         if from_system:
-            self.__name = self.__name.lstrip(self.__username + self.__separator)
+            self.__name = self.__name.lstrip(f"{self.__user}{self.__separator}")
 
     def for_system(self) -> str:
         """
         Get the system resource name for the API system.
         """
-        return f"{self.__username}{self.__separator}{self.__name}"
+        return f"{self.__user}{self.__separator}{self.__name}"
 
     def normalized(self) -> str:
         """
