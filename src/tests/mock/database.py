@@ -6,6 +6,7 @@ from src.api.models.schema import UserSchema
 from src.api.tools import hash_access_token
 
 MockUser = UserSchema(
+    id=1,
     email="test@example.com",
     access_token="abc123",
     is_admin=False,
@@ -30,6 +31,7 @@ def mock_all_models(test_func):
             mock_sessionmaker.return_value.__aenter__.return_value = mock_session
 
             user = User(
+                id=MockUser.id,
                 email=MockUser.email,
                 access_token=hash_access_token(MockUser.access_token),
                 is_admin=MockUser.is_admin,
