@@ -40,6 +40,7 @@ class Config:
 
     API_NAME: str = os.getenv("API_NAME")
     API_VERSION_NUMBER: str = os.getenv("API_VERSION_NUMBER")
+    API_VOLUME_DIR: str = os.getenv("API_VOLUME_DIR")
 
     API_KEY: str = os.getenv("API_KEY")
     MASTER_KEY: str = os.getenv("MASTER_KEY")

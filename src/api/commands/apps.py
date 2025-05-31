@@ -1,3 +1,4 @@
+import asyncio
 import json
 import re
 from abc import ABC
@@ -17,6 +18,7 @@ from src.api.models import (
 from src.api.models.schema import UserSchema
 from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command
+from src.config import Config
 
 
 def parse_ps_report(text: str) -> Dict:
@@ -107,7 +109,16 @@ class AppsCommands(ABC):
             raise HTTPException(status_code=403, detail="App already exists")
 
         await create_resource(session_user.email, app_name, App)
-        return await run_command(f"apps:create {app_name}")
+        success, message = await run_command(f"apps:create {app_name}")
+
+        if not success:
+            return False, message
+        
+        app_dir = f"{Config.API_VOLUME_DIR}/{app_name}"
+
+        asyncio.create_task(run_command(f"storage:mount {app_name} {app_dir}:/app"))
+
+        return success, message
 
     @staticmethod
     async def get_deployment_token(
