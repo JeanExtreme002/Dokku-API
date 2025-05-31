@@ -39,7 +39,6 @@ pymysql = "^1.1.1"
 sqlalchemy = "^2.0.41"
 aiofiles = "^24.1.0"
 asyncmy = "^0.2.10"
-slowapi = {extras = ["redis"], version = "^0.1.9"}
 httpx = "^0.28.1"
 aiomysql = "^0.2.0"
 
