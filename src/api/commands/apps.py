@@ -113,7 +113,7 @@ class AppsCommands(ABC):
 
         if not success:
             return False, message
-        
+
         app_dir = f"{Config.API_VOLUME_DIR}/{app_name}"
 
         asyncio.create_task(run_command(f"storage:mount {app_name} {app_dir}:/app"))
