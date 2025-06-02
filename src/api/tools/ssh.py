@@ -9,9 +9,6 @@ ssh_hostname = Config.SSH_SERVER.SSH_HOSTNAME
 ssh_port = Config.SSH_SERVER.SSH_PORT
 ssh_key_path = Config.SSH_SERVER.SSH_KEY_PATH
 
-with open(ssh_key_path, "r") as key_file:
-    ssh_key_passphrase = key_file.read().strip()
-
 
 def __execute_command(command: str, username: str) -> Tuple[bool, str]:
     """
