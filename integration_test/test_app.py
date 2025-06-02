@@ -18,9 +18,11 @@ test_id = str(time.time()).replace(".", "")
 user_email = f"test{test_id}@example.com"
 user_token = secrets.token_urlsafe(256)
 user_app = "test-app"
+user_app_domain = "testdokkuapi.com"
 user_app_repo_url = "https://github.com/heroku/ruby-getting-started"
 user_app_key = f"key{secrets.token_hex(8)}"
 user_app_key_value = secrets.token_hex(8)
+user_app_port_mapping = {"protocol": "http", "origin": 5300, "dest": 7040}
 user_database = "test_database"
 user_network = "test_network"
 
@@ -133,6 +135,7 @@ response = requests.put(
     },
     headers={"MASTER-KEY": MASTER_KEY}
 )
+response_json = response.json()
 assert response.status_code == 200
 
 response = requests.post(
@@ -155,7 +158,9 @@ response = requests.post(
     params={"api_key": API_KEY}, 
     json={"access_token": user_token}
 )
+response_json = response.json()
 assert response.status_code == 201
+assert response_json["success"] == True
 
 # Must not exceed quota
 print("Test: Must not exceed quota when creating a new app...")
@@ -177,6 +182,7 @@ response = requests.post(
 )
 response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 assert response_json["result"]["data"]["deployed"] == "false"
 
 # Get app URL
@@ -186,7 +192,9 @@ response = requests.post(
     params={"api_key": API_KEY},
     json={"access_token": user_token}
 )
+response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 
 # Get app logs
 print("Test: Getting app logs...")
@@ -195,6 +203,7 @@ response = requests.post(
     params={"api_key": API_KEY},
     json={"access_token": user_token}
 )
+response_json = response.json()
 assert response.status_code == 200
 
 # Get app deployment token
@@ -206,6 +215,7 @@ response = requests.post(
 )
 response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 assert len(response_json["result"]) > 0
 
 # Set app configuration
@@ -217,6 +227,7 @@ response = requests.post(
 )
 response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 assert response_json["result"] == {}
 
 response = requests.post(
@@ -226,6 +237,7 @@ response = requests.post(
 )
 response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 
 response = requests.post(
     BASE_URL + f"/api/config/{user_app}",
@@ -234,6 +246,7 @@ response = requests.post(
 )
 response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 assert response_json["result"] == {user_app_key: user_app_key_value}
 
 # Create new database
@@ -243,7 +256,10 @@ response = requests.post(
     params={"api_key": API_KEY}, 
     json={"access_token": user_token}
 )
+response_json = response.json()
 assert response.status_code == 201
+assert response_json["success"] == True
+
 
 # Must not exceed quota
 print("Test: Must not exceed quota when creating a new database...")
@@ -265,6 +281,7 @@ response = requests.post(
 )
 response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 assert response_json["result"]["plugin_name"] == "mysql"
 
 # Link app to database
@@ -285,6 +302,7 @@ response = requests.post(
 )
 response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 assert response_json["result"] == {}
 
 response = requests.post(
@@ -292,7 +310,9 @@ response = requests.post(
     params={"api_key": API_KEY}, 
     json={"access_token": user_token}
 )
+response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 
 response = requests.post(
     BASE_URL + f"/api/databases/mysql/{user_database}/linked-apps", 
@@ -310,6 +330,7 @@ response = requests.post(
 )
 response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 assert response_json["result"] == {'mysql': [user_database]}
 
 # Create new network
@@ -319,7 +340,9 @@ response = requests.post(
     params={"api_key": API_KEY}, 
     json={"access_token": user_token}
 )
+response_json = response.json()
 assert response.status_code == 201
+assert response_json["success"] == True
 
 # Must not exceed quota
 print("Test: Must not exceed quota when creating a new network...")
@@ -341,6 +364,7 @@ response = requests.post(
 )
 response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 assert response_json["result"] == {'network': None}
 
 response = requests.post(
@@ -350,6 +374,7 @@ response = requests.post(
 )
 response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 
 response = requests.post(
     BASE_URL + f"/api/apps/{user_app}/network", 
@@ -358,6 +383,7 @@ response = requests.post(
 )
 response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 assert response_json["result"] == {'network': user_network}
 
 response = requests.post(
@@ -367,6 +393,7 @@ response = requests.post(
 )
 response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
 assert response_json["result"] == [user_app,]
 
 # Deploy application
@@ -376,6 +403,155 @@ response = requests.put(
     params={"api_key": API_KEY, "repo_url": user_app_repo_url},
     json={"access_token": user_token}
 )
+response_json = response.json()
 assert response.status_code == 200
+assert response_json["success"] == True
+
+# Setting domain for the app
+print("Test: Setting domain for the app...")
+response = requests.post(
+    BASE_URL + f"/api/domains/{user_app_domain}/{user_app}",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["success"] == True
+
+# Unsetting domain for the app
+print("Test: Unsetting domain for the app...")
+response = requests.delete(
+    BASE_URL + f"/api/domains/{user_app_domain}/{user_app}",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["success"] == True
+
+# Setting port mapping
+print("Test: Setting port mapping for the app...")
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/ports",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["success"] == True
+assert response_json["result"] == []
+
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/ports/{user_app_port_mapping['protocol']}/{user_app_port_mapping['origin']}/{user_app_port_mapping['dest']}",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/ports",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["success"] == True
+assert response_json["result"] == [user_app_port_mapping,]
+
+# Unsetting port mapping
+print("Test: Unsetting port mapping for the app...")
+response = requests.delete(
+    BASE_URL + f"/api/apps/{user_app}/ports/{user_app_port_mapping['protocol']}/{user_app_port_mapping['origin']}/{user_app_port_mapping['dest']}",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/ports",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["result"] == []
+
+# Unlink app from network
+print("Test: Unlinking app from network...")
+response = requests.delete(
+    BASE_URL + f"/api/networks/{user_network}/link/{user_app}",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["success"] == True
+
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/network", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["success"] == True
+assert response_json["result"] == {'network': None}
+
+# Unlink app from database
+print("Test: Unlinking app from database...")
+response = requests.delete(
+    BASE_URL + f"/api/databases/mysql/{user_database}/link/{user_app}",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["success"] == True
+
+response = requests.post(
+    BASE_URL + f"/api/apps/{user_app}/databases", 
+    params={"api_key": API_KEY}, 
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["success"] == True
+assert response_json["result"] == {}
+
+# Delete network
+print("Test: Deleting network...")
+response = requests.delete(
+    BASE_URL + f"/api/networks/{user_network}",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["success"] == True
+
+# Delete database
+print("Test: Deleting database...")
+response = requests.delete(
+    BASE_URL + f"/api/databases/mysql/{user_database}",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["success"] == True
+
+# Delete app
+print("Test: Deleting app...")
+response = requests.delete(
+    BASE_URL + f"/api/apps/{user_app}",
+    params={"api_key": API_KEY},
+    json={"access_token": user_token}
+)
+response_json = response.json()
+assert response.status_code == 200
+assert response_json["success"] == True
+
 
 print("All tests passed successfully!")

@@ -96,4 +96,25 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
+    @router.delete(
+        "/{network_name}/link/{app_name}",
+        response_description="Unset network from app",
+    )
+    async def unset_network_from_app(
+        request: Request,
+        network_name: str,
+        app_name: str,
+    ):
+        success, result = await NetworksCommands.unset_network_to_app(
+            request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
     return router

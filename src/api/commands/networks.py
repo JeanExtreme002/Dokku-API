@@ -95,8 +95,20 @@ class NetworksCommands(ABC):
             raise HTTPException(status_code=404, detail="App does not exist")
 
         return await run_command(
-            f"network:set {app_name} initial-network {network_name}"
+            f"network:set {app_name} attach-post-create {network_name}"
         )
+
+    @staticmethod
+    async def unset_network_to_app(
+        session_user: UserSchema,
+        app_name: str,
+    ) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        return await run_command(f'network:set {app_name} attach-post-create ""')
 
     @staticmethod
     async def get_linked_apps(

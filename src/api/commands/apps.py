@@ -88,7 +88,7 @@ def parse_port_mappings(text: str) -> List:
             scheme, host_port, container_port = parts
             ports.append(
                 {
-                    "procotol": scheme,
+                    "protocol": scheme,
                     "origin": int(host_port),
                     "dest": int(container_port),
                 }
