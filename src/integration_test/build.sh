@@ -49,7 +49,6 @@ set -e
 
 until nc -z $DOKKU_HOST 22; do
 	echo "Waiting for SSH Server to be ready..."
-  sleep 5
 done
 
 echo "Configuring environment variables..."
@@ -78,8 +77,7 @@ done
 echo "Started API process with PID: $PID"
 
 until nc -z $DOKKU_API_HOST $DOKKU_API_PORT; do
-	echo "Waiting for Dokku-API to be ready..."
-  sleep 3
+	echo "Waiting for Dokku-API to be ready...\r"
 done
 
 echo "Started API process with PID: $PID"
