@@ -70,8 +70,6 @@ echo "Setting up Dokku-API..."
 make run &
 PID=$!
 
-trap "kill $PID" EXIT
-
 until nc -z $DOKKU_API_HOST $DOKKU_API_PORT; do
   echo "Waiting for Dokku-API to be ready..."
   sleep 3
