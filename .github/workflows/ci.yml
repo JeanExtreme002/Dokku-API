@@ -71,8 +71,8 @@ jobs:
           make lint
           make test
 
-      # Integration Tests
-      - name: Integration Tests
+      # System Tests
+      - name: System Tests
         if: ${{github.event_name != 'merge_group'}}
         run: |
-          make integration-test
+          make system-test

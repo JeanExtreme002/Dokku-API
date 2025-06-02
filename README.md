@@ -34,7 +34,7 @@ Run `make help` to learn about more commands.
 The project has some tests to check if everything is working properly. To run the tests, execute the command below:
 ```
 $ make test
-$ make integration-test
+$ make system-test
 ```
 
 ## Coding Style

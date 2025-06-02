@@ -31,7 +31,7 @@ KEY_PATH=".ssh/id_rsa"
 
 if [ ! -f "$KEY_PATH" ]; then
   datetime=$(date +%Y%m%d_%H%M%S)
-  ssh-keygen -t rsa -b 4096 -m PEM -C "integration_test" -f "${KEY_PATH}_$datetime" -N ""
+  ssh-keygen -t rsa -b 4096 -m PEM -C "system_test" -f "${KEY_PATH}_$datetime" -N ""
   mv "${KEY_PATH}_$datetime" "$KEY_PATH"
   mv "${KEY_PATH}_$datetime.pub" "${KEY_PATH}.pub"
 else
@@ -82,4 +82,4 @@ done
 
 echo "Started API process with PID: $PID"
 
-poetry run python -m src.integration_test http://$DOKKU_API_HOST:$DOKKU_API_PORT $MASTER_KEY $API_KEY;
+poetry run python -m src.system_test http://$DOKKU_API_HOST:$DOKKU_API_PORT $MASTER_KEY $API_KEY;

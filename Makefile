@@ -29,12 +29,12 @@ commit:  ## Commit changes on local repository
 test:  ## Run unit tests
 	@poetry run coverage run -m unittest discover -s src.tests --verbose && poetry run coverage report;
 
-.PHONY: integration-test
-integration-test:  ## Run integration tests
+.PHONY: system-test
+system-test:  ## Run system tests
 	@{ \
-		MASTER_KEY="abcd12345678-integration-test"; \
-		API_KEY="abc123-integration-test"; \
-		bash -l ./src/integration_test/build.sh dokku "$$MASTER_KEY" "$$API_KEY"; \
+		MASTER_KEY="abcd12345678-system-test"; \
+		API_KEY="abc123-system-test"; \
+		bash -l ./src/system_test/build.sh dokku "$$MASTER_KEY" "$$API_KEY"; \
 	}
 
 .PHONY: lint
