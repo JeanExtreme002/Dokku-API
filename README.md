@@ -1,5 +1,5 @@
 # Dokku API
-This is the API server of the Dokku Dashboard project, built with [FastAPI](https://fastapi.tiangolo.com/).
+This is a RESTful API for managing applications and resources on Dokku, built with [FastAPI](https://fastapi.tiangolo.com/).
 
 ## Getting Started (quick run)
 The entire project has been built to run entirely on [Dokku](https://dokku.com/) or [Docker](https://www.docker.com/).
@@ -34,6 +34,7 @@ Run `make help` to learn about more commands.
 The project has some tests to check if everything is working properly. To run the tests, execute the command below:
 ```
 $ make test
+$ make integration-test
 ```
 
 ## Coding Style
