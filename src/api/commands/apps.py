@@ -1,4 +1,3 @@
-import asyncio
 import json
 import re
 from abc import ABC
@@ -109,16 +108,7 @@ class AppsCommands(ABC):
             raise HTTPException(status_code=403, detail="App already exists")
 
         await create_resource(session_user.email, app_name, App)
-        success, message = await run_command(f"apps:create {app_name}")
-
-        if not success:
-            return False, message
-
-        app_dir = f"{Config.API_VOLUME_DIR}/{app_name}"
-
-        asyncio.create_task(run_command(f"storage:mount {app_name} {app_dir}:/app"))
-
-        return success, message
+        return await run_command(f"apps:create {app_name}")
 
     @staticmethod
     async def get_deployment_token(
@@ -289,3 +279,31 @@ class AppsCommands(ABC):
                 ]
 
         return True, result
+
+    @staticmethod
+    async def mount_storage(
+        session_user: UserSchema,
+        app_name: str,
+    ) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        app_dir = f"{Config.API_VOLUME_DIR}/{app_name}"
+
+        return await run_command(f"storage:mount {app_name} {app_dir}:/app")
+
+    @staticmethod
+    async def unmount_storage(
+        session_user: UserSchema,
+        app_name: str,
+    ) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        app_dir = f"{Config.API_VOLUME_DIR}/{app_name}"
+
+        return await run_command(f"storage:unmount {app_name} {app_dir}:/app")

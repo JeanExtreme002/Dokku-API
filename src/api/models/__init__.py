@@ -1,4 +1,5 @@
 from src.api.models.models import (
+    DATABASE_URL,
     App,
     Network,
     Resource,
