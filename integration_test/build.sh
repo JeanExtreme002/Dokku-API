@@ -6,13 +6,18 @@ docker compose up -d dokku
 
 # Set up SSH key
 mkdir -p .ssh
-datetime=$(date +%Y%m%d_%H%M%S)
+KEY_PATH=".ssh/id_rsa"
 
-ssh-keygen -t rsa -b 4096 -m PEM -C "integration_test" -f ".ssh/id_rsa_$datetime" -N ""
-mv .ssh/id_rsa_$datetime .ssh/id_rsa
-mv .ssh/id_rsa_$datetime.pub .ssh/id_rsa.pub
+if [ ! -f "$KEY_PATH" ]; then
+  datetime=$(date +%Y%m%d_%H%M%S)
+  ssh-keygen -t rsa -b 4096 -m PEM -C "integration_test" -f "${KEY_PATH}_$datetime" -N ""
+  mv "${KEY_PATH}_$datetime" "$KEY_PATH"
+  mv "${KEY_PATH}_$datetime.pub" "${KEY_PATH}.pub"
+else
+  echo "SSH key already exists at $KEY_PATH, skipping generation."
+fi
 
-KEY_CONTENT=$(cat .ssh/id_rsa.pub)
+KEY_CONTENT=$(cat "${KEY_PATH}.pub")
 
 set +e
 docker exec dokku bash -c "echo \"$KEY_CONTENT\" | dokku ssh-keys:add admin-$datetime"

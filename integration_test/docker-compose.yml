@@ -6,9 +6,6 @@ services:
       - "3022:22"
       - "8080:80"
       - "8443:443"
-    volumes:
-      - "/var/lib/dokku:/mnt/dokku"
-      - "/var/run/docker.sock:/var/run/docker.sock"
     environment:
       DOKKU_HOSTNAME: dokku
       DOKKU_HOST_ROOT: /var/lib/dokku/home/dokku

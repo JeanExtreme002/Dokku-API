@@ -45,3 +45,6 @@ sleep 2
 
 # Deploy the application
 make dokku-install
+
+# TODO: Run the integration tests
+# For now, I couldn't make the API connect to the Dokku server.
