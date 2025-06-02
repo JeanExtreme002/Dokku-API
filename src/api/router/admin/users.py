@@ -33,12 +33,24 @@ def get_router(app: FastAPI) -> APIRouter:
             await DatabasesCommands.delete_database(user, plugin_name, database_name)
 
         await delete_user(email)
+
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
 
     @router.put("/{email}/email", response_description="Update the user's email")
     async def update_email(request: Request, email: str, new_email: str):
         user = await get_user(email)
         user.email = new_email
+
+        try:
+            await get_user(new_email)
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already exists",
+            )
+        except HTTPException as error:
+            if error.status_code != 404:
+                raise error
 
         await update_user(email, user)
 

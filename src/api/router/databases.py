@@ -53,9 +53,13 @@ def get_router(app: FastAPI) -> APIRouter:
         success, result = await DatabasesCommands.create_database(
             request.state.session_user, plugin_name, database_name
         )
+        status_code = status.HTTP_201_CREATED
+
+        if not success:
+            status_code = status.HTTP_200_OK
 
         return JSONResponse(
-            status_code=status.HTTP_201_CREATED,
+            status_code=status_code,
             content={
                 "success": success,
                 "result": result,
