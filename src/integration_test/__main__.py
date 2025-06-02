@@ -252,7 +252,6 @@ response_json = response.json()
 assert response.status_code == 201
 assert response_json["success"] == True
 
-
 # Must not exceed quota
 print("Test: Must not exceed quota when creating a new database...")
 response = requests.post(
