@@ -8,7 +8,9 @@ from src.config import Config
 ssh_hostname = Config.SSH_SERVER.SSH_HOSTNAME
 ssh_port = Config.SSH_SERVER.SSH_PORT
 ssh_key_path = Config.SSH_SERVER.SSH_KEY_PATH
-ssh_key_passphrase = Config.SSH_SERVER.SSH_KEY_PASSPHRASE
+
+with open(ssh_key_path, "r") as key_file:
+    ssh_key_passphrase = key_file.read().strip()
 
 
 def __execute_command(command: str, username: str) -> Tuple[bool, str]:
@@ -35,7 +37,8 @@ def __execute_command(command: str, username: str) -> Tuple[bool, str]:
             port=ssh_port,
             username=username,
             key_filename=ssh_key_path,
-            passphrase=ssh_key_passphrase,
+            allow_agent=False,
+            look_for_keys=False,
         )
         _, stdout, stderr = client.exec_command(command, timeout=60)
 

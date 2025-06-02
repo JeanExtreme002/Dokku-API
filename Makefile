@@ -31,7 +31,11 @@ test:  ## Run unit tests
 
 .PHONY: integration-test
 integration-test:  ## Run integration tests
-	@cd integration_test && python test_app.py http://0.0.0.0:5000 $(MASTER_KEY) $(API_KEY);
+	@{ \
+		MASTER_KEY="abcd12345678-integration-test"; \
+		API_KEY="abc123-integration-test"; \
+		bash -l ./src/integration_test/build.sh dokku "$$MASTER_KEY" "$$API_KEY"; \
+	}
 
 .PHONY: lint
 lint:  ## Run lint
@@ -100,17 +104,14 @@ dokku-set-config:
 	@{ \
 		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
 		\
-		if [ -z "$(SSH_HOSTNAME)" ] || [ -z "$(RSA_KEY_FILE)" ]; then \
-			echo "$(RED)ERROR: SSH_HOSTNAME, RSA_KEY_FILE, and FORMATTED_API_NAME are required.$(NC)"; \
+		if [ -z "$(SSH_HOSTNAME)" ] || [ -z "$(SSH_KEY_PATH)" ]; then \
+			echo "$(RED)ERROR: SSH_HOSTNAME, SSH_KEY_PATH, and FORMATTED_API_NAME are required.$(NC)"; \
 			exit 1; \
 		fi; \
 		\
 		echo "$(GREEN)Using SSH host: $(SSH_HOSTNAME)$(NC)"; \
-		echo "$(GREEN)Reading RSA private key from: $(RSA_KEY_FILE)$(NC)"; \
+		echo "$(GREEN)Reading RSA private key from: $(SSH_KEY_PATH)$(NC)"; \
 		echo "$(GREEN)Using Dokku app: $$FORMATTED_API_NAME$(NC)"; \
-		\
-		SSH_KEY_PATH="/$$FORMATTED_API_NAME/id_rsa"; \
-		RSA_KEY_PASSPHRASE=$$(sed ':a;N;$$!ba;s/\n/\\n/g' $(RSA_KEY_FILE)); \
 		\
 		if [ -z "$(API_KEY)" ]; then \
 			echo "$(YELLOW)WARNING: No API_KEY in .env. Generating a new one...$(NC)"; \
@@ -125,14 +126,13 @@ dokku-set-config:
 			API_VOLUME_DIR='$(API_VOLUME_DIR)' \
 			SSH_HOSTNAME='$(SSH_HOSTNAME)' \
 			SSH_PORT='$(SSH_PORT)' \
-			SSH_KEY_PATH="$$SSH_KEY_PATH" \
-			SSH_KEY_PASSPHRASE="\"$$RSA_KEY_PASSPHRASE\"" \
+			SSH_KEY_PATH="/$$FORMATTED_API_NAME/id_rsa" \
 			API_KEY="$$API_KEY" \
 			MASTER_KEY=$(MASTER_KEY) \
 			AVAILABLE_DATABASES=$(AVAILABLE_DATABASES); \
 		\
 		mkdir -p "/$$FORMATTED_API_NAME"; \
-		cp $(RSA_KEY_FILE) /$$FORMATTED_API_NAME/id_rsa; \
+		cp $(SSH_KEY_PATH) /$$FORMATTED_API_NAME/id_rsa; \
 		chmod 644 /$$FORMATTED_API_NAME/id_rsa; \
 		\
 		if ! dokku storage:report $$FORMATTED_API_NAME | grep -q "/$$FORMATTED_API_NAME/:/$$FORMATTED_API_NAME/"; then \

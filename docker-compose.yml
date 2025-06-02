@@ -6,7 +6,7 @@ services:
     working_dir: /app
     volumes:
       - ./:/app
-      - "${RSA_KEY_FILE}:/tmp/id_rsa:ro"
+      - "${SSH_KEY_PATH}:/tmp/id_rsa:ro"
       - type: volume
         source: dokku_api_secrets
         target: /app/.secrets
@@ -19,9 +19,6 @@ services:
         cp /tmp/id_rsa /app/.secrets/id_rsa &&
         chmod 600 /app/.secrets/id_rsa
 
-        RSA_KEY_PASSPHRASE="$$(awk '\''{printf "%s\\\\n", $$0}'\'' /app/.secrets/id_rsa)"
-
-        export SSH_KEY_PASSPHRASE=$${RSA_KEY_PASSPHRASE}
         export SSH_KEY_PATH=/app/.secrets/id_rsa
 
         pip install poetry > /dev/null &&
@@ -66,6 +63,21 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
+
+  dokku:
+    image: dokku/dokku:0.35.19
+    container_name: dokku
+    ports:
+      - "3022:22"
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - "/var/lib/dokku:/mnt/dokku"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      DOKKU_HOSTNAME: dokku
+      DOKKU_HOST_ROOT: /var/lib/dokku/home/dokku
+      DOKKU_LIB_HOST_ROOT: /var/lib/dokku/var/lib/dokku
 
 volumes:
   mysql_data:

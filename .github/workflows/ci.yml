@@ -64,9 +64,15 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      # Tests
-      - name: Lint and Tests
+      # Lint and Unit Tests
+      - name: Lint and Unit Tests
         if: ${{github.event_name != 'merge_group'}}
         run: |
           make lint
           make test
+
+      # Integration Tests
+      - name: Integration Tests
+        if: ${{github.event_name != 'merge_group'}}
+        run: |
+          make integration-test
