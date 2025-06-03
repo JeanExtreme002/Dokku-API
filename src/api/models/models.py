@@ -1,22 +1,21 @@
-import secrets
-from typing import List, Optional, Tuple, Type
+from typing import List, Tuple, Type
 
 from fastapi import HTTPException
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    String,
-    func,
-    select,
-)
+from sqlalchemy import select
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from sqlalchemy.orm import declarative_base, relationship, selectinload
+from sqlalchemy.orm import selectinload
 
-from src.api.models.schema import UserSchema
+from src.api.models.base import (
+    USER_EAGER_LOAD,
+    App,
+    Base,
+    Network,
+    Resource,
+    Service,
+    User,
+)
+from src.api.schemas import UserSchema
 from src.api.tools import hash_access_token, validate_email_format
 from src.config import Config
 
@@ -46,85 +45,6 @@ if DATABASE_URL.startswith("mysql://"):
 engine = create_async_engine(DATABASE_URL, echo=False)
 
 AsyncSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False)
-Base = declarative_base()
-
-
-def generate_token(size: int) -> str:
-    return secrets.token_urlsafe(size)
-
-
-class User(Base):
-    __tablename__ = "user"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    email = Column(String(100), unique=True)
-    access_token = Column(String(500), unique=True)
-    apps_quota = Column(Integer, nullable=False, default=0)
-    services_quota = Column(Integer, nullable=False, default=0)
-    networks_quota = Column(Integer, nullable=False, default=0)
-    is_admin = Column(Boolean, nullable=False, default=False)
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-
-    apps = relationship("App", back_populates="user", cascade="all, delete")
-    services = relationship("Service", back_populates="user", cascade="all, delete")
-    networks = relationship("Network", back_populates="user", cascade="all, delete")
-
-
-class Resource(Base):
-    __abstract__ = True
-
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-
-
-class App(Resource):
-    __tablename__ = "app"
-    name = Column(String(255), primary_key=True)
-    deploy_token = Column(String(1024), nullable=True)
-
-    user_email = Column(String(255), ForeignKey("user.email"))
-    user = relationship("User", back_populates="apps", foreign_keys=[user_email])
-
-    def __init__(
-        self,
-        name: str,
-        deploy_token: Optional[str] = None,
-        user_email: Optional[str] = None,
-        created_at: Optional[DateTime] = None,
-    ):
-        self.name = name
-        self.deploy_token = deploy_token
-        self.user_email = user_email
-        self.created_at = created_at
-
-        if self.deploy_token is None:
-            self.deploy_token = f"{name}-{generate_token(512)}"
-
-
-class Service(Resource):
-    __tablename__ = "service"
-    name = Column(String(255), primary_key=True)
-
-    user_email = Column(String(255), ForeignKey("user.email"))
-    user = relationship("User", back_populates="services", foreign_keys=[user_email])
-
-
-class Network(Resource):
-    __tablename__ = "network"
-    name = Column(String(255), primary_key=True)
-
-    user_email = Column(String(255), ForeignKey("user.email"))
-    user = relationship("User", back_populates="networks", foreign_keys=[user_email])
-
-
-USER_EAGER_LOAD = [
-    selectinload(User.apps),
-    selectinload(User.services),
-    selectinload(User.networks),
-]
 
 
 def get_user_schema(user: User) -> UserSchema:

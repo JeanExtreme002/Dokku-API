@@ -5,7 +5,7 @@ from typing import Any, Dict, Tuple
 from fastapi import HTTPException
 
 from src.api.models import App, Network, create_resource, delete_resource
-from src.api.models.schema import UserSchema
+from src.api.schemas import UserSchema
 from src.api.services import AppService
 from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command

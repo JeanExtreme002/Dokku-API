@@ -2,7 +2,7 @@ import functools
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from src.api.models.models import App, Network, Service, User
-from src.api.models.schema import UserSchema
+from src.api.schemas import UserSchema
 from src.api.tools import hash_access_token
 
 MockUser = UserSchema(

@@ -32,9 +32,10 @@ jobs:
             system-tests
             api
             api-middlewares
-            api-services
             api-models
             api-router
+            api-schemas
+            api-services
             api-tools
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

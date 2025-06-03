@@ -11,7 +11,7 @@ import aiofiles
 from fastapi import HTTPException, UploadFile
 
 from src.api.models import App, get_app_by_deploy_token
-from src.api.models.schema import UserSchema
+from src.api.schemas import UserSchema
 from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command
 from src.config import Config

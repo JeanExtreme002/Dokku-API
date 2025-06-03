@@ -1,7 +1,7 @@
 from typing import Type
 
 from src.api.models.models import App, Resource
-from src.api.models.schema import UserSchema
+from src.api.schemas import UserSchema
 
 
 class ResourceName:

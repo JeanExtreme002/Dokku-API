@@ -13,7 +13,7 @@ from src.api.models import (
     delete_resource,
     get_app_deployment_token,
 )
-from src.api.models.schema import UserSchema
+from src.api.schemas import UserSchema
 from src.api.services.databases import DatabaseService
 from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command
