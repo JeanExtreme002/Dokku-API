@@ -1,7 +1,11 @@
+import datetime
+import secrets
+import time
+
 from typing import List, Tuple, Type
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import selectinload
@@ -60,6 +64,8 @@ def get_user_schema(user: User) -> UserSchema:
         networks=[network.name for network in user.networks],
         created_at=user.created_at,
         is_admin=user.is_admin,
+        take_over_access_token=user.take_over_access_token,
+        take_over_access_token_expiration=user.take_over_access_token_expiration
     )
 
 
@@ -85,6 +91,7 @@ async def get_user(email: str) -> UserSchema:
 
 
 async def get_user_by_access_token(access_token: str) -> UserSchema:
+    could_be_take_over = access_token.startswith("take-over")
     access_token = hash_access_token(access_token)
 
     async with AsyncSessionLocal() as db:
@@ -92,6 +99,20 @@ async def get_user_by_access_token(access_token: str) -> UserSchema:
             select(User).options(*USER_EAGER_LOAD).filter_by(access_token=access_token)
         )
         user = result.scalar_one_or_none()
+
+        if not user and could_be_take_over:
+            now = datetime.datetime.now(datetime.timezone.utc)
+
+            result = await db.execute(
+                select(User).options(*USER_EAGER_LOAD)
+                .filter(
+                    and_(
+                        User.take_over_access_token == access_token,
+                        User.take_over_access_token_expiration > now
+                    )
+                )
+            )
+            user = result.scalar_one_or_none()
 
     if not user:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -234,6 +255,27 @@ async def get_app_deployment_token(name: str) -> str:
         raise HTTPException(status_code=404, detail="App does not exist")
 
     return app.deploy_token
+
+
+async def create_take_over_access_token(email: str) -> str:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(User).filter_by(email=email))
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        take_over_access_token = f"take-over-{secrets.token_urlsafe(64)}-{int(time.time())}"
+
+        user.take_over_access_token = hash_access_token(take_over_access_token)
+        user.take_over_access_token_expiration = datetime.datetime.now(
+            datetime.timezone.utc
+        ) + datetime.timedelta(days=1)
+
+        await db.commit()
+        await db.refresh(user)
+
+    return take_over_access_token
 
 
 async def init_models():

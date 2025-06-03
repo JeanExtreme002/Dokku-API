@@ -7,6 +7,7 @@ from src.api.models.models import (
     User,
     create_resource,
     create_user,
+    create_take_over_access_token,
     delete_resource,
     delete_user,
     get_app_by_deploy_token,

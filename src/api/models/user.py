@@ -14,6 +14,10 @@ class User(Base):
     services_quota = Column(Integer, nullable=False, default=0)
     networks_quota = Column(Integer, nullable=False, default=0)
     is_admin = Column(Boolean, nullable=False, default=False)
+    take_over_access_token = Column(String(500), nullable=True, default=None)
+    take_over_access_token_expiration = Column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
     created_at = Column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

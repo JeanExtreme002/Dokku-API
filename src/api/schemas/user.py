@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -9,6 +9,8 @@ class UserSchema(BaseModel):
     email: str
     access_token: str
     is_admin: bool = False
+    take_over_access_token: Optional[str] = None
+    take_over_access_token_expiration: Optional[datetime] = None
     created_at: datetime
     apps_quota: int = 0
     services_quota: int = 0

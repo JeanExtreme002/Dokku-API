@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
-from src.api.models import create_user, delete_user, get_user, get_users, update_user
+from src.api.models import create_take_over_access_token, create_user, delete_user, get_user, get_users, update_user
 from src.api.services import AppService, DatabaseService
 from src.api.tools import hash_access_token
 
@@ -20,6 +20,11 @@ def get_router(app: FastAPI) -> APIRouter:
     async def create_new_user(request: Request, email: str, access_token: str):
         await create_user(email, access_token)
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={})
+    
+    @router.post("/{email}/take-over", response_description="Take over an user")
+    async def take_over_user(request: Request, email: str):
+        access_token = await create_take_over_access_token(email)
+        return JSONResponse(status_code=status.HTTP_200_OK, content={"access_token": access_token})
 
     @router.delete("/{email}", response_description="Delete user")
     async def delete_user_from_database(request: Request, email: str):
