@@ -21,6 +21,7 @@ if [ ! -f "$KEY_PATH" ]; then
 else
   echo "SSH key already exists at $KEY_PATH, skipping generation."
 fi
+sed -i "s|^SSH_KEY_PATH=.*|SSH_KEY_PATH=$KEY_PATH|" .env
 
 echo "Building Dokku container..."
 
