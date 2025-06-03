@@ -6,7 +6,7 @@ MASTER_KEY="$2"
 API_KEY="$3"
 
 DOKKU_API_HOST="0.0.0.0"
-DOKKU_API_PORT=5000
+DOKKU_API_PORT=5008
 
 echo "Setting up SSH key..."
 mkdir -p .ssh
@@ -26,16 +26,20 @@ sed -i "s|^SSH_KEY_PATH=.*|SSH_KEY_PATH=$KEY_PATH|" .env
 echo "Building Dokku container..."
 
 if docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
-  echo "Stopping old Dokku container..."
-  docker stop "$CONTAINER_NAME" && docker rm "$CONTAINER_NAME"
+  echo "Dokku container already exists!"
+else
+  docker compose up -d "$CONTAINER_NAME"
 fi
-
-docker compose up -d "$CONTAINER_NAME"
 
 echo "Getting Dokku container IP address..."
 DOKKU_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CONTAINER_NAME")
 
 echo "Dokku container is running at $DOKKU_HOST!"
+
+until nc -z $DOKKU_HOST 22; do
+	echo "Waiting for SSH Server to be ready..."
+  sleep 3
+done
 
 echo "Adding SSH key to Dokku..."
 KEY_CONTENT=$(cat "${KEY_PATH}.pub")
@@ -45,10 +49,6 @@ docker exec "$CONTAINER_NAME" bash -c "echo \"$KEY_CONTENT\" >> /root/.ssh/autho
 docker exec "$CONTAINER_NAME" bash -c "echo \"$KEY_CONTENT\" | dokku ssh-keys:add key-\"$datetime\""
 docker exec "$CONTAINER_NAME" bash -c "dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql;"
 set -e
-
-until nc -z $DOKKU_HOST 22; do
-	echo "Waiting for SSH Server to be ready..."
-done
 
 echo "Configuring environment variables..."
 cp .env.sample .env
