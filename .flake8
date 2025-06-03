@@ -7,4 +7,4 @@ per-file-ignores =
     # __init__.py files are allowed to have unused imports and lines-too-long
     */__init__.py:F401
 
-exclude = system_test,.git,__pycache__,docs/source/conf.py,old,build,dist
+exclude = system_tests,.git,__pycache__,docs/source/conf.py,old,build,dist
