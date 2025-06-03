@@ -143,7 +143,7 @@ async def push_to_dokku(
         )
 
 
-class GitCommands(ABC):
+class GitService(ABC):
 
     @staticmethod
     async def deploy_application_by_url(

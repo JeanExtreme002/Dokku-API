@@ -29,9 +29,10 @@ jobs:
           scopes: |-
             core
             github
+            system-tests
             api
-            api-middleware
-            api-commands
+            api-middlewares
+            api-services
             api-models
             api-router
             api-tools

@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Tuple
 
 from fastapi import HTTPException
 
-from src.api.commands.databases import DatabasesCommands
 from src.api.models import (
     App,
     Network,
@@ -15,6 +14,7 @@ from src.api.models import (
     get_app_deployment_token,
 )
 from src.api.models.schema import UserSchema
+from src.api.services.databases import DatabaseService
 from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command
 from src.config import Config
@@ -96,7 +96,7 @@ def parse_port_mappings(text: str) -> List:
     return ports
 
 
-class AppsCommands(ABC):
+class AppService(ABC):
 
     @staticmethod
     async def create_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
@@ -169,9 +169,9 @@ class AppsCommands(ABC):
 
         for app_name in session_user.apps:
             app_name = str(ResourceName(session_user, app_name, App, from_system=True))
-            result[app_name] = (
-                await AppsCommands.get_app_info(session_user, app_name)
-            )[1]
+            result[app_name] = (await AppService.get_app_info(session_user, app_name))[
+                1
+            ]
 
         return True, result
 
@@ -269,7 +269,7 @@ class AppsCommands(ABC):
                 ResourceName(session_user, db_name, Service, from_system=True)
             )
 
-            success, data = await DatabasesCommands.get_linked_apps(
+            success, data = await DatabaseService.get_linked_apps(
                 session_user, plugin_name, db_name
             )
 
@@ -290,7 +290,7 @@ class AppsCommands(ABC):
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        app_dir = f"{Config.API_VOLUME_DIR}/{app_name}"
+        app_dir = f"{Config.VOLUME_DIR}/{app_name}"
 
         return await run_command(f"storage:mount {app_name} {app_dir}:/app")
 
@@ -304,6 +304,6 @@ class AppsCommands(ABC):
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        app_dir = f"{Config.API_VOLUME_DIR}/{app_name}"
+        app_dir = f"{Config.VOLUME_DIR}/{app_name}"
 
         return await run_command(f"storage:unmount {app_name} {app_dir}:/app")

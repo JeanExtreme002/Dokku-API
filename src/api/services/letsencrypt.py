@@ -9,13 +9,11 @@ from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command
 
 
-class DomainsCommands(ABC):
+class LetsencryptService(ABC):
 
     @staticmethod
-    async def set_domain(
-        session_user: UserSchema,
-        app_name: str,
-        domain: str,
+    async def enable_letsencrypt(
+        session_user: UserSchema, app_name: str
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
@@ -24,13 +22,17 @@ class DomainsCommands(ABC):
                 status_code=404,
                 detail="App does not exist",
             )
-        return await run_command(f"domains:set {app_name} {domain}")
+        success, message = await run_command(f"letsencrypt:enable {app_name}")
+
+        if "retrieval failed" in message:
+            return False, message
+
+        return success, message
 
     @staticmethod
-    async def remove_domain(
+    async def disable_letsencrypt(
         session_user: UserSchema,
         app_name: str,
-        domain: str,
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
@@ -39,4 +41,12 @@ class DomainsCommands(ABC):
                 status_code=404,
                 detail="App does not exist",
             )
-        return await run_command(f"domains:remove {app_name} {domain}")
+        return await run_command(f"letsencrypt:disable {app_name}")
+
+    @staticmethod
+    async def set_letsencrypt_email(email: str) -> Tuple[bool, Any]:
+        return await run_command(f"config:set --global DOKKU_LETSENCRYPT_EMAIL={email}")
+
+    @staticmethod
+    async def enable_letsencrypt_auto_renewal() -> Tuple[bool, Any]:
+        return await run_command("letsencrypt:cron-job --add")

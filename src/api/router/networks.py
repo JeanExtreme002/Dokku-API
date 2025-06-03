@@ -1,7 +1,7 @@
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from src.api.commands import NetworksCommands
+from src.api.services import NetworkService
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -9,9 +9,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
     @router.post("/list", response_description="Return all networks")
     async def list_networks(request: Request):
-        success, result = await NetworksCommands.list_networks(
-            request.state.session_user
-        )
+        success, result = await NetworkService.list_networks(request.state.session_user)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -26,7 +24,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         network_name: str,
     ):
-        success, result = await NetworksCommands.create_network(
+        success, result = await NetworkService.create_network(
             request.state.session_user, network_name
         )
         status_code = status.HTTP_201_CREATED
@@ -47,7 +45,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         network_name: str,
     ):
-        success, result = await NetworksCommands.delete_network(
+        success, result = await NetworkService.delete_network(
             request.state.session_user, network_name
         )
 
@@ -67,7 +65,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         network_name: str,
     ):
-        success, result = await NetworksCommands.get_linked_apps(
+        success, result = await NetworkService.get_linked_apps(
             request.state.session_user, network_name
         )
 
@@ -88,7 +86,7 @@ def get_router(app: FastAPI) -> APIRouter:
         network_name: str,
         app_name: str,
     ):
-        success, result = await NetworksCommands.set_network_to_app(
+        success, result = await NetworkService.set_network_to_app(
             request.state.session_user, network_name, app_name
         )
 
@@ -109,7 +107,7 @@ def get_router(app: FastAPI) -> APIRouter:
         network_name: str,
         app_name: str,
     ):
-        success, result = await NetworksCommands.unset_network_to_app(
+        success, result = await NetworkService.unset_network_to_app(
             request.state.session_user, app_name
         )
 

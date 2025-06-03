@@ -1,7 +1,7 @@
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from src.api.commands import GitCommands
+from src.api.services import GitService
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -17,7 +17,7 @@ def get_router(app: FastAPI) -> APIRouter:
         repo_url: str,
         branch: str = "main",
     ):
-        success, result = await GitCommands.deploy_application_by_url(
+        success, result = await GitService.deploy_application_by_url(
             request.state.session_user, app_name, repo_url, branch
         )
 

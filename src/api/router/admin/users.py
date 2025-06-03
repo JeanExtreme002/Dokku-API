@@ -3,8 +3,8 @@ from typing import Optional
 from fastapi import APIRouter, FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
-from src.api.commands import AppsCommands, DatabasesCommands
 from src.api.models import create_user, delete_user, get_user, get_users, update_user
+from src.api.services import AppService, DatabaseService
 from src.api.tools import hash_access_token
 
 
@@ -26,11 +26,11 @@ def get_router(app: FastAPI) -> APIRouter:
         user = await get_user(email)
 
         for app_name in user.apps:
-            await AppsCommands.delete_app(user, app_name)
+            await AppService.delete_app(user, app_name)
 
         for service_name in user.services:
             plugin_name, database_name = service_name.split(":", maxsplit=1)
-            await DatabasesCommands.delete_database(user, plugin_name, database_name)
+            await DatabaseService.delete_database(user, plugin_name, database_name)
 
         await delete_user(email)
 

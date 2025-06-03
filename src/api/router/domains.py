@@ -1,7 +1,7 @@
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from src.api.commands import DomainsCommands
+from src.api.services import DomainService
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -16,7 +16,7 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         domain_name: str,
     ):
-        success, result = await DomainsCommands.set_domain(
+        success, result = await DomainService.set_domain(
             request.state.session_user, app_name, domain_name
         )
 
@@ -37,7 +37,7 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         domain_name: str,
     ):
-        success, result = await DomainsCommands.remove_domain(
+        success, result = await DomainService.remove_domain(
             request.state.session_user, app_name, domain_name
         )
 

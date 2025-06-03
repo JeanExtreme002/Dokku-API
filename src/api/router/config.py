@@ -1,7 +1,7 @@
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from src.api.commands import ConfigCommands
+from src.api.services import ConfigService
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -15,7 +15,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = await ConfigCommands.list_config(
+        success, result = await ConfigService.list_config(
             request.state.session_user, app_name
         )
 
@@ -36,7 +36,7 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         key: str,
     ):
-        success, result = await ConfigCommands.get_config(
+        success, result = await ConfigService.get_config(
             request.state.session_user, app_name, key
         )
 
@@ -58,7 +58,7 @@ def get_router(app: FastAPI) -> APIRouter:
         key: str,
         value: str,
     ):
-        success, result = await ConfigCommands.set_config(
+        success, result = await ConfigService.set_config(
             request.state.session_user, app_name, key, value
         )
 
@@ -79,7 +79,7 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         key: str,
     ):
-        success, result = await ConfigCommands.unset_config(
+        success, result = await ConfigService.unset_config(
             request.state.session_user, app_name, key
         )
 
@@ -99,7 +99,7 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = await ConfigCommands.apply_config(
+        success, result = await ConfigService.apply_config(
             request.state.session_user, app_name
         )
 

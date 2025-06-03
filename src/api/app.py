@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from src.api.middleware import SessionUserMiddleware
+from src.api.middlewares import SessionUserMiddleware
 from src.api.router import get_router
 from src.config import Config
 

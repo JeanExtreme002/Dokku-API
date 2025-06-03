@@ -1,9 +1,9 @@
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from src.api.commands import AppsCommands, DatabasesCommands
 from src.api.models import App, Network, Service
 from src.api.models.schema import UserSchema
+from src.api.services import AppService, DatabaseService
 from src.api.tools.name import ResourceName
 
 
@@ -24,7 +24,7 @@ def get_router(app: FastAPI) -> APIRouter:
             app_name = str(ResourceName(user, app_name, App, from_system=True)).lower()
 
             if query in app_name:
-                details = (await AppsCommands.get_app_info(user, app_name))[1]
+                details = (await AppService.get_app_info(user, app_name))[1]
                 data = result.get("apps", []) + [
                     {app_name: details},
                 ]
@@ -38,7 +38,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
             if query in service_name:
                 details = (
-                    await DatabasesCommands.get_database_info(
+                    await DatabaseService.get_database_info(
                         user, plugin_name, service_name
                     )
                 )[1]
@@ -58,9 +58,7 @@ def get_router(app: FastAPI) -> APIRouter:
                 ]
                 result["networks"] = data
 
-        for available_database in (await DatabasesCommands.list_available_databases())[
-            1
-        ]:
+        for available_database in (await DatabaseService.list_available_databases())[1]:
             if query in available_database:
                 data = result.get("available_databases", []) + [
                     available_database,

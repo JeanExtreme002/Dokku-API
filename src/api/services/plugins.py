@@ -27,7 +27,7 @@ def parse_plugins(text: str) -> Dict:
     return plugins
 
 
-class PluginsCommands(ABC):
+class PluginService(ABC):
 
     @staticmethod
     async def list_plugins() -> Tuple[bool, Any]:
@@ -38,7 +38,7 @@ class PluginsCommands(ABC):
 
     @staticmethod
     async def is_plugin_installed(plugin_name: str) -> Tuple[bool, Any]:
-        success, data = await PluginsCommands.list_plugins()
+        success, data = await PluginService.list_plugins()
 
         if not success:
             return False, data

@@ -4,9 +4,9 @@ from typing import Any, Dict, Tuple
 
 from fastapi import HTTPException
 
-from src.api.commands import AppsCommands
 from src.api.models import App, Network, create_resource, delete_resource
 from src.api.models.schema import UserSchema
+from src.api.services import AppService
 from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command
 
@@ -33,7 +33,7 @@ def parse_network_info(message: str) -> Dict:
     return result
 
 
-class NetworksCommands(ABC):
+class NetworkService(ABC):
 
     @staticmethod
     async def create_network(
@@ -128,7 +128,7 @@ class NetworksCommands(ABC):
             app_name = ResourceName(session_user, app_name, App, from_system=True)
             app_name = str(app_name)
 
-            success, data = await AppsCommands.get_network(session_user, app_name)
+            success, data = await AppService.get_network(session_user, app_name)
 
             if success and data.get("network", "") == network_name:
                 results.append(app_name)

@@ -23,7 +23,7 @@ def get_router(app: FastAPI) -> APIRouter:
                 "api_key": Config.API_KEY,
                 "api_name": Config.API_NAME,
                 "api_version_number": Config.API_VERSION_NUMBER,
-                "api_volume_dir": Config.API_VOLUME_DIR,
+                "volume_dir": Config.VOLUME_DIR,
                 "ssh_server": {
                     "hostname": Config.SSH_SERVER.SSH_HOSTNAME,
                     "port": Config.SSH_SERVER.SSH_PORT,

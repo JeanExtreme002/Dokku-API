@@ -38,7 +38,7 @@ def extract_database_uri(text):
     return match.group(0) if match else None
 
 
-class DatabasesCommands(ABC):
+class DatabaseService(ABC):
 
     @staticmethod
     async def list_available_databases() -> Tuple[bool, Any]:
@@ -51,7 +51,7 @@ class DatabasesCommands(ABC):
         database_name: str,
     ) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
-        available_databases = (await DatabasesCommands.list_available_databases())[1]
+        available_databases = (await DatabaseService.list_available_databases())[1]
 
         if plugin_name not in available_databases:
             raise HTTPException(
@@ -71,11 +71,11 @@ class DatabasesCommands(ABC):
 
     @staticmethod
     async def list_all_databases(session_user: UserSchema) -> Tuple[bool, Any]:
-        available_databases = (await DatabasesCommands.list_available_databases())[1]
+        available_databases = (await DatabaseService.list_available_databases())[1]
         result = {}
 
         for plugin_name in available_databases:
-            success, data = await DatabasesCommands.list_databases(
+            success, data = await DatabaseService.list_databases(
                 session_user, plugin_name
             )
 
@@ -101,7 +101,7 @@ class DatabasesCommands(ABC):
             database_name = str(
                 ResourceName(session_user, database_name, Service, from_system=True)
             )
-            _, data = await DatabasesCommands.get_database_info(
+            _, data = await DatabaseService.get_database_info(
                 session_user, plugin_name, database_name
             )
             result[database_name] = data

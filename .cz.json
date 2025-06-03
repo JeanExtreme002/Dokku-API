@@ -50,7 +50,7 @@
           "type": "list",
           "name": "scope",
           "message": "What is the scope of this change (e.g. component or file name):",
-          "choices": ["core", "github", "api", "api-middleware", "api-commands", "api-models", "api-router", "api-tools"]
+          "choices": ["core", "github", "system-tests", "api", "api-middlewares", "api-services", "api-models", "api-router", "api-tools"]
         },
         {
           "type": "input",

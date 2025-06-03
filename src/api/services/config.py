@@ -28,7 +28,7 @@ def parse_env_vars(text: str) -> Dict:
     return result
 
 
-class ConfigCommands(ABC):
+class ConfigService(ABC):
 
     @staticmethod
     async def list_config(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:

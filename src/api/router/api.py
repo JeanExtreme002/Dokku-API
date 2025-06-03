@@ -1,7 +1,7 @@
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from src.api.commands import DatabasesCommands, get_dokku_version
+from src.api.services import DatabaseService, get_dokku_version
 from src.config import Config
 
 
@@ -22,7 +22,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
     @router.get("/list-databases", response_description="List available databases")
     async def list_available_databases(request: Request):
-        success, result = await DatabasesCommands.list_available_databases()
+        success, result = await DatabaseService.list_available_databases()
 
         result = {
             "success": success,

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, FastAPI, status
 from fastapi.responses import JSONResponse
 
-from src.api.commands import AppsCommands
 from src.api.models import get_user
+from src.api.services import AppService
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -14,7 +14,7 @@ def get_router(app: FastAPI) -> APIRouter:
     async def mount_storage(email: str, app_name: str):
         user = await get_user(email)
 
-        success, result = await AppsCommands.mount_storage(user, app_name)
+        success, result = await AppService.mount_storage(user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -27,7 +27,7 @@ def get_router(app: FastAPI) -> APIRouter:
     async def unmount_storage(email: str, app_name: str):
         user = await get_user(email)
 
-        success, result = await AppsCommands.unmount_storage(user, app_name)
+        success, result = await AppService.unmount_storage(user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

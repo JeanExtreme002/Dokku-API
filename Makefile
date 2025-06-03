@@ -123,7 +123,7 @@ dokku-set-config:
 		dokku config:set $$FORMATTED_API_NAME \
 			API_NAME='$(API_NAME)' \
 			API_VERSION_NUMBER='$(API_VERSION_NUMBER)' \
-			API_VOLUME_DIR='$(API_VOLUME_DIR)' \
+			VOLUME_DIR='$(VOLUME_DIR)' \
 			SSH_HOSTNAME='$(SSH_HOSTNAME)' \
 			SSH_PORT='$(SSH_PORT)' \
 			SSH_KEY_PATH="/$$FORMATTED_API_NAME/id_rsa" \
