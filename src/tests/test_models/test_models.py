@@ -1,5 +1,3 @@
-# tests/test_models.py
-
 import unittest
 
 from fastapi import HTTPException
@@ -7,6 +5,7 @@ from fastapi import HTTPException
 from src.api.models.models import (
     create_user,
     delete_user,
+    create_take_over_access_token,
     get_app_by_deploy_token,
     get_app_deployment_token,
     get_user,
@@ -83,3 +82,16 @@ class TestDatabaseModels(unittest.IsolatedAsyncioTestCase):
     async def test_get_app_deployment_token(self, app, **kwargs):
         token = await get_app_deployment_token(app.name)
         self.assertEqual(token, app.deploy_token)
+
+    @mock_all_models
+    async def test_create_take_over_access_token(self, user, **kwargs):
+        self.assertIsNone(user.take_over_access_token)
+        self.assertIsNone(user.take_over_access_token_expiration)
+
+        token = await create_take_over_access_token(user.email)
+
+        self.assertIsNotNone(token)
+        self.assertTrue(isinstance(token, str))
+
+        self.assertIsNotNone(user.take_over_access_token)
+        self.assertIsNotNone(user.take_over_access_token_expiration)
