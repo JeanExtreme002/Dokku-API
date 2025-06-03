@@ -1,7 +1,6 @@
 import datetime
 import secrets
 import time
-
 from typing import List, Tuple, Type
 
 from fastapi import HTTPException
@@ -65,7 +64,7 @@ def get_user_schema(user: User) -> UserSchema:
         created_at=user.created_at,
         is_admin=user.is_admin,
         take_over_access_token=user.take_over_access_token,
-        take_over_access_token_expiration=user.take_over_access_token_expiration
+        take_over_access_token_expiration=user.take_over_access_token_expiration,
     )
 
 
@@ -104,11 +103,12 @@ async def get_user_by_access_token(access_token: str) -> UserSchema:
             now = datetime.datetime.now(datetime.timezone.utc)
 
             result = await db.execute(
-                select(User).options(*USER_EAGER_LOAD)
+                select(User)
+                .options(*USER_EAGER_LOAD)
                 .filter(
                     and_(
                         User.take_over_access_token == access_token,
-                        User.take_over_access_token_expiration > now
+                        User.take_over_access_token_expiration > now,
                     )
                 )
             )
@@ -265,7 +265,9 @@ async def create_take_over_access_token(email: str) -> str:
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        take_over_access_token = f"take-over-{secrets.token_urlsafe(64)}-{int(time.time())}"
+        take_over_access_token = (
+            f"take-over-{secrets.token_urlsafe(64)}-{int(time.time())}"
+        )
 
         user.take_over_access_token = hash_access_token(take_over_access_token)
         user.take_over_access_token_expiration = datetime.datetime.now(
