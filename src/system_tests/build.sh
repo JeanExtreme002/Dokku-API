@@ -6,7 +6,7 @@ MASTER_KEY="$2"
 API_KEY="$3"
 
 DOKKU_API_HOST="0.0.0.0"
-DOKKU_API_PORT=5008
+DOKKU_API_PORT=5000
 
 echo "Setting up SSH key..."
 mkdir -p .ssh
@@ -67,7 +67,7 @@ echo "API_KEY: $API_KEY"
 echo "Setting up Dokku-API database..."
 make docker-run-database
 
-sleep 5
+sleep 10
 
 echo "Setting up Dokku-API..."
 make run &
