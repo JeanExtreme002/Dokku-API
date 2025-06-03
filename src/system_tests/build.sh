@@ -38,7 +38,7 @@ echo "Dokku container is running at $DOKKU_HOST!"
 
 until nc -z $DOKKU_HOST 22; do
 	echo "Waiting for SSH Server to be ready..."
-  sleep 3
+  sleep 5
 done
 
 echo "Adding SSH key to Dokku..."
@@ -66,6 +66,8 @@ echo "API_KEY: $API_KEY"
 
 echo "Setting up Dokku-API database..."
 make docker-run-database
+
+sleep 5
 
 echo "Setting up Dokku-API..."
 make run &
