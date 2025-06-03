@@ -34,7 +34,7 @@ system-test:  ## Run system tests
 	@{ \
 		MASTER_KEY="abcd12345678-system-test"; \
 		API_KEY="abc123-system-test"; \
-		bash -l ./src/system_test/build.sh dokku "$$MASTER_KEY" "$$API_KEY"; \
+		bash -l ./src/system_tests/build.sh dokku "$$MASTER_KEY" "$$API_KEY"; \
 	}
 
 .PHONY: lint
