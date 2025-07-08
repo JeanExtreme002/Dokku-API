@@ -2,13 +2,15 @@
 name = "dokku-api"
 version = "1.0.0"
 description = "A RESTful API for managing applications and resources on a Dokku platform."
-authors = ["JeanExtreme002 <jeangamerextreme@gmail.com>"]
+authors = ["JeanExtreme002 <jeanextreme002@gmail.com>"]
 readme = "README.md"
 license = "MIT"
+
 homepage = "https://github.com/JeanExtreme002/dokku-api"
 repository = "https://github.com/JeanExtreme002/dokku-api"
 documentation = "https://github.com/JeanExtreme002/dokku-api"
-keywords = ["dokku", "api", "deployment", "devops", "automation"]
+
+keywords = ["dokku", "api", "paas", "application", "deployment", "devops", "automation"]
 
 classifiers = [
     "License :: OSI Approved :: MIT License",
