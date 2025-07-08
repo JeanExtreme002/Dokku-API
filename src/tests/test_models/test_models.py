@@ -3,9 +3,9 @@ import unittest
 from fastapi import HTTPException
 
 from src.api.models.models import (
+    create_take_over_access_token,
     create_user,
     delete_user,
-    create_take_over_access_token,
     get_app_by_deploy_token,
     get_app_deployment_token,
     get_user,

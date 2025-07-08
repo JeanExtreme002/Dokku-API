@@ -27,7 +27,12 @@ commit:  ## Commit changes on local repository
 
 .PHONY: test
 test:  ## Run unit tests
-	@poetry run coverage run -m unittest discover -s src.tests --verbose && poetry run coverage report;
+	@{ \
+		echo "$(GREEN)Running tests...$(NC)"; \
+		PYTHONPATH=. poetry run python -m coverage run -m unittest discover -s src/tests -p "test_*.py" -t . --verbose; \
+		echo "$(GREEN)Generating coverage report...$(NC)"; \
+		poetry run coverage report; \
+	}
 
 .PHONY: system-test
 system-test:  ## Run system tests
@@ -36,6 +41,38 @@ system-test:  ## Run system tests
 		API_KEY="abc123-system-test"; \
 		bash -l ./src/system_tests/build.sh dokku "$$MASTER_KEY" "$$API_KEY"; \
 	}
+
+.PHONY: build
+build:  ## Build the package for PyPI distribution
+	@echo "$(GREEN)Building package for PyPI...$(NC)"
+	@poetry build
+	@echo "$(GREEN)Package built successfully!$(NC)"
+	@echo "$(YELLOW)Built files:$(NC)"
+	@ls -la dist/
+
+.PHONY: check-package
+check-package:  ## Check package integrity using twine
+	@echo "$(GREEN)Checking package integrity...$(NC)"
+	@if [ ! -d "dist/" ] || [ -z "$$(ls -A dist/)" ]; then \
+		echo "$(YELLOW)No dist/ folder found or it's empty. Building first...$(NC)"; \
+		make build; \
+	fi
+	@poetry run twine check dist/*
+	@echo "$(GREEN)Package check completed!$(NC)"
+
+.PHONY: publish
+publish:  ## Publish package to PyPI using twine
+	@echo "$(GREEN)Publishing to PyPI using twine...$(NC)"
+	@if [ ! -d "dist/" ] || [ -z "$$(ls -A dist/)" ]; then \
+		echo "$(YELLOW)No dist/ folder found or it's empty. Building first...$(NC)"; \
+		make build; \
+	fi
+	@echo "$(YELLOW)You'll need your PyPI API token.$(NC)"
+	@echo "$(YELLOW)Get it from: https://pypi.org/manage/account/token/$(NC)"
+	@read -p "Enter your PyPI token: " token; \
+	TWINE_USERNAME=__token__ TWINE_PASSWORD=$$token poetry run twine upload dist/*
+	@echo "$(GREEN)Package published to PyPI!$(NC)"
+	@echo "$(YELLOW)Install with: pip install dokku-api$(NC)"
 
 .PHONY: lint
 lint:  ## Run lint
@@ -69,6 +106,14 @@ dokku-deploy:  ## Deploy the API to the Dokku (use dokku-install first).
 		REPO_NAME="dokku@$(SSH_HOSTNAME):$$FORMATTED_API_NAME"; \
 		\
 		make dokku-set-config;\
+		\
+		if [ ! -d ".git" ]; then \
+			echo "$(YELLOW)No git repository found. Initializing git...$(NC)"; \
+			git init; \
+			git add .; \
+			git commit -m "Initial commit for Dokku deployment"; \
+			echo "$(GREEN)Git repository initialized and initial commit created.$(NC)"; \
+		fi; \
 		\
 		if git remote get-url dokku &> /dev/null; then \
 		  git remote remove dokku; \
@@ -173,11 +218,11 @@ docker-run-api:  ## Run the API on Docker
 	@docker compose up dokku_api
 
 .PHONY: docker-test
-docker-test:  ## Run unit tests on Docker
+docker-test:
 	@docker compose up --exit-code-from unit-test unit-test
 
 .PHONY: docker-lint
-docker-lint:  ## Run lint on Docker
+docker-lint:
 	@docker compose up --exit-code-from lint lint
 
 .PHONY: docker-stop
@@ -218,11 +263,35 @@ get-ip:  ## Get the private IP address of the machine
 		echo "Private IP address: $$IP"; \
 	}
 
+.PHONY: get-env-path
+get-env-path:  ## Get the absolute path of the .env file
+	@{ \
+		if [ -f ".env" ]; then \
+			realpath .env; \
+		else \
+			echo "$(RED)ERROR: .env file not found in current directory$(NC)"; \
+			exit 1; \
+		fi; \
+	}
+
 .PHONY: help
 help:  ## List commands
 	@echo ""; \
-	echo "Available commands:"; \
+	echo "$(GREEN)Dokku API - Available Commands$(NC)"; \
 	echo ""; \
-	grep -E '^[a-zA-Z0-9_-]+:.*?## ' Makefile | \
-	awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'; \
-	echo ""
+	echo "$(YELLOW)Dokku Deployment:$(NC)"; \
+	grep -E '^(dokku-install|dokku-deploy|dokku-uninstall|dokku-create-db|dokku-destroy-db):.*?## ' Makefile | \
+	awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'; \
+	echo ""; \
+	echo "$(YELLOW)Docker Deployment:$(NC)"; \
+	grep -E '^(docker-run|docker-run-database|docker-run-api|docker-stop):.*?## ' Makefile | \
+	awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'; \
+	echo ""; \
+	echo "$(YELLOW)Development:$(NC)"; \
+	grep -E '^(run|install|test|system-test|lint|lint-fix|commit|build|check-package|publish):.*?## ' Makefile | \
+	awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'; \
+	echo ""; \
+	echo "$(YELLOW)Utilities:$(NC)"; \
+	grep -E '^(generate-ssh-key|get-ip|get-env-path):.*?## ' Makefile | \
+	awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'; \
+	echo ""; \

@@ -1,10 +1,42 @@
 [tool.poetry]
 name = "dokku-api"
 version = "1.0.0"
-description = ""
+description = "A RESTful API for managing applications and resources on a Dokku platform."
 authors = ["JeanExtreme002 <jeangamerextreme@gmail.com>"]
 readme = "README.md"
-package-mode = false
+license = "MIT"
+homepage = "https://github.com/JeanExtreme002/dokku-api"
+repository = "https://github.com/JeanExtreme002/dokku-api"
+documentation = "https://github.com/JeanExtreme002/dokku-api"
+keywords = ["dokku", "api", "deployment", "devops", "automation"]
+
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Security",
+    "Topic :: System :: Systems Administration",
+]
+
+packages = [
+    {include = "src", to = "dokku_api"},
+    {include = "__init__.py", to = "dokku_api"},
+    {include = "cli.py", to = "dokku_api"},
+    {include = "Makefile", to = "dokku_api"},
+    {include = "Procfile", to = "dokku_api"},
+    {include = "docker-compose.yml", to = "dokku_api"},
+    {include = ".env.sample", to = "dokku_api"},
+    {include = "README.md", to = "dokku_api"},
+    {include = "LICENSE", to = "dokku_api"},
+    {include = "poetry.lock", to = "dokku_api"},
+    {include = "pyproject.toml", to = "dokku_api"}
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -42,12 +74,16 @@ asyncmy = "^0.2.10"
 httpx = "^0.28.1"
 aiomysql = "^0.2.0"
 
+[tool.poetry.scripts]
+dokku-api = "dokku_api.cli:main"
+
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.1.0"
 isort = "^6.0.1"
 coverage = "^7.6.4"
 black = "^25.1.0"
 commitizen = "^4.8.2"
+twine = "^5.0.0"
 
 [build-system]
 requires = ["poetry-core"]
