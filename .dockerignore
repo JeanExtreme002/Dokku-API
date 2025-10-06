@@ -1,1 +1,54 @@
-.idea
+# Files and directories to be ignored in Docker build
+.git
+.env.*
+
+# Cache and temporary directories
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test and development data
+mysql_data/
+*.db
+*.sqlite3
+
+# SSH keys (for security)
+*.pem
+*.key
+id_rsa*
+*.pub
