@@ -3,6 +3,8 @@ from typing import List
 
 import dotenv
 
+from src import __version__ as API_VERSION_NUMBER
+
 dotenv.load_dotenv()
 
 
@@ -30,15 +32,15 @@ class Config:
     Base configuration.
     """
 
-    HOST = os.getenv("HOST", "0.0.0.0")
-    PORT = int(os.getenv("PORT", "5000"))
-    WORKERS_COUNT = int(os.getenv("WORKERS_COUNT", "1"))
-    RELOAD = os.getenv("RELOAD", "true").lower() == "true"
-    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").lower()
-    MAX_CONNECTIONS_PER_REQUEST = int(os.getenv("MAX_CONNECTIONS_PER_REQUEST", "1"))
+    HOST = os.getenv("API_HOST", "0.0.0.0")
+    PORT = int(os.getenv("API_PORT", "5000"))
+    WORKERS_COUNT = int(os.getenv("API_WORKERS_COUNT", "1"))
+    RELOAD = os.getenv("API_RELOAD", "true").lower() == "true"
+    LOG_LEVEL = os.getenv("API_LOG_LEVEL", "INFO").lower()
+    MAX_CONNECTIONS_PER_REQUEST = int(os.getenv("API_MAX_CONNECTIONS_PER_REQUEST", "1"))
 
     API_NAME: str = os.getenv("API_NAME")
-    API_VERSION_NUMBER: str = os.getenv("API_VERSION_NUMBER")
+    API_VERSION_NUMBER: str = API_VERSION_NUMBER
     VOLUME_DIR: str = os.getenv("VOLUME_DIR")
 
     API_KEY: str = os.getenv("API_KEY")

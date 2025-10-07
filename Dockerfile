@@ -17,6 +17,6 @@ RUN poetry install --no-root --only=main --no-cache
 # Copy the rest of the application
 COPY . /app
 
-EXPOSE $PORT
+EXPOSE $API_PORT
 
 CMD ["bash", "-c", "set -e && if [ -f \"${SSH_KEY_PATH}\" ]; then cp \"${SSH_KEY_PATH}\" /app/.secrets/id_rsa && chmod 600 /app/.secrets/id_rsa; fi && export SSH_KEY_PATH=/app/.secrets/id_rsa && python -m src"]

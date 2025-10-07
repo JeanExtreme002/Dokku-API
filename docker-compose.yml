@@ -11,7 +11,7 @@ services:
         source: dokku_api_secrets
         target: /app/.secrets
     ports:
-      - "${PORT}:${PORT}"
+      - "${API_PORT}:${API_PORT}"
     command: >
       bash -c '
         set -e
@@ -27,7 +27,7 @@ services:
         poetry run python -m src
       '
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${PORT} || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:${API_PORT} || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

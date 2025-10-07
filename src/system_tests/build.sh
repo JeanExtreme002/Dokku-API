@@ -58,8 +58,8 @@ sed -i "s|^API_KEY=.*|API_KEY=\"$API_KEY\"|" .env
 sed -i "s|^SSH_HOSTNAME=.*|SSH_HOSTNAME=$DOKKU_HOST|" .env
 sed -i "s|^SSH_KEY_PATH=.*|SSH_KEY_PATH=$KEY_PATH|" .env
 sed -i "s|^DB_HOST=.*|DB_HOST=localhost|" .env
-sed -i "s|^HOST=.*|HOST=$DOKKU_API_HOST|" .env
-sed -i "s|^PORT=.*|PORT=$DOKKU_API_PORT|" .env
+sed -i "s|^API_HOST=.*|API_HOST=$DOKKU_API_HOST|" .env
+sed -i "s|^API_PORT=.*|API_PORT=$DOKKU_API_PORT|" .env
 
 echo "MASTER_KEY: $MASTER_KEY"
 echo "API_KEY: $API_KEY"
