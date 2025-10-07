@@ -42,32 +42,33 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
-
-    @router.post("/ssh-key", response_description="Get SSH private key file information")
+    @router.post(
+        "/ssh-key", response_description="Get SSH private key file information"
+    )
     async def get_ssh_key_info():
         ssh_key_path = Config.SSH_SERVER.SSH_KEY_PATH
-        
+
         if not ssh_key_path:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={"error": "SSH key path not configured"},
             )
-        
+
         try:
             if not os.path.exists(ssh_key_path):
                 return JSONResponse(
                     status_code=status.HTTP_404_NOT_FOUND,
                     content={"error": "SSH key file not found"},
                 )
-            
+
             stat_info = os.stat(ssh_key_path)
-            
+
             created_time = datetime.fromtimestamp(stat_info.st_ctime)
             modified_time = datetime.fromtimestamp(stat_info.st_mtime)
             accessed_time = datetime.fromtimestamp(stat_info.st_atime)
-            
+
             permissions = oct(stat_info.st_mode)[-3:]
-            
+
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
@@ -92,10 +93,10 @@ def get_router(app: FastAPI) -> APIRouter:
                 content={"error": f"Failed to get SSH key info: {str(error)}"},
             )
 
-    @router.put("/ssh-key", response_description="Update SSH private key")
+    @router.put("/ssh-key", response_description="Update SSH private key file")
     async def update_ssh_key(file: UploadFile = File(...)):
         ssh_key_path = Config.SSH_SERVER.SSH_KEY_PATH
-        
+
         if not ssh_key_path:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -104,18 +105,18 @@ def get_router(app: FastAPI) -> APIRouter:
 
         try:
             content = await file.read()
-            
+
             with open(ssh_key_path, "wb") as ssh_file:
                 ssh_file.write(content)
-            
+
             os.chmod(ssh_key_path, 0o600)
-            
+
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
                     "message": "SSH private key updated successfully",
                     "file_path": ssh_key_path,
-                    "file_size": len(content)
+                    "file_size": len(content),
                 },
             )
         except Exception as error:
