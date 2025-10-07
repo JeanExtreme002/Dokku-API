@@ -3,9 +3,9 @@ from typing import List
 
 import dotenv
 
-from src import __version__ as API_VERSION_NUMBER
-
 dotenv.load_dotenv()
+
+API_VERSION_NUMBER = "1.0.1"
 
 
 class DatabaseConfig:
