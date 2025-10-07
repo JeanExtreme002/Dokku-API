@@ -5,7 +5,7 @@ This is a RESTful API for managing applications and resources on Dokku, built wi
 [![Pypi](https://img.shields.io/pypi/v/dokku-api)](https://pypi.org/project/dokku-api/)
 [![License](https://img.shields.io/pypi/l/Dokku-API)](https://pypi.org/project/Dokku-API/)
 [![Platforms](https://img.shields.io/badge/platforms-Dokku%20%7C%20Linux-8A2BE2)](https://pypi.org/project/dokku-api/)
-[![Python Version](https://img.shields.io/badge/python->=3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%20...-blue)](https://pypi.org/project/dokku-api/)
+[![Python Version](https://img.shields.io/badge/python->=3.11-blue)](https://pypi.org/project/dokku-api/)
 
 ### Installing Dokku API from PyPI:
 ```
