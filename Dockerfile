@@ -4,11 +4,19 @@ WORKDIR /app
 
 RUN mkdir -p /app/.secrets
 
-COPY . /app
+# Install poetry first
+RUN pip install --no-cache-dir poetry && \
+    poetry config virtualenvs.create false
 
-RUN pip install poetry > /dev/null && \
-    poetry install --no-root > /dev/null
+# Copy only dependency files first for better caching
+COPY pyproject.toml poetry.lock ./
+
+# Install dependencies
+RUN poetry install --no-root --only=main --no-cache
+
+# Copy the rest of the application
+COPY . /app
 
 EXPOSE $PORT
 
-CMD ["bash", "-c", "set -e && if [ -f \"${SSH_KEY_PATH}\" ]; then cp \"${SSH_KEY_PATH}\" /app/.secrets/id_rsa && chmod 600 /app/.secrets/id_rsa; fi && export SSH_KEY_PATH=/app/.secrets/id_rsa && poetry run python -m src"]
+CMD ["bash", "-c", "set -e && if [ -f \"${SSH_KEY_PATH}\" ]; then cp \"${SSH_KEY_PATH}\" /app/.secrets/id_rsa && chmod 600 /app/.secrets/id_rsa; fi && export SSH_KEY_PATH=/app/.secrets/id_rsa && python -m src"]
