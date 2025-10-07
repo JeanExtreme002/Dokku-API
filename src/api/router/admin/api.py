@@ -6,11 +6,34 @@ from fastapi import APIRouter, FastAPI, File, UploadFile, status
 from fastapi.responses import JSONResponse
 
 from src.api.models import DATABASE_URL
+from src.api.tools.ssh import run_command
 from src.config import Config
 
 
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
+
+    @router.post(
+        "/run-command", response_description="Run a dokku command on the server"
+    )
+    async def run_dokku_command(command: str):
+        if not command:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"error": "command is required"},
+            )
+
+        command = command.lstrip("dokku").strip()
+        success, message = await run_command(command)
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": message,
+                "success": success,
+                "command": f"dokku {command}",
+            },
+        )
 
     @router.post("/config", response_description="Return env variables of API server")
     async def get_config():
