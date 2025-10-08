@@ -1,7 +1,7 @@
 import json
 import re
 from abc import ABC
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from fastapi import HTTPException
 
@@ -183,7 +183,7 @@ class AppService(ABC):
             raise HTTPException(status_code=404, detail="App does not exist")
 
         return await run_command(f"logs {app_name}")
-    
+
     @staticmethod
     async def start_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
@@ -192,7 +192,7 @@ class AppService(ABC):
             raise HTTPException(status_code=404, detail="App does not exist")
 
         return await run_command(f"ps:start {app_name}")
-    
+
     @staticmethod
     async def stop_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
@@ -210,7 +210,7 @@ class AppService(ABC):
             raise HTTPException(status_code=404, detail="App does not exist")
 
         return await run_command(f"ps:restart {app_name}")
-    
+
     @staticmethod
     async def rebuild_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
@@ -219,7 +219,7 @@ class AppService(ABC):
             raise HTTPException(status_code=404, detail="App does not exist")
 
         return await run_command(f"ps:rebuild {app_name}")
-    
+
     @staticmethod
     async def get_builder(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
@@ -242,9 +242,11 @@ class AppService(ABC):
                 result[key] = value.strip()
 
         return True, result
-    
+
     @staticmethod
-    async def set_builder(session_user: UserSchema, app_name: str, builder: str) -> Tuple[bool, Any]:
+    async def set_builder(
+        session_user: UserSchema, app_name: str, builder: str
+    ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         available_builders = ["herokuish", "dockerfile", "lambda", "pack"]
@@ -253,7 +255,13 @@ class AppService(ABC):
             raise HTTPException(status_code=404, detail="App does not exist")
 
         if builder not in available_builders:
-            raise HTTPException(status_code=400, detail="Invalid builder")
+            message = (
+                f"Invalid builder. Available builders: {', '.join(available_builders)}"
+            )
+            raise HTTPException(
+                status_code=400,
+                detail=message,
+            )
 
         return await run_command(f"builder:set {app_name} selected {builder}")
 

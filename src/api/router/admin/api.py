@@ -6,7 +6,7 @@ from fastapi import APIRouter, FastAPI, File, UploadFile, status
 from fastapi.responses import JSONResponse
 
 from src.api.models import DATABASE_URL
-from src.api.tools.ssh import run_command
+from src.api.tools.ssh import get_command_history, run_command
 from src.config import Config
 
 
@@ -147,6 +147,15 @@ def get_router(app: FastAPI) -> APIRouter:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content={"error": f"Failed to update SSH key: {str(error)}"},
             )
+
+    @router.post("/ssh-history", response_description="Check SSH command history")
+    async def get_ssh_command_history():
+        history = get_command_history()
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={"status": "ok", "history": history},
+        )
 
     @router.post("/shutdown", response_description="Shutdown the API server")
     async def shutdown():

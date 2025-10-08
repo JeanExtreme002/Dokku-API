@@ -1,4 +1,3 @@
-from typing import Optional
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
@@ -137,7 +136,7 @@ def get_router(app: FastAPI) -> APIRouter:
                 "result": result,
             },
         )
-    
+
     @router.post(
         "/{app_name}/start",
         response_description="Start an application",
@@ -157,7 +156,7 @@ def get_router(app: FastAPI) -> APIRouter:
                 "result": result,
             },
         )
-    
+
     @router.post(
         "/{app_name}/stop",
         response_description="Stop an application",
@@ -177,7 +176,7 @@ def get_router(app: FastAPI) -> APIRouter:
                 "result": result,
             },
         )
-    
+
     @router.post(
         "/{app_name}/restart",
         response_description="Restart an application",
@@ -217,7 +216,7 @@ def get_router(app: FastAPI) -> APIRouter:
                 "result": result,
             },
         )
-    
+
     @router.post(
         "/{app_name}/builder",
         response_description="Get builder information of an application",
@@ -237,7 +236,7 @@ def get_router(app: FastAPI) -> APIRouter:
                 "result": result,
             },
         )
-    
+
     @router.post(
         "/{app_name}/builder/{builder}",
         response_description="Set builder of an application",

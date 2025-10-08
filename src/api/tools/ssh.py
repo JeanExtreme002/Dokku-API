@@ -1,4 +1,7 @@
 import logging
+import threading
+from collections import deque
+from datetime import datetime
 from typing import Tuple
 
 from paramiko.client import AutoAddPolicy, SSHClient
@@ -8,6 +11,27 @@ from src.config import Config
 ssh_hostname = Config.SSH_SERVER.SSH_HOSTNAME
 ssh_port = Config.SSH_SERVER.SSH_PORT
 ssh_key_path = Config.SSH_SERVER.SSH_KEY_PATH
+
+MAX_COMMAND_HISTORY = 1000
+
+command_history = deque(maxlen=MAX_COMMAND_HISTORY)
+history_lock = threading.Lock()
+
+
+def _log_command(command: str) -> None:
+    """
+    Registra um comando executado no histórico com timestamp.
+    """
+    timestamp = datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
+    log_entry = f"{timestamp} - SSH Command: {command}"
+
+    with history_lock:
+        command_history.append(log_entry)
+
+
+def get_command_history() -> list:
+    with history_lock:
+        return list(command_history)
 
 
 def __execute_command(command: str, username: str) -> Tuple[bool, str]:
@@ -23,6 +47,8 @@ def __execute_command(command: str, username: str) -> Tuple[bool, str]:
     """
     if username == "root":
         command = f"dokku {command}"
+
+    _log_command(command)
 
     client = SSHClient()
 
