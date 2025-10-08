@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
@@ -127,6 +128,127 @@ def get_router(app: FastAPI) -> APIRouter:
     ):
         success, result = await AppService.get_logs(
             request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+    
+    @router.post(
+        "/{app_name}/start",
+        response_description="Start an application",
+    )
+    async def start_app(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = await AppService.start_app(
+            request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+    
+    @router.post(
+        "/{app_name}/stop",
+        response_description="Stop an application",
+    )
+    async def stop_app(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = await AppService.stop_app(
+            request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+    
+    @router.post(
+        "/{app_name}/restart",
+        response_description="Restart an application",
+    )
+    async def restart_app(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = await AppService.restart_app(
+            request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
+    @router.post(
+        "/{app_name}/rebuild",
+        response_description="Rebuild an application",
+    )
+    async def rebuild_app(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = await AppService.rebuild_app(
+            request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+    
+    @router.post(
+        "/{app_name}/builder",
+        response_description="Get builder information of an application",
+    )
+    async def get_builder_info(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = await AppService.get_builder(
+            request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+    
+    @router.post(
+        "/{app_name}/builder/{builder}",
+        response_description="Set builder of an application",
+    )
+    async def set_builder_info(
+        request: Request,
+        app_name: str,
+        builder: str,
+    ):
+        success, result = await AppService.set_builder(
+            request.state.session_user, app_name, builder
         )
 
         return JSONResponse(

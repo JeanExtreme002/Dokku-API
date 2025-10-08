@@ -91,24 +91,4 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
-    @router.post(
-        "/{app_name}/apply",
-        response_description="Apply application configuration changes (with restart)",
-    )
-    async def apply_config(
-        request: Request,
-        app_name: str,
-    ):
-        success, result = await ConfigService.apply_config(
-            request.state.session_user, app_name
-        )
-
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
-                "success": success,
-                "result": result,
-            },
-        )
-
     return router
