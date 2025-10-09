@@ -1,14 +1,13 @@
-[tool.poetry]
+[project]
 name = "dokku-api"
-version = "1.0.0"
+version = "1.1.0"
 description = "A RESTful API for managing applications and resources on a Dokku platform."
-authors = ["JeanExtreme002 <jeanextreme002@gmail.com>"]
+authors = [
+    {name = "JeanExtreme002", email = "jeanextreme002@gmail.com"}
+]
 readme = "README.md"
-license = "MIT"
-
-homepage = "https://github.com/JeanExtreme002/dokku-api"
-repository = "https://github.com/JeanExtreme002/dokku-api"
-documentation = "https://github.com/JeanExtreme002/dokku-api"
+license = {text = "MIT"}
+requires-python = ">=3.11"
 
 keywords = ["dokku", "api", "paas", "application", "deployment", "devops", "automation"]
 
@@ -24,6 +23,68 @@ classifiers = [
     "Topic :: System :: Systems Administration",
 ]
 
+dependencies = [
+    "python-dotenv==0.19.2",
+    "fastapi==0.75.0",
+    "pydantic==1.10",
+    "paramiko==2.10.1",
+    "python-decouple==3.6",
+    "anyio==3.5.0",
+    "asgiref==3.5.0",
+    "bcrypt==3.2.0",
+    "cffi==1.15.0",
+    "click==8.0.4",
+    "colorama==0.4.4",
+    "cryptography==36.0.1",
+    "h11==0.13.0",
+    "httptools==0.6.4",
+    "idna==3.3",
+    "pycparser==2.21",
+    "PyNaCl==1.5.0",
+    "python-multipart==0.0.5",
+    "PyYAML==6.0",
+    "six==1.16.0",
+    "sniffio==1.2.0",
+    "starlette==0.17.1",
+    "typing_extensions==4.6.0",
+    "uvicorn==0.17.5",
+    "watchgod==0.7",
+    "websockets==10.2",
+    "requests>=2.32.3",
+    "pymysql>=1.1.1",
+    "sqlalchemy>=2.0.41",
+    "aiofiles>=24.1.0",
+    "asyncmy>=0.2.10",
+    "httpx>=0.28.1",
+    "aiomysql>=0.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "flake8>=7.1.0",
+    "isort>=6.0.1",
+    "coverage>=7.6.4",
+    "black>=25.1.0",
+    "commitizen>=4.8.2",
+    "twine>=5.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/JeanExtreme002/dokku-api"
+Repository = "https://github.com/JeanExtreme002/dokku-api"
+Documentation = "https://github.com/JeanExtreme002/dokku-api"
+
+[project.scripts]
+dokku-api = "dokku_api.cli:main"
+
+[tool.poetry]
+name = "dokku-api"
+version = "1.1.0"
+description = "A RESTful API for managing applications and resources on a Dokku platform."
+authors = ["JeanExtreme002 <jeanextreme002@gmail.com>"]
+readme = "README.md"
+license = "MIT"
+
 packages = [
     {include = "src", to = "dokku_api"},
     {include = "__init__.py", to = "dokku_api"},
@@ -31,6 +92,7 @@ packages = [
     {include = "Makefile", to = "dokku_api"},
     {include = "Procfile", to = "dokku_api"},
     {include = "docker-compose.yml", to = "dokku_api"},
+    {include = "Dockerfile", to = "dokku_api"},
     {include = ".env.sample", to = "dokku_api"},
     {include = "README.md", to = "dokku_api"},
     {include = "LICENSE", to = "dokku_api"},
@@ -40,50 +102,6 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
-python-dotenv = "0.19.2"
-fastapi = "0.75.0"
-pydantic = "1.10"
-paramiko = "2.10.1"
-python-decouple = "3.6"
-anyio = "3.5.0"
-asgiref = "3.5.0"
-bcrypt = "3.2.0"
-cffi = "1.15.0"
-click = "8.0.4"
-colorama = "0.4.4"
-cryptography = "36.0.1"
-h11 = "0.13.0"
-httptools = "0.6.4"
-idna = "3.3"
-pycparser = "2.21"
-PyNaCl = "1.5.0"
-python-multipart = "0.0.5"
-PyYAML = "6.0"
-six = "1.16.0"
-sniffio = "1.2.0"
-starlette = "0.17.1"
-typing_extensions = "4.6.0"
-uvicorn = "0.17.5"
-watchgod = "0.7"
-websockets = "10.2"
-requests = "^2.32.3"
-pymysql = "^1.1.1"
-sqlalchemy = "^2.0.41"
-aiofiles = "^24.1.0"
-asyncmy = "^0.2.10"
-httpx = "^0.28.1"
-aiomysql = "^0.2.0"
-
-[tool.poetry.scripts]
-dokku-api = "dokku_api.cli:main"
-
-[tool.poetry.group.dev.dependencies]
-flake8 = "^7.1.0"
-isort = "^6.0.1"
-coverage = "^7.6.4"
-black = "^25.1.0"
-commitizen = "^4.8.2"
-twine = "^5.0.0"
 
 [build-system]
 requires = ["poetry-core"]

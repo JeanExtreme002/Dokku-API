@@ -55,8 +55,11 @@ cover/
 *.mo
 *.pot
 
-# Django stuff:
+# Logs
 *.log
+logs/
+
+# Django stuff:
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -157,6 +160,21 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Development data
+mysql_data/
+*.db
+*.sqlite3
+
+# SSH keys (for security)
+*.pem
+*.key
+id_rsa*
+*.pub
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
