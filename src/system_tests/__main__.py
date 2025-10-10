@@ -406,7 +406,7 @@ assert response_json["success"] == True
 # Setting domain for the app
 print("Test: Setting domain for the app...")
 response = requests.post(
-    BASE_URL + f"/api/domains/{user_app_domain}/{user_app}",
+    BASE_URL + f"/api/domains/{user_app}/{user_app_domain}",
     params={"api_key": API_KEY},
     json={"access_token": user_token},
 )
@@ -417,7 +417,7 @@ assert response_json["success"] == True
 # Unsetting domain for the app
 print("Test: Unsetting domain for the app...")
 response = requests.delete(
-    BASE_URL + f"/api/domains/{user_app_domain}/{user_app}",
+    BASE_URL + f"/api/domains/{user_app}/{user_app_domain}",
     params={"api_key": API_KEY},
     json={"access_token": user_token},
 )

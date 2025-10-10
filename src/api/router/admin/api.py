@@ -23,8 +23,10 @@ def get_router(app: FastAPI) -> APIRouter:
                 content={"error": "command is required"},
             )
 
-        command = command.lstrip("dokku").strip()
-        success, message = await run_command(command)
+        if command.startswith("dokku"):
+            command = command[len("dokku") :]
+
+        success, message = await run_command(command.strip())
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
