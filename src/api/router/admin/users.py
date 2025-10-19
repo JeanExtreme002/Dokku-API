@@ -95,6 +95,21 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
 
+    @router.post("/{email}/quota", response_description="Get user's quota information")
+    async def get_quota(
+        request: Request,
+        email: str,
+    ):
+        user = await get_user(email)
+
+        quota = {
+            "apps_quota": user.apps_quota,
+            "services_quota": user.services_quota,
+            "networks_quota": user.networks_quota,
+        }
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=quota)
+
     @router.put("/{email}/quota", response_description="Update the user's quotas")
     async def update_quota(
         request: Request,
