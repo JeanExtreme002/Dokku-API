@@ -132,16 +132,19 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
 
-    @router.post("/{email}/admin/", response_description="Check if the user is admin or not")
+    @router.post(
+        "/{email}/admin/", response_description="Check if the user is admin or not"
+    )
     async def is_admin(request: Request, email: str):
         user = await get_user(email)
 
         return JSONResponse(
-            status_code=status.HTTP_200_OK, 
-            content={"result": user.is_admin}
+            status_code=status.HTTP_200_OK, content={"result": user.is_admin}
         )
 
-    @router.put("/{email}/admin/", response_description="Set a the user as admin or not")
+    @router.put(
+        "/{email}/admin/", response_description="Set a the user as admin or not"
+    )
     async def set_admin(request: Request, email: str, is_admin: bool):
         user = await get_user(email)
         user.is_admin = is_admin
