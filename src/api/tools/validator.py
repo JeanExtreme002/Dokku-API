@@ -40,9 +40,9 @@ def validate_admin(
     payload: Optional[UserCredentialsPayload] = Body(default=None),
 ) -> None:
     """
-    Check if master key is valid.
+    Check if user is admin or master key is valid.
     """
-    if request.state.session_user is not None and payload.access_token:
+    if request.state.session_user is not None:
         if request.state.session_user.is_admin:
             return
         raise HTTPException(
