@@ -37,7 +37,7 @@ class SessionUserMiddleware(BaseHTTPMiddleware):
             pass
 
         async def receive():
-            return {"type": "http.request", "body": body_bytes}
+            return {"type": "http.request", "body": body_bytes, "more_body": False}
 
         request._receive = receive
 
