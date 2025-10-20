@@ -24,7 +24,6 @@ def get_app() -> FastAPI:
         title="Dokku API",
         default_response_class=JSONResponse,
         version=Config.API_VERSION_NUMBER,
-        redirect_slashes=False,
     )
 
     _app.add_middleware(

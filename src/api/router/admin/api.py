@@ -14,7 +14,7 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post(
-        "/run-command", response_description="Run a dokku command on the server"
+        "/run-command/", response_description="Run a dokku command on the server"
     )
     async def run_dokku_command(command: str):
         if not command:
@@ -37,7 +37,7 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
-    @router.post("/config", response_description="Return env variables of API server")
+    @router.post("/config/", response_description="Return env variables of API server")
     async def get_config():
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -68,7 +68,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/ssh-key", response_description="Get SSH private key file information"
+        "/ssh-key/", response_description="Get SSH private key file information"
     )
     async def get_ssh_key_info():
         ssh_key_path = Config.SSH_SERVER.SSH_KEY_PATH
@@ -118,7 +118,7 @@ def get_router(app: FastAPI) -> APIRouter:
                 content={"error": f"Failed to get SSH key info: {str(error)}"},
             )
 
-    @router.put("/ssh-key", response_description="Update SSH private key file")
+    @router.put("/ssh-key/", response_description="Update SSH private key file")
     async def update_ssh_key(file: UploadFile = File(...)):
         ssh_key_path = Config.SSH_SERVER.SSH_KEY_PATH
 
@@ -150,7 +150,7 @@ def get_router(app: FastAPI) -> APIRouter:
                 content={"error": f"Failed to update SSH key: {str(error)}"},
             )
 
-    @router.post("/ssh-history", response_description="Check SSH command history")
+    @router.post("/ssh-history/", response_description="Check SSH command history")
     async def get_ssh_command_history():
         history = get_command_history()
 
@@ -159,7 +159,7 @@ def get_router(app: FastAPI) -> APIRouter:
             content={"status": "ok", "history": history},
         )
 
-    @router.post("/shutdown", response_description="Shutdown the API server")
+    @router.post("/shutdown/", response_description="Shutdown the API server")
     async def shutdown():
         os.kill(os.getpid(), signal.SIGTERM)
 

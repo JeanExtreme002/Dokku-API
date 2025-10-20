@@ -8,7 +8,7 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post(
-        "/{app_name}/{domain_name}",
+        "/{app_name}/{domain_name}/",
         response_description="Set a domain for an application",
     )
     async def set_domain(
@@ -29,7 +29,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}",
+        "/{app_name}/",
         response_description="Get domains info of an application",
     )
     async def get_domains_info(
@@ -49,7 +49,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.put(
-        "/{app_name}/{domain_name}",
+        "/{app_name}/{domain_name}/",
         response_description="Add a domain for an application",
     )
     async def add_domain(
@@ -70,7 +70,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.delete(
-        "/{app_name}/{domain_name}",
+        "/{app_name}/{domain_name}/",
         response_description="Remove a domain from an application",
     )
     async def remove_domain(

@@ -7,7 +7,7 @@ from src.api.services import LetsencryptService
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
-    @router.post("/{email}", response_description="Set a email for LetsEncrypt")
+    @router.post("/{email}/", response_description="Set a email for LetsEncrypt")
     async def set_letsencrypt_email(email: str):
         success, result = await LetsencryptService.set_letsencrypt_email(email)
 
@@ -17,7 +17,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/enable-auto-renewal",
+        "/enable-auto-renewal/",
         response_description="Enable automatic LetsEncrypt renewal",
     )
     async def enable_letsencrypt_auto_renewal():

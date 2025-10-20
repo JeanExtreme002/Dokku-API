@@ -7,7 +7,7 @@ from src.api.services import AppService
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
-    @router.post("/list", response_description="Return all applications")
+    @router.post("/list/", response_description="Return all applications")
     async def list_apps(request: Request):
         success, result = await AppService.list_apps(request.state.session_user)
 
@@ -19,7 +19,7 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
-    @router.post("/{app_name}", response_description="Create an application")
+    @router.post("/{app_name}/", response_description="Create an application")
     async def create_app(
         request: Request,
         app_name: str,
@@ -40,7 +40,7 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
-    @router.delete("/{app_name}", response_description="Delete an application")
+    @router.delete("/{app_name}/", response_description="Delete an application")
     async def delete_app(
         request: Request,
         app_name: str,
@@ -58,7 +58,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/url",
+        "/{app_name}/url/",
         response_description="Return the application URL",
     )
     async def get_app_url(
@@ -78,7 +78,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/info",
+        "/{app_name}/info/",
         response_description="Return information about an application",
     )
     async def get_app_information(
@@ -98,7 +98,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/deployment-token",
+        "/{app_name}/deployment-token/",
         response_description="Return the deployment token of an application",
     )
     async def get_deployment_token(
@@ -118,7 +118,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/logs",
+        "/{app_name}/logs/",
         response_description="Return the logs of an application",
     )
     async def get_logs(
@@ -138,7 +138,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/start",
+        "/{app_name}/start/",
         response_description="Start an application",
     )
     async def start_app(
@@ -158,7 +158,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/stop",
+        "/{app_name}/stop/",
         response_description="Stop an application",
     )
     async def stop_app(
@@ -178,7 +178,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/restart",
+        "/{app_name}/restart/",
         response_description="Restart an application",
     )
     async def restart_app(
@@ -198,7 +198,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/rebuild",
+        "/{app_name}/rebuild/",
         response_description="Rebuild an application",
     )
     async def rebuild_app(
@@ -218,7 +218,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/builder",
+        "/{app_name}/builder/",
         response_description="Get builder information of an application",
     )
     async def get_builder_info(
@@ -238,7 +238,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/builder/{builder}",
+        "/{app_name}/builder/{builder}/",
         response_description="Set builder of an application",
     )
     async def set_builder_info(
@@ -259,7 +259,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/databases",
+        "/{app_name}/databases/",
         response_description="Return all databases linked to an application",
     )
     async def get_linked_databases(
@@ -279,7 +279,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/network",
+        "/{app_name}/network/",
         response_description="Return the network of an application",
     )
     async def get_network(
@@ -299,7 +299,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/ports",
+        "/{app_name}/ports/",
         response_description="Return all ports of an application",
     )
     async def list_port_mappings(
@@ -319,7 +319,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/ports/{protocol}/{origin_port}/{dest_port}",
+        "/{app_name}/ports/{protocol}/{origin_port}/{dest_port}/",
         response_description="Add a port mapping to an application",
     )
     async def add_port_mapping(
@@ -342,7 +342,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.delete(
-        "/{app_name}/ports/{protocol}/{origin_port}/{dest_port}",
+        "/{app_name}/ports/{protocol}/{origin_port}/{dest_port}/",
         response_description="Remove a port mapping from an application",
     )
     async def remove_port_mapping(

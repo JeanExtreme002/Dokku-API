@@ -7,7 +7,7 @@ from src.api.services import NetworkService
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
-    @router.post("/list", response_description="Return all networks")
+    @router.post("/list/", response_description="Return all networks")
     async def list_networks(request: Request):
         success, result = await NetworkService.list_networks(request.state.session_user)
 
@@ -19,7 +19,7 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
-    @router.post("/{network_name}", response_description="Create a network")
+    @router.post("/{network_name}/", response_description="Create a network")
     async def create_network(
         request: Request,
         network_name: str,
@@ -40,7 +40,7 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
-    @router.delete("/{network_name}", response_description="Delete a network")
+    @router.delete("/{network_name}/", response_description="Delete a network")
     async def delete_network(
         request: Request,
         network_name: str,
@@ -58,7 +58,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{network_name}/linked-apps",
+        "/{network_name}/linked-apps/",
         response_description="Return all apps linked to a network",
     )
     async def get_linked_apps(
@@ -78,7 +78,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{network_name}/link/{app_name}",
+        "/{network_name}/link/{app_name}/",
         response_description="Set network to app",
     )
     async def set_network_to_app(
@@ -99,7 +99,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.delete(
-        "/{network_name}/link/{app_name}",
+        "/{network_name}/link/{app_name}/",
         response_description="Unset network from app",
     )
     async def unset_network_from_app(

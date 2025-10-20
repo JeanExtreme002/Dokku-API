@@ -20,7 +20,7 @@ def get_router(app: FastAPI) -> APIRouter:
         }
         return JSONResponse(status_code=status.HTTP_200_OK, content=result)
 
-    @router.get("/list-databases", response_description="List available databases")
+    @router.get("/list-databases/", response_description="List available databases")
     async def list_available_databases(request: Request):
         success, result = await DatabaseService.list_available_databases()
 

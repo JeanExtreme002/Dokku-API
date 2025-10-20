@@ -8,7 +8,7 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post(
-        "/{app_name}",
+        "/{app_name}/",
         response_description="Return application configurations",
     )
     async def list_config(
@@ -28,7 +28,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/{key}",
+        "/{app_name}/{key}/",
         response_description="Return value of application configuration key",
     )
     async def get_config(
@@ -49,7 +49,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/{key}/{value}",
+        "/{app_name}/{key}/{value}/",
         response_description="Set application configuration key (without restart)",
     )
     async def set_config(
@@ -71,7 +71,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.delete(
-        "/{app_name}/{key}",
+        "/{app_name}/{key}/",
         response_description="Unset application configuration key (without restart)",
     )
     async def unset_config(

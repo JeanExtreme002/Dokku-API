@@ -8,7 +8,7 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.put(
-        "/{app_name}",
+        "/{app_name}/",
         response_description="Deploy an application by repository URL",
     )
     async def deploy_app_by_url(

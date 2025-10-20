@@ -7,7 +7,7 @@ from src.api.services import DatabaseService
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
-    @router.post("/list", response_description="Return all databases")
+    @router.post("/list/", response_description="Return all databases")
     async def list_all_databases(request: Request):
         success, result = await DatabaseService.list_all_databases(
             request.state.session_user
@@ -22,7 +22,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{plugin_name}/list",
+        "/{plugin_name}/list/",
         response_description="Return all databases, given a plugin name",
     )
     async def list_databases(
@@ -42,7 +42,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{plugin_name}/{database_name}",
+        "/{plugin_name}/{database_name}/",
         response_description="Create a database",
     )
     async def create_database(
@@ -67,7 +67,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.delete(
-        "/{plugin_name}/{database_name}",
+        "/{plugin_name}/{database_name}/",
         response_description="Delete a database",
     )
     async def delete_database(
@@ -88,7 +88,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{plugin_name}/{database_name}/uri",
+        "/{plugin_name}/{database_name}/uri/",
         response_description="Get the URI of a database",
     )
     async def get_uri(
@@ -109,7 +109,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{plugin_name}/{database_name}/info",
+        "/{plugin_name}/{database_name}/info/",
         response_description="Return information about a database",
     )
     async def get_database_information(
@@ -130,7 +130,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{plugin_name}/{database_name}/linked-apps",
+        "/{plugin_name}/{database_name}/linked-apps/",
         response_description="Return all apps linked to a database",
     )
     async def get_linked_apps(
@@ -151,7 +151,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{plugin_name}/{database_name}/link/{app_name}",
+        "/{plugin_name}/{database_name}/link/{app_name}/",
         response_description="Link a database to an app",
     )
     async def link_database(
@@ -173,7 +173,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.delete(
-        "/{plugin_name}/{database_name}/link/{app_name}",
+        "/{plugin_name}/{database_name}/link/{app_name}/",
         response_description="Unlink a database from an app",
     )
     async def unlink_database(

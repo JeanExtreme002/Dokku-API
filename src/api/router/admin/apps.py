@@ -9,7 +9,7 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post(
-        "/storage/{email}/{app_name}", response_description="Mount storage for app"
+        "/storage/{email}/{app_name}/", response_description="Mount storage for app"
     )
     async def mount_storage(email: str, app_name: str):
         user = await get_user(email)
@@ -22,7 +22,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.delete(
-        "/storage/{email}/{app_name}", response_description="Unmount storage for app"
+        "/storage/{email}/{app_name}/", response_description="Unmount storage for app"
     )
     async def unmount_storage(email: str, app_name: str):
         user = await get_user(email)
