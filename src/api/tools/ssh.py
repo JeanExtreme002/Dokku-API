@@ -4,7 +4,7 @@ from collections import deque
 from datetime import datetime
 from typing import Tuple
 
-from paramiko.client import AutoAddPolicy, SSHClient
+import asyncssh
 
 from src.config import Config
 
@@ -34,7 +34,7 @@ def get_command_history() -> list:
         return list(command_history)
 
 
-def __execute_command(command: str, username: str) -> Tuple[bool, str]:
+async def __execute_command(command: str, username: str) -> Tuple[bool, str]:
     """
     Execute a command on the remote server via SSH.
 
@@ -50,31 +50,34 @@ def __execute_command(command: str, username: str) -> Tuple[bool, str]:
 
     _log_command(command)
 
-    client = SSHClient()
-
     try:
-        client.set_missing_host_key_policy(AutoAddPolicy())
-
-        client.connect(
-            hostname=ssh_hostname,
+        async with asyncssh.connect(
+            host=ssh_hostname,
             port=ssh_port,
             username=username,
-            key_filename=ssh_key_path,
-            allow_agent=False,
-            look_for_keys=False,
-        )
-        _, stdout, stderr = client.exec_command(command, timeout=60)
+            client_keys=[ssh_key_path],
+            known_hosts=None,
+            connect_timeout=30,
+        ) as conn:
+            result = await conn.run(command, timeout=10 * 60)
 
-        output = stdout.read().decode("utf-8").strip()
-        error = stderr.read().decode("utf-8").strip()
+            if result.exit_status == 0:
+                output = result.stdout.strip() if result.stdout else ""
+                return (True, output)
+            else:
+                output = result.stdout.strip() if result.stdout else ""
+                error = (
+                    result.stderr.strip()
+                    if result.stderr
+                    else f"Command failed with exit code {result.exit_status}"
+                )
 
-        return (True, output) if output else (False, error)
+                output = f"{output}\n{error}" if output else error
+
+                return (False, output)
 
     except Exception as error:
         return False, str(error)
-
-    finally:
-        client.close()
 
 
 async def run_command(command: str) -> Tuple[bool, str]:
@@ -87,7 +90,7 @@ async def run_command(command: str) -> Tuple[bool, str]:
         Tuple[bool, str]: A tuple containing a boolean indicating success
         or failure and the output or error message.
     """
-    success, message = __execute_command(command, "dokku")
+    success, message = await __execute_command(command, "dokku")
 
     if success:
         logging.info(f"Command executed successfully: {command}")
@@ -106,7 +109,7 @@ async def run_command_as_root(command: str) -> Tuple[bool, str]:
         Tuple[bool, str]: A tuple containing a boolean indicating success
         or failure and the output or error message.
     """
-    success, message = __execute_command(command, "root")
+    success, message = await __execute_command(command, "root")
 
     if success:
         logging.info(f"Command executed successfully: {command}")

@@ -1,6 +1,6 @@
 [project]
 name = "dokku-api"
-version = "1.2.0"
+version = "1.2.1"
 description = "A RESTful API for managing applications and resources on a Dokku platform."
 authors = [
     {name = "JeanExtreme002", email = "jeanextreme002@gmail.com"}
@@ -27,7 +27,7 @@ dependencies = [
     "python-dotenv==0.19.2",
     "fastapi==0.75.0",
     "pydantic==1.10",
-    "paramiko==2.10.1",
+    "asyncssh==2.13.2",
     "python-decouple==3.6",
     "anyio==3.5.0",
     "asgiref==3.5.0",
@@ -57,6 +57,7 @@ dependencies = [
     "asyncmy>=0.2.10",
     "httpx>=0.28.1",
     "aiomysql>=0.2.0",
+    "greenlet (>=3.2.4,<4.0.0)",
 ]
 
 [project.urls]
@@ -69,7 +70,7 @@ dokku-api = "dokku_api.cli:main"
 
 [tool.poetry]
 name = "dokku-api"
-version = "1.2.0"
+version = "1.2.1"
 description = "A RESTful API for managing applications and resources on a Dokku platform."
 authors = ["JeanExtreme002 <jeanextreme002@gmail.com>"]
 readme = "README.md"

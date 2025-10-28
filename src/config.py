@@ -5,7 +5,7 @@ import dotenv
 
 dotenv.load_dotenv()
 
-API_VERSION_NUMBER = "1.2.0"
+API_VERSION_NUMBER = "1.2.1"
 
 
 class DatabaseConfig:
@@ -23,7 +23,7 @@ class DatabaseConfig:
 
 class SSHServerConfig:
     SSH_HOSTNAME: str = os.getenv("SSH_HOSTNAME")
-    SSH_PORT: int = os.getenv("SSH_PORT")
+    SSH_PORT: int = int(os.getenv("SSH_PORT"))
     SSH_KEY_PATH: str = os.getenv("SSH_KEY_PATH")
 
 
