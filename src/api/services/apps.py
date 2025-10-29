@@ -108,6 +108,10 @@ def parse_port_mappings(text: str) -> List:
     return ports
 
 
+def get_raw_app(name):
+    return name.split("-", maxsplit=1)[-1]
+
+
 class AppService(ABC):
 
     @staticmethod
@@ -125,12 +129,9 @@ class AppService(ABC):
                 )
 
             apps = parse_apps_list(message)
+
             app_exists = any(
-                [
-                    app.split("-", maxsplit=1)[-1]
-                    == app_name.split("-", maxsplit=1)[-1]
-                    for app in apps
-                ]
+                [get_raw_app(app) == get_raw_app(app_name) for app in apps]
             )
 
             if app_exists:
@@ -145,7 +146,7 @@ class AppService(ABC):
         success, message = await run_command(f"apps:create {app_name}")
 
         if unique_app and success:
-            app_name = app_name.split("-", maxsplit=1)[1]
+            app_name = get_raw_app(app_name)
             await DomainService.set_domain(
                 session_user, app_name, f"{app_name}.{Config.SSH_SERVER.SSH_HOSTNAME}"
             )
