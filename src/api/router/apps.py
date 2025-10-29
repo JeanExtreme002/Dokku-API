@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
@@ -23,9 +25,10 @@ def get_router(app: FastAPI) -> APIRouter:
     async def create_app(
         request: Request,
         app_name: str,
+        unique_app: Optional[bool] = False,
     ):
         success, result = await AppService.create_app(
-            request.state.session_user, app_name
+            request.state.session_user, app_name, unique_app
         )
         status_code = status.HTTP_201_CREATED
 

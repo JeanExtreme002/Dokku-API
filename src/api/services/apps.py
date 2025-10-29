@@ -1,7 +1,7 @@
 import json
 import re
 from abc import ABC
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import HTTPException
 
@@ -15,9 +15,21 @@ from src.api.models import (
 )
 from src.api.schemas import UserSchema
 from src.api.services.databases import DatabaseService
+from src.api.services.domains import DomainService
 from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command
 from src.config import Config
+
+
+def parse_apps_list(text: str):
+    """
+    Extract the list of apps from a formatted string.
+    """
+    lines = text.strip().split("\n")
+    apps = [
+        line.strip() for line in lines if line.strip() and not line.startswith("=====>")
+    ]
+    return apps
 
 
 def parse_ps_report(text: str) -> Dict:
@@ -99,16 +111,46 @@ def parse_port_mappings(text: str) -> List:
 class AppService(ABC):
 
     @staticmethod
-    async def create_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def create_app(
+        session_user: UserSchema, app_name: str, unique_app: Optional[bool] = False
+    ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
-        _, message = await run_command(f"apps:exists {app_name}")
+        if unique_app:
+            success, message = await run_command(f"apps:list {app_name}")
 
-        if "does not exist" not in message.lower():
-            raise HTTPException(status_code=403, detail="App already exists")
+            if not success:
+                raise HTTPException(
+                    status_code=500, detail="Could not recover apps list"
+                )
+
+            apps = parse_apps_list(message)
+            app_exists = any(
+                [
+                    app.split("-", maxsplit=1)[-1]
+                    == app_name.split("-", maxsplit=1)[-1]
+                    for app in apps
+                ]
+            )
+
+            if app_exists:
+                raise HTTPException(status_code=403, detail="App name already in use")
+        else:
+            _, message = await run_command(f"apps:exists {app_name}")
+
+            if "does not exist" not in message.lower():
+                raise HTTPException(status_code=403, detail="App already exists")
 
         await create_resource(session_user.email, app_name, App)
-        return await run_command(f"apps:create {app_name}")
+        success, message = await run_command(f"apps:create {app_name}")
+
+        if unique_app and success:
+            app_name = app_name.split("-", maxsplit=1)[1]
+            await DomainService.set_domain(
+                session_user, app_name, f"{app_name}.{Config.SSH_SERVER.SSH_HOSTNAME}"
+            )
+
+        return success, message
 
     @staticmethod
     async def get_deployment_token(
