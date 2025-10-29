@@ -1,3 +1,4 @@
+import asyncio
 import json
 import re
 from abc import ABC
@@ -210,11 +211,18 @@ class AppService(ABC):
     async def list_apps(session_user: UserSchema) -> Tuple[bool, Any]:
         result = {}
 
+        tasks = []
+        app_names = []
+
         for app_name in session_user.apps:
             app_name = str(ResourceName(session_user, app_name, App, from_system=True))
-            result[app_name] = (await AppService.get_app_info(session_user, app_name))[
-                1
-            ]
+            app_names.append(app_name)
+            tasks.append(AppService.get_app_info(session_user, app_name))
+
+        app_infos = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for name, info in zip(app_names, app_infos):
+            result[name] = {} if isinstance(info, Exception) else info[1]
 
         return True, result
 

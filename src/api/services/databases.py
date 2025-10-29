@@ -1,3 +1,4 @@
+import asyncio
 import re
 from abc import ABC
 from typing import Any, Dict, Tuple
@@ -97,14 +98,24 @@ class DatabaseService(ABC):
 
         result = {}
 
+        tasks = []
+        database_names = []
+
         for database_name in databases:
             database_name = str(
                 ResourceName(session_user, database_name, Service, from_system=True)
             )
-            _, data = await DatabaseService.get_database_info(
-                session_user, plugin_name, database_name
+            database_names.append(database_name)
+            tasks.append(
+                DatabaseService.get_database_info(
+                    session_user, plugin_name, database_name
+                )
             )
-            result[database_name] = data
+
+        database_infos = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for name, info in zip(database_names, database_infos):
+            result[name] = {} if isinstance(info, Exception) else info[1]
 
         return True, result
 

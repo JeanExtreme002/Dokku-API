@@ -1,3 +1,4 @@
+import asyncio
 import re
 from abc import ABC
 from typing import Any, Dict, Tuple
@@ -65,17 +66,29 @@ class NetworkService(ABC):
     async def list_networks(session_user: UserSchema) -> Tuple[bool, Any]:
         result = {}
 
+        tasks = []
+        network_names = []
+        parsed_network_names = []
+
         for network_name in session_user.networks:
             parsed_network_name = ResourceName(
                 session_user, network_name, Network, from_system=True
             )
             parsed_network_name = str(parsed_network_name)
 
-            success, message = await run_command(f"network:info {network_name}")
-            result[parsed_network_name] = None
+            network_names.append(network_name)
+            parsed_network_names.append(parsed_network_name)
+            tasks.append(run_command(f"network:info {network_name}"))
 
-            if not success:
-                result[parsed_network_name] = parse_network_info(message)
+        network_infos = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for name, info in zip(parsed_network_names, network_infos):
+            result[name] = None
+
+            if not isinstance(info, Exception):
+                success, message = info
+                if success:
+                    result[name] = parse_network_info(message)
 
         return True, result
 
