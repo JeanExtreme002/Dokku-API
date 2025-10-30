@@ -1,6 +1,8 @@
+import os
+import tempfile
 from typing import Optional
 
-from fastapi import APIRouter, FastAPI, HTTPException, Request, status
+from fastapi import APIRouter, FastAPI, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import JSONResponse
 
 from src.api.models import (
@@ -13,6 +15,7 @@ from src.api.models import (
 )
 from src.api.services import AppService, DatabaseService
 from src.api.tools import hash_access_token
+from src.api.tools.ssh import run_command
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -142,9 +145,7 @@ def get_router(app: FastAPI) -> APIRouter:
             status_code=status.HTTP_200_OK, content={"result": user.is_admin}
         )
 
-    @router.put(
-        "/{email}/admin/", response_description="Set a the user as admin or not"
-    )
+    @router.put("/{email}/admin/", response_description="Set the user as admin or not")
     async def set_admin(request: Request, email: str, is_admin: bool):
         user = await get_user(email)
         user.is_admin = is_admin
@@ -152,5 +153,34 @@ def get_router(app: FastAPI) -> APIRouter:
         await update_user(email, user)
 
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
+
+    @router.post("/{email}/ssh-key/", response_description="Set a SSH key for the user")
+    async def set_ssh_key(
+        request: Request, email: str, public_ssh_key_file: UploadFile = File(...)
+    ):
+        await get_user(email)
+        name = email.split("@", maxsplit=1)[0]
+
+        with tempfile.NamedTemporaryFile(
+            mode="w+b", delete=False, suffix=".pub"
+        ) as temp_file:
+            content = await public_ssh_key_file.read()
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+
+        try:
+            command = f"ssh-keys:add {name} {temp_file_path}"
+            success, message = await run_command(command)
+        finally:
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": message,
+                "success": success,
+            },
+        )
 
     return router
