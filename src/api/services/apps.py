@@ -147,6 +147,7 @@ class AppService(ABC):
         success, message = await run_command(f"apps:create {app_name}")
 
         if unique_app and success:
+            session_user.apps.append(app_name)
             app_name = get_raw_app(app_name)
             await DomainService.set_domain(
                 session_user, app_name, f"{app_name}.{Config.SSH_SERVER.SSH_HOSTNAME}"
