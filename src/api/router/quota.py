@@ -17,4 +17,16 @@ def get_router(app: FastAPI) -> APIRouter:
 
         return JSONResponse(status_code=status.HTTP_200_OK, content=quota)
 
+    @router.post("/used/", response_description="Get user's used resources")
+    async def get_used(request: Request):
+        user = request.state.session_user
+
+        used = {
+            "apps_used": len(user.apps) if user.apps else 0,
+            "services_used": len(user.services) if user.services else 0,
+            "networks_used": len(user.networks) if user.networks else 0,
+        }
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=used)
+
     return router
