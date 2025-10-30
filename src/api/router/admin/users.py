@@ -15,7 +15,7 @@ from src.api.models import (
 )
 from src.api.services import AppService, DatabaseService
 from src.api.tools import hash_access_token
-from src.api.tools.ssh import run_command
+from src.api.tools.ssh import run_command_as_root
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -170,7 +170,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
         try:
             command = f"ssh-keys:add {name} {temp_file_path}"
-            success, message = await run_command(command)
+            success, message = await run_command_as_root(command)
         finally:
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
