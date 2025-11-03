@@ -206,6 +206,7 @@ class AppService(ABC):
             result["data"] = parse_ps_report(message) if success else None
             result["info_origin"] = "report" if success else None
 
+        result["raw_name"] = app_name
         return success, result
 
     @staticmethod
