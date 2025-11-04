@@ -334,14 +334,17 @@ class AppService(ABC):
 
     @staticmethod
     async def list_port_mappings(
-        session_user: UserSchema, app_name: str
+        session_user: UserSchema, app_name: str, use_proxy: bool = False
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
-
-        success, message = await run_command(f"proxy:ports {app_name}")
+        
+        if use_proxy:
+            success, message = await run_command(f"proxy:ports {app_name}")
+        else:
+            success, message = await run_command(f"ports:list {app_name}")
 
         if "no port mappings" in message.lower():
             return True, []
@@ -358,15 +361,21 @@ class AppService(ABC):
         origin_port: int,
         dest_port: int,
         protocol: str,
+        use_proxy: bool = False,
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        return await run_command(
-            f"proxy:ports-add {app_name} {protocol}:{origin_port}:{dest_port}"
-        )
+        if use_proxy:
+            return await run_command(
+                f"proxy:ports-add {app_name} {protocol}:{origin_port}:{dest_port}"
+            )
+        else:
+            return await run_command(
+                f"ports:add {app_name} {protocol}:{origin_port}:{dest_port}"
+            )
 
     @staticmethod
     async def remove_port_mapping(
@@ -375,15 +384,21 @@ class AppService(ABC):
         origin_port: int,
         dest_port: int,
         protocol: str,
+        use_proxy: bool = False,
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        return await run_command(
-            f"proxy:ports-remove {app_name} {protocol}:{origin_port}:{dest_port}"
-        )
+        if use_proxy:
+            return await run_command(
+                f"proxy:ports-remove {app_name} {protocol}:{origin_port}:{dest_port}"
+            )
+        else:
+            return await run_command(
+                f"ports:remove {app_name} {protocol}:{origin_port}:{dest_port}"
+            )
 
     @staticmethod
     async def get_linked_databases(

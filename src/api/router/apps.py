@@ -308,9 +308,10 @@ def get_router(app: FastAPI) -> APIRouter:
     async def list_port_mappings(
         request: Request,
         app_name: str,
+        use_proxy: bool = False,
     ):
         success, result = await AppService.list_port_mappings(
-            request.state.session_user, app_name
+            request.state.session_user, app_name, use_proxy
         )
 
         return JSONResponse(
@@ -331,9 +332,10 @@ def get_router(app: FastAPI) -> APIRouter:
         origin_port: int,
         dest_port: int,
         protocol: str = "http",
+        use_proxy: bool = False,
     ):
         success, result = await AppService.add_port_mapping(
-            request.state.session_user, app_name, origin_port, dest_port, protocol
+            request.state.session_user, app_name, origin_port, dest_port, protocol, use_proxy
         )
 
         return JSONResponse(
@@ -354,9 +356,10 @@ def get_router(app: FastAPI) -> APIRouter:
         origin_port: int,
         dest_port: int,
         protocol: str = "http",
+        use_proxy: bool = False,
     ):
         success, result = await AppService.remove_port_mapping(
-            request.state.session_user, app_name, origin_port, dest_port, protocol
+            request.state.session_user, app_name, origin_port, dest_port, protocol, use_proxy
         )
 
         return JSONResponse(
