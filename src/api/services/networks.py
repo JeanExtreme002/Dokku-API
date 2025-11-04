@@ -77,6 +77,7 @@ class NetworkService(ABC):
                 parsed_network_name = ResourceName(
                     session_user, network_name, Network, from_system=True
                 )
+                parsed_network_name = str(parsed_network_name)
                 result[parsed_network_name] = {}
             return True, result
 
