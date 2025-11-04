@@ -340,7 +340,7 @@ class AppService(ABC):
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
-        
+
         if use_proxy:
             success, message = await run_command(f"proxy:ports {app_name}")
         else:
