@@ -341,7 +341,7 @@ class AppService(ABC):
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        success, message = await run_command(f"ports:list {app_name}")
+        success, message = await run_command(f"proxy:ports {app_name}")
 
         if "no port mappings" in message.lower():
             return True, []
@@ -365,7 +365,7 @@ class AppService(ABC):
             raise HTTPException(status_code=404, detail="App does not exist")
 
         return await run_command(
-            f"ports:add {app_name} {protocol}:{origin_port}:{dest_port}"
+            f"proxy:ports-add {app_name} {protocol}:{origin_port}:{dest_port}"
         )
 
     @staticmethod
@@ -382,7 +382,7 @@ class AppService(ABC):
             raise HTTPException(status_code=404, detail="App does not exist")
 
         return await run_command(
-            f"ports:remove {app_name} {protocol}:{origin_port}:{dest_port}"
+            f"proxy:ports-remove {app_name} {protocol}:{origin_port}:{dest_port}"
         )
 
     @staticmethod
