@@ -10,8 +10,10 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post("/list/", response_description="Return all applications")
-    async def list_apps(request: Request):
-        success, result = await AppService.list_apps(request.state.session_user)
+    async def list_apps(request: Request, return_info: bool = True):
+        success, result = await AppService.list_apps(
+            request.state.session_user, return_info
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

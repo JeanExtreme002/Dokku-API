@@ -63,12 +63,22 @@ class NetworkService(ABC):
         return await run_command(f"--force network:destroy {network_name}")
 
     @staticmethod
-    async def list_networks(session_user: UserSchema) -> Tuple[bool, Any]:
+    async def list_networks(
+        session_user: UserSchema, return_info: bool = True
+    ) -> Tuple[bool, Any]:
         result = {}
 
         tasks = []
         network_names = []
         parsed_network_names = []
+
+        if not return_info:
+            for network_name in session_user.networks:
+                parsed_network_name = ResourceName(
+                    session_user, network_name, Network, from_system=True
+                )
+                result[parsed_network_name] = {}
+            return True, result
 
         for network_name in session_user.networks:
             parsed_network_name = ResourceName(

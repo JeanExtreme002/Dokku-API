@@ -71,13 +71,15 @@ class DatabaseService(ABC):
         return await run_command(f"{plugin_name}:create {database_name}")
 
     @staticmethod
-    async def list_all_databases(session_user: UserSchema) -> Tuple[bool, Any]:
+    async def list_all_databases(
+        session_user: UserSchema, return_info: bool = True
+    ) -> Tuple[bool, Any]:
         available_databases = (await DatabaseService.list_available_databases())[1]
         result = {}
 
         for plugin_name in available_databases:
             success, data = await DatabaseService.list_databases(
-                session_user, plugin_name
+                session_user, plugin_name, return_info
             )
 
             if success and data:
@@ -87,7 +89,7 @@ class DatabaseService(ABC):
 
     @staticmethod
     async def list_databases(
-        session_user: UserSchema, plugin_name: str
+        session_user: UserSchema, plugin_name: str, return_info: bool = True
     ) -> Tuple[bool, Any]:
         plugins = [
             plugin
@@ -100,6 +102,14 @@ class DatabaseService(ABC):
 
         tasks = []
         database_names = []
+
+        if not return_info:
+            for database_name in databases:
+                database_name = str(
+                    ResourceName(session_user, database_name, Service, from_system=True)
+                )
+                result[database_name] = {}
+            return True, result
 
         for database_name in databases:
             database_name = str(

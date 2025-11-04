@@ -210,11 +210,21 @@ class AppService(ABC):
         return success, result
 
     @staticmethod
-    async def list_apps(session_user: UserSchema) -> Tuple[bool, Any]:
+    async def list_apps(
+        session_user: UserSchema, return_info: bool = True
+    ) -> Tuple[bool, Any]:
         result = {}
 
         tasks = []
         app_names = []
+
+        if not return_info:
+            for app_name in session_user.apps:
+                app_name = str(
+                    ResourceName(session_user, app_name, App, from_system=True)
+                )
+                result[app_name] = {}
+            return True, result
 
         for app_name in session_user.apps:
             app_name = str(ResourceName(session_user, app_name, App, from_system=True))

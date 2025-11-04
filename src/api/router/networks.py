@@ -8,8 +8,10 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post("/list/", response_description="Return all networks")
-    async def list_networks(request: Request):
-        success, result = await NetworkService.list_networks(request.state.session_user)
+    async def list_networks(request: Request, return_info: bool = True):
+        success, result = await NetworkService.list_networks(
+            request.state.session_user, return_info
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

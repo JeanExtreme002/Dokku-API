@@ -8,9 +8,9 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post("/list/", response_description="Return all databases")
-    async def list_all_databases(request: Request):
+    async def list_all_databases(request: Request, return_info: bool = True):
         success, result = await DatabaseService.list_all_databases(
-            request.state.session_user
+            request.state.session_user, return_info
         )
 
         return JSONResponse(
@@ -28,9 +28,10 @@ def get_router(app: FastAPI) -> APIRouter:
     async def list_databases(
         request: Request,
         plugin_name: str,
+        return_info: bool = True,
     ):
         success, result = await DatabaseService.list_databases(
-            request.state.session_user, plugin_name
+            request.state.session_user, plugin_name, return_info
         )
 
         return JSONResponse(
