@@ -90,13 +90,14 @@ async def run_git_command(
 async def push_to_dokku(
     repo_path: Path,
     dokku_host: str,
+    dokku_port: int,
     app_name: str,
     branch: str = "main",
 ):
     env = os.environ.copy()
 
     env["GIT_SSH_COMMAND"] = (
-        f"ssh -i {Config.SSH_SERVER.SSH_KEY_PATH} -o StrictHostKeyChecking=no"
+        f"ssh -i {Config.SSH_SERVER.SSH_KEY_PATH} -p {dokku_port} -o StrictHostKeyChecking=no"
     )
 
     try:
@@ -170,6 +171,7 @@ class GitService(ABC):
         filename = file.filename.split(".")[0]
 
         SSH_HOSTNAME = Config.SSH_SERVER.SSH_HOSTNAME
+        SSH_PORT = Config.SSH_SERVER.SSH_PORT
         BASE_DIR = Path("/tmp")
         BRANCH = "main"
 
@@ -181,7 +183,7 @@ class GitService(ABC):
         dest_dir, app, user = await save_app_zip(file, dest_dir)
         app_name = ResourceName(user, app.name, App, from_system=True).for_system()
 
-        task = push_to_dokku(dest_dir, SSH_HOSTNAME, app_name, branch=BRANCH)
+        task = push_to_dokku(dest_dir, SSH_HOSTNAME, SSH_PORT, app_name, branch=BRANCH)
         result = "Deploying application..."
 
         if not wait:
