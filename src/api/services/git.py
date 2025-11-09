@@ -121,7 +121,7 @@ async def push_to_dokku(
             suppress_errors=True,
         )
 
-        stdout, _ = await run_git_command(
+        stdout, stderr = await run_git_command(
             "git",
             "push",
             "dokku",
@@ -129,7 +129,7 @@ async def push_to_dokku(
             cwd=repo_path,
             env=env,
         )
-        return stdout
+        return f"{stdout}\n{stderr}" if stderr else stdout
 
     except subprocess.CalledProcessError as error:
         raise HTTPException(
