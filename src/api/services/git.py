@@ -106,8 +106,9 @@ async def push_to_dokku(
     dokku_host: str,
     dokku_port: int,
     app_name: str,
-    branch: str = "main",
+    branch: str = "master",
 ):
+    logging.info(f"[push_to_dokku]:{app_name}:{branch}::Preparing to push application...")
     env = os.environ.copy()
 
     env["GIT_SSH_COMMAND"] = (
@@ -136,6 +137,7 @@ async def push_to_dokku(
             check=False,
             suppress_errors=True,
         )
+        logging.info(f"[push_to_dokku]:{app_name}:{branch}::Set up the remote in Git.")
 
         try:
             await run_git_command(
@@ -146,6 +148,7 @@ async def push_to_dokku(
                 cwd=repo_path,
                 check=True,
             )
+            logging.info(f"[push_to_dokku]:{app_name}:{branch}::Branch successfully detected.")
         except subprocess.CalledProcessError:
             current_branch_stdout, _ = await run_git_command(
                 "git",
@@ -156,6 +159,7 @@ async def push_to_dokku(
                 check=True,
             )
             branch = current_branch_stdout.strip()
+            logging.info(f"[push_to_dokku]:{app_name}:{branch}::Set up the current branch by 'git rev-parse'.")
 
         process = await asyncio.create_subprocess_exec(
             "git",
@@ -171,7 +175,7 @@ async def push_to_dokku(
         )
 
         try:
-            stdout, _ = await asyncio.wait_for(process.communicate(), timeout=15 * 60)
+            stdout, _ = await asyncio.wait_for(process.communicate(), timeout=30 * 60)
             output = stdout.decode() if stdout else ""
 
             if process.returncode != 0:
@@ -180,12 +184,14 @@ async def push_to_dokku(
                     ["git", "push", "dokku", f"{branch}:master", "--force"],
                     output=stdout,
                 )
+            logging.info(f"[push_to_dokku]:{app_name}:{branch}::Successfully deployed.")
             return output
 
         except asyncio.TimeoutError:
+            logging.info(f"[push_to_dokku]:{app_name}:{branch}::Timeout error.")
             process.kill()
             raise HTTPException(
-                status_code=500, detail="Git push timed out after 15 minutes"
+                status_code=500, detail="Git push timed out after 30 minutes"
             )
 
     except subprocess.CalledProcessError as error:
@@ -201,6 +207,7 @@ async def push_to_dokku(
                 f"Full output: {error_output}"
             )
         elif "Everything up-to-date" in error_output:
+            logging.info(f"[push_to_dokku]:{app_name}:{branch}::Everything up-to-date.")
             return "No changes to push - everything is up-to-date"
         elif "non-fast-forward" in error_output:
             detail = (
@@ -213,7 +220,7 @@ async def push_to_dokku(
                 f"Git push failed with return code {error.returncode}: {error_output}"
             )
 
-        logging.warning(f"GIT PUSH failed: {app_name}\nError: {detail}")
+        logging.info(f"[push_to_dokku]:{app_name}:{branch}::Error:{detail}.")
         raise HTTPException(status_code=500, detail=detail)
 
     except Exception as error:
@@ -252,7 +259,7 @@ class GitService(ABC):
         SSH_HOSTNAME = Config.SSH_SERVER.SSH_HOSTNAME
         SSH_PORT = Config.SSH_SERVER.SSH_PORT
         BASE_DIR = Path("/tmp")
-        BRANCH = "main"
+        BRANCH = "master"
 
         timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S").split(".")[0]
 
