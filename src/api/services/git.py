@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import subprocess
 import zipfile
@@ -67,6 +68,7 @@ async def run_git_command(
     env: dict = None,
     check: bool = True,
     suppress_errors: bool = False,
+    timeout: int = 30,
 ):
     process = await asyncio.create_subprocess_exec(
         *args,
@@ -75,7 +77,19 @@ async def run_git_command(
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
-    stdout, stderr = await process.communicate()
+
+    try:
+        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
+    except asyncio.TimeoutError:
+        process.kill()
+        if not suppress_errors:
+            raise subprocess.CalledProcessError(
+                -1, args, output=b"", stderr=b"Command timed out"
+            )
+        return None
+
+    stdout_str = stdout.decode() if stdout else ""
+    stderr_str = stderr.decode() if stderr else ""
 
     if check and process.returncode != 0:
         if suppress_errors:
@@ -84,7 +98,7 @@ async def run_git_command(
             process.returncode, args, output=stdout, stderr=stderr
         )
 
-    return stdout.decode(), stderr.decode()
+    return stdout_str, stderr_str
 
 
 async def push_to_dokku(
@@ -97,7 +111,9 @@ async def push_to_dokku(
     env = os.environ.copy()
 
     env["GIT_SSH_COMMAND"] = (
-        f"ssh -i {Config.SSH_SERVER.SSH_KEY_PATH} -p {dokku_port} -o StrictHostKeyChecking=no"
+        f"ssh -i {Config.SSH_SERVER.SSH_KEY_PATH} -p {dokku_port} "
+        f"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "
+        f"-o IdentitiesOnly=yes -o LogLevel=VERBOSE"
     )
 
     try:
@@ -121,21 +137,84 @@ async def push_to_dokku(
             suppress_errors=True,
         )
 
-        stdout, stderr = await run_git_command(
+        try:
+            await run_git_command(
+                "git",
+                "show-ref",
+                "--verify",
+                f"refs/heads/{branch}",
+                cwd=repo_path,
+                check=True,
+            )
+        except subprocess.CalledProcessError:
+            current_branch_stdout, _ = await run_git_command(
+                "git",
+                "rev-parse",
+                "--abbrev-ref",
+                "HEAD",
+                cwd=repo_path,
+                check=True,
+            )
+            branch = current_branch_stdout.strip()
+
+        process = await asyncio.create_subprocess_exec(
             "git",
             "push",
+            "-v",
             "dokku",
-            branch,
-            cwd=repo_path,
+            f"{branch}:master",
+            "--force",
+            cwd=str(repo_path),
             env=env,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
         )
-        return f"{stdout}\n{stderr}" if stderr else stdout
+
+        try:
+            stdout, _ = await asyncio.wait_for(process.communicate(), timeout=15 * 60)
+            output = stdout.decode() if stdout else ""
+
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(
+                    process.returncode,
+                    ["git", "push", "dokku", f"{branch}:master", "--force"],
+                    output=stdout,
+                )
+            return output
+
+        except asyncio.TimeoutError:
+            process.kill()
+            raise HTTPException(
+                status_code=500, detail="Git push timed out after 15 minutes"
+            )
 
     except subprocess.CalledProcessError as error:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Git push failed: {error.stderr.decode() or str(error)}",
-        )
+        error_output = error.output.decode() if error.output else str(error)
+
+        if (
+            "Warning: Permanently added" in error_output
+            and len(error_output.strip().split("\n")) == 1
+        ):
+            detail = (
+                "SSH connection succeeded but push appears to be hanging. "
+                "This might indicate a network issue or the Dokku server is not responding properly. "
+                f"Full output: {error_output}"
+            )
+        elif "Everything up-to-date" in error_output:
+            return "No changes to push - everything is up-to-date"
+        elif "non-fast-forward" in error_output:
+            detail = (
+                "Push rejected due to non-fast-forward. "
+                "The remote repository has changes that conflict with your push. "
+                f"Output: {error_output}"
+            )
+        else:
+            detail = (
+                f"Git push failed with return code {error.returncode}: {error_output}"
+            )
+
+        logging.warning(f"GIT PUSH failed: {app_name}\nError: {detail}")
+        raise HTTPException(status_code=500, detail=detail)
 
     except Exception as error:
         raise HTTPException(
