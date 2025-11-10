@@ -239,13 +239,15 @@ class AppService(ABC):
         return True, result
 
     @staticmethod
-    async def get_logs(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def get_logs(
+        session_user: UserSchema, app_name: str, n_lines: int = 2000
+    ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        return await run_command(f"logs {app_name}")
+        return await run_command(f"logs {app_name} -n {n_lines}")
 
     @staticmethod
     async def start_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:

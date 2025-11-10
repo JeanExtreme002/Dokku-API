@@ -126,12 +126,9 @@ def get_router(app: FastAPI) -> APIRouter:
         "/{app_name}/logs/",
         response_description="Return the logs of an application",
     )
-    async def get_logs(
-        request: Request,
-        app_name: str,
-    ):
+    async def get_logs(request: Request, app_name: str, n_lines: int = 2000):
         success, result = await AppService.get_logs(
-            request.state.session_user, app_name
+            request.state.session_user, app_name, n_lines
         )
 
         return JSONResponse(
