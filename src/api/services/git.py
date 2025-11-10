@@ -108,7 +108,9 @@ async def push_to_dokku(
     app_name: str,
     branch: str = "master",
 ):
-    logging.info(f"[push_to_dokku]:{app_name}:{branch}::Preparing to push application...")
+    logging.info(
+        f"[push_to_dokku]:{app_name}:{branch}::Preparing to push application..."
+    )
     env = os.environ.copy()
 
     env["GIT_SSH_COMMAND"] = (
@@ -148,7 +150,9 @@ async def push_to_dokku(
                 cwd=repo_path,
                 check=True,
             )
-            logging.info(f"[push_to_dokku]:{app_name}:{branch}::Branch successfully detected.")
+            logging.info(
+                f"[push_to_dokku]:{app_name}:{branch}::Branch successfully detected."
+            )
         except subprocess.CalledProcessError:
             current_branch_stdout, _ = await run_git_command(
                 "git",
@@ -159,7 +163,9 @@ async def push_to_dokku(
                 check=True,
             )
             branch = current_branch_stdout.strip()
-            logging.info(f"[push_to_dokku]:{app_name}:{branch}::Set up the current branch by 'git rev-parse'.")
+            logging.info(
+                f"[push_to_dokku]:{app_name}:{branch}::Set up the current branch by 'git rev-parse'."
+            )
 
         process = await asyncio.create_subprocess_exec(
             "git",
@@ -175,7 +181,9 @@ async def push_to_dokku(
         )
 
         try:
-            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=30 * 60)
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(), timeout=30 * 60
+            )
             output = stdout.decode() if stdout else ""
             error = stderr.decode() if stderr else ""
 
@@ -186,9 +194,13 @@ async def push_to_dokku(
                     output=stdout,
                 )
             if error:
-                logging.info(f"[push_to_dokku]:{app_name}:{branch}::Something went wrong... {error}")
-            
-            logging.info(f"[push_to_dokku]:{app_name}:{branch}::Finished deployment. {output}")
+                logging.info(
+                    f"[push_to_dokku]:{app_name}:{branch}::Something went wrong... {error}"
+                )
+
+            logging.info(
+                f"[push_to_dokku]:{app_name}:{branch}::Finished deployment. {output}"
+            )
             return f"{output}{error}"
 
         except asyncio.TimeoutError:
