@@ -8,7 +8,7 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post(
-        "/{app_name}/info",
+        "/{app_name}/info/",
         response_description="Return information about the deployment of an application",
     )
     async def get_info(
