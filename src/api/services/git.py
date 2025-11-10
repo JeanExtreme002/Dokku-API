@@ -175,8 +175,9 @@ async def push_to_dokku(
         )
 
         try:
-            stdout, _ = await asyncio.wait_for(process.communicate(), timeout=30 * 60)
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=30 * 60)
             output = stdout.decode() if stdout else ""
+            error = stderr.decode() if stderr else ""
 
             if process.returncode != 0:
                 raise subprocess.CalledProcessError(
@@ -184,8 +185,11 @@ async def push_to_dokku(
                     ["git", "push", "dokku", f"{branch}:master", "--force"],
                     output=stdout,
                 )
-            logging.info(f"[push_to_dokku]:{app_name}:{branch}::Successfully deployed.")
-            return output
+            if error:
+                logging.info(f"[push_to_dokku]:{app_name}:{branch}::Something went wrong... {error}")
+            
+            logging.info(f"[push_to_dokku]:{app_name}:{branch}::Finished deployment. {output}")
+            return f"{output}{error}"
 
         except asyncio.TimeoutError:
             logging.info(f"[push_to_dokku]:{app_name}:{branch}::Timeout error.")
