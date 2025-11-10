@@ -246,6 +246,20 @@ async def push_to_dokku(
         )
 
 
+def parse_git_info(text: str) -> dict:
+    lines = text.strip().splitlines()
+    result = {}
+
+    for line in lines:
+        if ":" not in line:
+            continue
+
+        key, value = line.split(":", 1)
+        result[key.strip()] = value.strip()
+
+    return result
+
+
 class GitService(ABC):
 
     @staticmethod
@@ -264,6 +278,19 @@ class GitService(ABC):
         asyncio.create_task(run_command(f"ps:rebuild {app_name}"))
 
         return success, message
+
+    @staticmethod
+    async def get_deployment_info(
+        session_user: UserSchema,
+        app_name: str,
+    ) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        success, message = await run_command(f"git:report {app_name}")
+        return success, parse_git_info(message)
 
     @staticmethod
     async def deploy_application(

@@ -7,6 +7,26 @@ from src.api.services import GitService
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
+    @router.post(
+        "/{app_name}/info",
+        response_description="Return information about the deployment of an application",
+    )
+    async def get_info(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = await GitService.get_deployment_info(
+            request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
     @router.put(
         "/{app_name}/",
         response_description="Deploy an application by repository URL",
