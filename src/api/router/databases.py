@@ -195,4 +195,86 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
+    @router.post(
+        "/{plugin_name}/{database_name}/logs/",
+        response_description="Return the logs of a database",
+    )
+    async def get_logs(
+        request: Request, plugin_name: str, database_name: str, n_lines: int = 2000
+    ):
+        success, result = await DatabaseService.get_logs(
+            request.state.session_user, plugin_name, database_name, n_lines
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
+    @router.post(
+        "/{plugin_name}/{database_name}/start/",
+        response_description="Start a database",
+    )
+    async def start_database(
+        request: Request,
+        plugin_name: str,
+        database_name: str,
+    ):
+        success, result = await DatabaseService.start_database(
+            request.state.session_user, plugin_name, database_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
+    @router.post(
+        "/{plugin_name}/{database_name}/stop/",
+        response_description="Stop a database",
+    )
+    async def stop_database(
+        request: Request,
+        plugin_name: str,
+        database_name: str,
+    ):
+        success, result = await DatabaseService.stop_database(
+            request.state.session_user, plugin_name, database_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
+    @router.post(
+        "/{plugin_name}/{database_name}/restart/",
+        response_description="Restart a database",
+    )
+    async def restart_database(
+        request: Request,
+        plugin_name: str,
+        database_name: str,
+    ):
+        success, result = await DatabaseService.restart_database(
+            request.state.session_user, plugin_name, database_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
     return router

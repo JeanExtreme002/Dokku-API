@@ -257,3 +257,90 @@ class DatabaseService(ABC):
             return False, None
 
         return True, extract_database_uri(message)
+
+    @staticmethod
+    async def get_logs(
+        session_user: UserSchema,
+        plugin_name: str,
+        database_name: str,
+        n_lines: int = 2000,
+    ) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+
+        if f"{plugin_name}:{database_name}" not in session_user.services:
+            raise HTTPException(
+                status_code=404,
+                detail="Database does not exist",
+            )
+
+        success, message = await run_command(
+            f"{plugin_name}:logs {database_name} -n {n_lines}"
+        )
+
+        if not success:
+            return False, None
+
+        return True, message
+
+    @staticmethod
+    async def start_database(
+        session_user: UserSchema,
+        plugin_name: str,
+        database_name: str,
+    ) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+
+        if f"{plugin_name}:{database_name}" not in session_user.services:
+            raise HTTPException(
+                status_code=404,
+                detail="Database does not exist",
+            )
+
+        success, message = await run_command(f"{plugin_name}:start {database_name}")
+
+        if not success:
+            return False, None
+
+        return True, message
+
+    @staticmethod
+    async def stop_database(
+        session_user: UserSchema,
+        plugin_name: str,
+        database_name: str,
+    ) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+
+        if f"{plugin_name}:{database_name}" not in session_user.services:
+            raise HTTPException(
+                status_code=404,
+                detail="Database does not exist",
+            )
+
+        success, message = await run_command(f"{plugin_name}:stop {database_name}")
+
+        if not success:
+            return False, None
+
+        return True, message
+
+    @staticmethod
+    async def restart_database(
+        session_user: UserSchema,
+        plugin_name: str,
+        database_name: str,
+    ) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+
+        if f"{plugin_name}:{database_name}" not in session_user.services:
+            raise HTTPException(
+                status_code=404,
+                detail="Database does not exist",
+            )
+
+        success, message = await run_command(f"{plugin_name}:restart {database_name}")
+
+        if not success:
+            return False, None
+
+        return True, message
