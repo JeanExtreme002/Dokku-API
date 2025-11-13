@@ -247,7 +247,7 @@ class AppService(ABC):
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        return await run_command(f"logs {app_name} -n {n_lines}")
+        return await run_command(f"logs {app_name} --num {n_lines}")
 
     @staticmethod
     async def start_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:

@@ -274,7 +274,7 @@ class DatabaseService(ABC):
             )
 
         success, message = await run_command(
-            f"{plugin_name}:logs {database_name} -n {n_lines}"
+            f"{plugin_name}:logs {database_name} --num {n_lines}"
         )
 
         if not success:
