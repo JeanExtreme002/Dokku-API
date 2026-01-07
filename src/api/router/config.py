@@ -48,8 +48,8 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
-    @router.post(
-        "/{app_name}/{key}/{value}/",
+    @router.put(
+        "/{app_name}/{key}/",
         response_description="Set application configuration key (without restart)",
     )
     async def set_config(

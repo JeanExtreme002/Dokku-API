@@ -222,9 +222,9 @@ assert response.status_code == 200
 assert response_json["success"] == True
 assert response_json["result"] == {}
 
-response = requests.post(
-    BASE_URL + f"/api/config/{user_app}/{user_app_key}/{user_app_key_value}",
-    params={"api_key": API_KEY},
+response = requests.put(
+    BASE_URL + f"/api/config/{user_app}/{user_app_key}",
+    params={"api_key": API_KEY, "value": user_app_key_value},
     json={"access_token": user_token},
 )
 response_json = response.json()
