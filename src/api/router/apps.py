@@ -23,6 +23,28 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
+    @router.post(
+        "/{app_name}/exec/",
+        response_description="Execute a command into the application's container",
+    )
+    async def execute_command(
+        request: Request,
+        app_name: str,
+        command: str,
+        container_type: Optional[str] = "web",
+    ):
+        success, result = await AppService.execute_command(
+            request.state.session_user, app_name, container_type, command
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
     @router.post("/{app_name}/", response_description="Create an application")
     async def create_app(
         request: Request,
