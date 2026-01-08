@@ -135,17 +135,23 @@ class DatabaseService(ABC):
         plugin_name: str,
         database_name: str,
     ) -> Tuple[bool, Any]:
-        database_name = ResourceName(session_user, database_name, Service).for_system()
+        system_database_name = ResourceName(session_user, database_name, Service).for_system()
 
-        if f"{plugin_name}:{database_name}" not in session_user.services:
+        if f"{plugin_name}:{system_database_name}" not in session_user.services:
             raise HTTPException(
                 status_code=404,
                 detail="Database does not exist",
             )
+        
+        _, linked_apps = await DatabaseService.get_linked_apps(session_user, plugin_name, database_name)
+
+        for app_name in linked_apps:
+            await DatabaseService.unlink_database(session_user, plugin_name, database_name, app_name)
+
         await delete_resource(
-            session_user.email, f"{plugin_name}:{database_name}", Service
+            session_user.email, f"{plugin_name}:{system_database_name}", Service
         )
-        return await run_command(f"--force {plugin_name}:destroy {database_name}")
+        return await run_command(f"--force {plugin_name}:destroy {system_database_name}")
 
     @staticmethod
     async def get_database_info(
