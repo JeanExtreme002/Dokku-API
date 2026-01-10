@@ -463,7 +463,7 @@ class AppService(ABC):
             raise HTTPException(status_code=404, detail="App does not exist")
 
         success, result = await run_command(f"storage:list {app_name}")
-        return success, result.split("\n")
+        return success, (result.split("\n") if result else [])
 
     @staticmethod
     async def mount_storage(
