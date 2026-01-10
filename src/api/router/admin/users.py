@@ -22,8 +22,8 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post("/list/", response_description="Get all users")
-    async def get_all_users(request: Request):
-        users = await get_users()
+    async def get_all_users(request: Request, only_admin: bool = False):
+        users = await get_users(only_admin)
         return JSONResponse(status_code=status.HTTP_200_OK, content=users)
 
     @router.post("/{email}/", response_description="Create a new user")

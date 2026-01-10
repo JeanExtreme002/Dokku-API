@@ -68,12 +68,12 @@ def get_user_schema(user: User) -> UserSchema:
     )
 
 
-async def get_users() -> List[str]:
+async def get_users(only_admin: bool = False) -> List[str]:
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(User))
         users = result.scalars().all()
 
-    return [user.email for user in users]
+    return [user.email for user in users if not only_admin or user.is_admin]
 
 
 async def get_user(email: str) -> UserSchema:
