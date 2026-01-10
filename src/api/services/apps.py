@@ -453,7 +453,7 @@ class AppService(ABC):
         return True, result
 
     @staticmethod
-    async def mount_storage(
+    async def list_storage(
         session_user: UserSchema,
         app_name: str,
     ) -> Tuple[bool, Any]:
@@ -462,14 +462,29 @@ class AppService(ABC):
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
+        success, result = await run_command(f"storage:list {app_name}")
+        return success, result.split("\n")
+
+    @staticmethod
+    async def mount_storage(
+        session_user: UserSchema,
+        app_name: str,
+        directory: str,
+    ) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
         app_dir = f"{Config.VOLUME_DIR}/{app_name}"
 
-        return await run_command(f"storage:mount {app_name} {app_dir}:/app")
+        return await run_command(f"storage:mount {app_name} {app_dir}:{directory}")
 
     @staticmethod
     async def unmount_storage(
         session_user: UserSchema,
         app_name: str,
+        directory: str,
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
@@ -478,4 +493,4 @@ class AppService(ABC):
 
         app_dir = f"{Config.VOLUME_DIR}/{app_name}"
 
-        return await run_command(f"storage:unmount {app_name} {app_dir}:/app")
+        return await run_command(f"storage:unmount {app_name} {app_dir}:{directory}")

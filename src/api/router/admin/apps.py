@@ -9,12 +9,25 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post(
-        "/storage/{email}/{app_name}/", response_description="Mount storage for app"
+        "/storage/{email}/{app_name}/", response_description="List storage of an app"
     )
-    async def mount_storage(email: str, app_name: str):
+    async def list_storage(email: str, app_name: str):
         user = await get_user(email)
 
-        success, result = await AppService.mount_storage(user, app_name)
+        success, result = await AppService.list_storage(user, app_name)
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={"success": success, "result": result},
+        )
+
+    @router.put(
+        "/storage/{email}/{app_name}/", response_description="Mount storage for app"
+    )
+    async def mount_storage(email: str, app_name: str, directory: str = "/app/storage"):
+        user = await get_user(email)
+
+        success, result = await AppService.mount_storage(user, app_name, directory)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -24,10 +37,12 @@ def get_router(app: FastAPI) -> APIRouter:
     @router.delete(
         "/storage/{email}/{app_name}/", response_description="Unmount storage for app"
     )
-    async def unmount_storage(email: str, app_name: str):
+    async def unmount_storage(
+        email: str, app_name: str, directory: str = "/app/storage"
+    ):
         user = await get_user(email)
 
-        success, result = await AppService.unmount_storage(user, app_name)
+        success, result = await AppService.unmount_storage(user, app_name, directory)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
