@@ -173,11 +173,24 @@ async def delete_user(email: str) -> None:
         await db.commit()
 
 
-async def get_resources(resource_type: Type[Resource], offset: int, limit: int):
+async def get_resources(
+    resource_type: Type[Resource], offset: int, limit: int
+) -> List[dict]:
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(resource_type).offset(offset).limit(limit))
         resources = result.scalars().all()
-    return resources
+
+    def serialize_resource(r: Resource) -> dict:
+        data = {
+            "name": getattr(r, "name", None),
+            "user_email": getattr(r, "user_email", None),
+            "created_at": (
+                r.created_at.isoformat() if getattr(r, "created_at", None) else None
+            ),
+        }
+        return data
+
+    return [serialize_resource(r) for r in resources]
 
 
 async def create_resource(email: str, name: str, resource_type: Type[Resource]) -> None:
