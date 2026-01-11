@@ -173,6 +173,13 @@ async def delete_user(email: str) -> None:
         await db.commit()
 
 
+async def get_resources(resource_type: Type[Resource], offset: int, limit: int):
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(resource_type).offset(offset).limit(limit))
+        resources = result.scalars().all()
+    return resources
+
+
 async def create_resource(email: str, name: str, resource_type: Type[Resource]) -> None:
     ResourceType = resource_type
 

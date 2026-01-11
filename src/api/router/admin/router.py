@@ -4,6 +4,7 @@ from src.api.router.admin.api import get_router as api_router
 from src.api.router.admin.apps import get_router as apps_router
 from src.api.router.admin.letsencrypt import get_router as letsencrypt_router
 from src.api.router.admin.plugins import get_router as plugins_router
+from src.api.router.admin.resources import get_router as resources_router
 from src.api.router.admin.users import get_router as users_router
 
 
@@ -28,6 +29,11 @@ def get_router(app: FastAPI) -> APIRouter:
         plugins_router(app),
         tags=["Admin: Plugins"],
         prefix="/plugins",
+    )
+    router.include_router(
+        resources_router(app),
+        tags=["Admin: Resources"],
+        prefix="/resources",
     )
     router.include_router(
         users_router(app),
