@@ -1,7 +1,7 @@
 import datetime
 import secrets
 import time
-from typing import List, Tuple, Type
+from typing import List, Optional, Tuple, Type
 
 from fastapi import HTTPException
 from sqlalchemy import and_, select
@@ -174,10 +174,24 @@ async def delete_user(email: str) -> None:
 
 
 async def get_resources(
-    resource_type: Type[Resource], offset: int, limit: int
+    resource_type: Type[Resource],
+    offset: int,
+    limit: int,
+    asc_created_at: Optional[bool] = None,
 ) -> List[dict]:
     async with AsyncSessionLocal() as db:
-        result = await db.execute(select(resource_type).offset(offset).limit(limit))
+        query = select(resource_type)
+
+        if asc_created_at is not None:
+            created_col = getattr(resource_type, "created_at", None)
+
+            if asc_created_at:
+                query = query.order_by(created_col.asc())
+            else:
+                query = query.order_by(created_col.desc())
+
+        query = query.offset(offset).limit(limit)
+        result = await db.execute(query)
         resources = result.scalars().all()
 
     def serialize_resource(r: Resource) -> dict:
