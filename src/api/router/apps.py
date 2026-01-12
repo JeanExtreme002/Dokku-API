@@ -1,7 +1,8 @@
+import os
 from typing import Optional
 
 from fastapi import APIRouter, FastAPI, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from src.api.services import AppService
 
@@ -398,6 +399,36 @@ def get_router(app: FastAPI) -> APIRouter:
             content={
                 "success": success,
                 "result": result,
+            },
+        )
+
+    @router.post(
+        "/{app_name}/download/",
+        response_description="Download a file from the application's container",
+    )
+    async def download_file(
+        request: Request,
+        app_name: str,
+        filename: str,
+    ):
+        success, result = await AppService.download_file(
+            request.state.session_user, app_name, filename
+        )
+
+        if not success:
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={
+                    "success": success,
+                    "result": result,
+                },
+            )
+
+        return Response(
+            content=result,
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": f"attachment; filename={os.path.basename(filename)}",
             },
         )
 

@@ -113,6 +113,47 @@ def get_raw_app(name):
     return name.split("-", maxsplit=1)[-1]
 
 
+def parse_xxd_to_bytes(text: str) -> bytes:
+    """
+    Convert standard `xxd` output into raw bytes.
+
+    Handles default xxd format lines like:
+    "00000000: 25504446 2d312e33 0a25e2e3 cf...  ........"
+    by extracting hex columns before the double-space ASCII separator.
+    Falls back to extracting all 2-hex-digit tokens if needed.
+    """
+    lines = text.strip().splitlines()
+    hex_chunks = []
+
+    for line in lines:
+        line = line.rstrip()
+        if not line:
+            continue
+        if ":" not in line:
+            # skip non-data lines
+            continue
+        try:
+            after = line.split(":", 1)[1]
+            # hex column is before two spaces that precede ASCII area
+            hex_part = after.split("  ", 1)[0]
+            hex_str = hex_part.replace(" ", "")
+            if hex_str:
+                hex_chunks.append(hex_str)
+        except Exception:
+            continue
+
+    if hex_chunks:
+        hex_data = "".join(hex_chunks)
+        try:
+            return bytes.fromhex(hex_data)
+        except ValueError:
+            pass
+
+    # Fallback: collect all byte-sized hex tokens
+    tokens = re.findall(r"\b[0-9a-fA-F]{2}\b", text)
+    return bytes(int(t, 16) for t in tokens)
+
+
 class AppService(ABC):
 
     @staticmethod
@@ -494,3 +535,30 @@ class AppService(ABC):
         app_dir = f"{Config.VOLUME_DIR}/{app_name}"
 
         return await run_command(f"storage:unmount {app_name} {app_dir}:{directory}")
+
+    @staticmethod
+    async def download_file(
+        session_user: UserSchema,
+        app_name: str,
+        filename: str,
+    ) -> Tuple[bool, Any]:
+        """
+        Run `xxd {filename}` inside the app's web container and reconstruct bytes.
+
+        Returns (success, bytes) on success, else (False, error_message).
+        """
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        success, output = await run_command(f"enter {app_name} web xxd {filename}")
+
+        if not success:
+            return False, output
+
+        try:
+            data = parse_xxd_to_bytes(output)
+            return True, data
+        except Exception as error:
+            return False, f"Failed to parse xxd output: {error}"

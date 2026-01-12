@@ -1,6 +1,6 @@
 [project]
 name = "dokku-api"
-version = "1.2.6"
+version = "1.2.7"
 description = "A RESTful API for managing applications and resources on a Dokku platform."
 authors = [
     {name = "JeanExtreme002", email = "jeanextreme002@gmail.com"}
@@ -70,7 +70,7 @@ dokku-api = "dokku_api.cli:main"
 
 [tool.poetry]
 name = "dokku-api"
-version = "1.2.6"
+version = "1.2.7"
 description = "A RESTful API for managing applications and resources on a Dokku platform."
 authors = ["JeanExtreme002 <jeanextreme002@gmail.com>"]
 readme = "README.md"
