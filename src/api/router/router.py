@@ -12,6 +12,7 @@ from src.api.router.letsencrypt import get_router as letsencrypt_router
 from src.api.router.networks import get_router as networks_router
 from src.api.router.quota import get_router as quota_router
 from src.api.router.search import get_router as search_router
+from src.api.router.ssh import get_router as ssh_router
 from src.api.router.upload import get_router as upload_router
 from src.api.tools.validator import (
     validate_admin,
@@ -109,6 +110,15 @@ def get_router(app: FastAPI) -> APIRouter:
         quota_router(app),
         tags=["Quota"],
         prefix="/api/quota",
+        dependencies=[
+            Depends(validate_api_key),
+            Depends(validate_user_credentials),
+        ],
+    )
+    router.include_router(
+        ssh_router(app),
+        tags=["SSH"],
+        prefix="/ssh",
         dependencies=[
             Depends(validate_api_key),
             Depends(validate_user_credentials),

@@ -38,6 +38,13 @@ class Config:
     RELOAD = os.getenv("API_RELOAD", "true").lower() == "true"
     LOG_LEVEL = os.getenv("API_LOG_LEVEL", "INFO").lower()
     MAX_CONNECTIONS_PER_REQUEST = int(os.getenv("API_MAX_CONNECTIONS_PER_REQUEST", "1"))
+    API_ALLOW_USERS_REGISTER_SSH_KEY = (
+        os.getenv("API_ALLOW_USERS_REGISTER_SSH_KEY", "true").lower() == "true"
+    )
+
+    API_DEFAULT_APPS_QUOTA = int(os.getenv("API_DEFAULT_APPS_QUOTA", "0"))
+    API_DEFAULT_SERVICES_QUOTA = int(os.getenv("API_DEFAULT_SERVICES_QUOTA", "0"))
+    API_DEFAULT_NETWORKS_QUOTA = int(os.getenv("API_DEFAULT_NETWORKS_QUOTA", "0"))
 
     API_NAME: str = os.getenv("API_NAME")
     API_VERSION_NUMBER: str = API_VERSION_NUMBER

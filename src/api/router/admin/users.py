@@ -159,7 +159,6 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request, email: str, public_ssh_key_file: UploadFile = File(...)
     ):
         await get_user(email)
-        name = email.split("@", maxsplit=1)[0]
 
         with tempfile.NamedTemporaryFile(
             mode="w+b", delete=False, suffix=".pub"
@@ -169,7 +168,7 @@ def get_router(app: FastAPI) -> APIRouter:
             temp_file_path = temp_file.name
 
         try:
-            command = f"ssh-keys:add {name} {temp_file_path}"
+            command = f"ssh-keys:add {email} {temp_file_path}"
             success, message = await run_command_as_root(command)
         finally:
             if os.path.exists(temp_file_path):
