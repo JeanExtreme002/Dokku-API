@@ -118,7 +118,7 @@ def get_router(app: FastAPI) -> APIRouter:
     router.include_router(
         ssh_router(app),
         tags=["SSH"],
-        prefix="/ssh",
+        prefix="/api/ssh",
         dependencies=[
             Depends(validate_api_key),
             Depends(validate_user_credentials),
