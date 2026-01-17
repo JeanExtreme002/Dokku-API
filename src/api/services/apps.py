@@ -575,13 +575,14 @@ class AppService(ABC):
             return False, f"Failed to parse xxd output: {error}"
 
     @staticmethod
-    async def sync_database() -> None:
+    async def sync_dokku_with_api_database() -> None:
         success, message = await run_command("apps:list")
 
         if not success:
-            raise SystemError("Could not recover apps list to sync database")
+            logging.warning("Could not recover apps list to sync with database")
+            return
 
-        logging.warning("[sync_app_database]::Syncing database...")
+        logging.warning("[sync_dokku_w_app_database]::Syncing Dokku...")
 
         apps = parse_apps_list(message)
         apps = {name: True for name in apps if get_user_id_from_app(name) is not None}
@@ -593,8 +594,8 @@ class AppService(ABC):
 
         for app_name in apps:
             logging.warning(
-                f"[sync_app_database]:{app_name}::Destroying unused application..."
+                f"[sync_dokku_w_app_database]:{app_name}::Destroying unused application..."
             )
             await run_command(f"--force apps:destroy {app_name}")
 
-        logging.warning("[sync_app_database]::Sync complete.")
+        logging.warning("[sync_dokku_w_app_database]::Sync complete.")

@@ -1,11 +1,12 @@
 import asyncio
+import logging
 import re
 from abc import ABC
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from fastapi import HTTPException
 
-from src.api.models import App, Service, create_resource, delete_resource
+from src.api.models import App, Service, create_resource, delete_resource, get_resources
 from src.api.schemas import UserSchema
 from src.api.tools.name import ResourceName
 from src.api.tools.ssh import run_command
@@ -27,6 +28,26 @@ def parse_service_info(plugin_name: str, info_str: str) -> Dict:
 
     result["plugin_name"] = plugin_name
     return result
+
+
+def parse_service_list(text: str):
+    """
+    Extract the list of services from a formatted string.
+    """
+    lines = text.strip().split("\n")
+    apps = [
+        line.strip() for line in lines if line.strip() and not line.startswith("=====>")
+    ]
+    return apps
+
+
+def get_user_id_from_service(name) -> Optional[int]:
+    id = name.split("_", maxsplit=1)[0]
+
+    try:
+        return int(id)
+    except ValueError:
+        return None
 
 
 def extract_database_uri(text):
@@ -358,3 +379,37 @@ class DatabaseService(ABC):
             return False, None
 
         return True, message
+
+    @staticmethod
+    async def sync_dokku_with_api_database() -> None:
+        available_databases = (await DatabaseService.list_available_databases())[1]
+        services = {}
+
+        for plugin_name in available_databases:
+            success, message = await run_command(f"{plugin_name}:list")
+
+            if not success:
+                logging.warning(
+                    f"Could not recover {plugin_name} services list to sync with database"
+                )
+                continue
+
+            for name in parse_service_list(message):
+                if get_user_id_from_service(name):
+                    services[f"{plugin_name}:{name}"] = True
+
+        logging.warning("[sync_dokku_w_service_database]::Syncing Dokku...")
+
+        db_services = await get_resources(Service, offset=0, limit=None)
+
+        for service in db_services:
+            services.pop(service["name"], None)
+
+        for service_name in services:
+            plugin_name, service_name = service_name.split(":", maxsplit=1)
+            logging.warning(
+                f"[sync_dokku_w_service_database]:{plugin_name}:{service_name}::Destroying unused service..."
+            )
+            await run_command(f"--force {plugin_name}:destroy {service_name}")
+
+        logging.warning("[sync_dokku_w_service_database]::Sync complete.")

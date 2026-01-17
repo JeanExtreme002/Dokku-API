@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 
 from src.api.middlewares import SessionUserMiddleware
 from src.api.router import get_router
-from src.api.services import AppService
+from src.api.services import AppService, DatabaseService
 from src.config import Config
 
 APP_ROOT = Path(__file__).parent
@@ -18,8 +18,9 @@ APP_ROOT = Path(__file__).parent
 scheduler = AsyncIOScheduler()
 
 
-async def sync_database_with_dokku():
-    await AppService.sync_database()
+async def sync_dokku_with_api_database():
+    await DatabaseService.sync_dokku_with_api_database()
+    await AppService.sync_dokku_with_api_database()
 
 
 def get_app() -> FastAPI:
@@ -51,7 +52,7 @@ def get_app() -> FastAPI:
     async def startup():
         scheduler.start()
         scheduler.add_job(
-            sync_database_with_dokku,
+            sync_dokku_with_api_database,
             trigger=IntervalTrigger(hours=1),
             id="sync_db_w_dokku_task",
             replace_existing=True,
