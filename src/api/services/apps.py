@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import re
 from abc import ABC
 from typing import Any, Dict, List, Optional, Tuple
@@ -13,6 +14,7 @@ from src.api.models import (
     create_resource,
     delete_resource,
     get_app_deployment_token,
+    get_resources,
 )
 from src.api.schemas import UserSchema
 from src.api.services.databases import DatabaseService
@@ -109,6 +111,15 @@ def parse_port_mappings(text: str) -> List:
     return ports
 
 
+def get_user_id_from_app(name) -> Optional[int]:
+    id = name.split("-", maxsplit=1)[0]
+
+    try:
+        return int(id)
+    except ValueError:
+        return None
+
+
 def get_raw_app(name):
     return name.split("-", maxsplit=1)[-1]
 
@@ -163,7 +174,7 @@ class AppService(ABC):
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if unique_app:
-            success, message = await run_command(f"apps:list {app_name}")
+            success, message = await run_command("apps:list")
 
             if not success:
                 raise HTTPException(
@@ -562,3 +573,28 @@ class AppService(ABC):
             return True, data
         except Exception as error:
             return False, f"Failed to parse xxd output: {error}"
+
+    @staticmethod
+    async def sync_database() -> None:
+        success, message = await run_command("apps:list")
+
+        if not success:
+            raise SystemError("Could not recover apps list to sync database")
+
+        logging.warning("[sync_app_database]::Syncing database...")
+
+        apps = parse_apps_list(message)
+        apps = {name: True for name in apps if get_user_id_from_app(name) is not None}
+
+        db_apps = await get_resources(App, offset=0, limit=None)
+
+        for app in db_apps:
+            apps.pop(app["name"], None)
+
+        for app_name in apps:
+            logging.warning(
+                f"[sync_app_database]:{app_name}::Destroying unused application..."
+            )
+            await run_command(f"--force apps:destroy {app_name}")
+
+        logging.warning("[sync_app_database]::Sync complete.")

@@ -176,7 +176,7 @@ async def delete_user(email: str) -> None:
 async def get_resources(
     resource_type: Type[Resource],
     offset: int,
-    limit: int,
+    limit: Optional[int],
     asc_created_at: Optional[bool] = None,
 ) -> List[dict]:
     async with AsyncSessionLocal() as db:
@@ -190,7 +190,11 @@ async def get_resources(
             else:
                 query = query.order_by(created_col.desc())
 
-        query = query.offset(offset).limit(limit)
+        query = query.offset(offset)
+
+        if limit is not None:
+            query = query.limit(limit)
+
         result = await db.execute(query)
         resources = result.scalars().all()
 
