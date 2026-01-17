@@ -35,10 +35,10 @@ def parse_service_list(text: str):
     Extract the list of services from a formatted string.
     """
     lines = text.strip().split("\n")
-    apps = [
+    services = [
         line.strip() for line in lines if line.strip() and not line.startswith("=====>")
     ]
-    return apps
+    return services
 
 
 def get_user_id_from_service(name) -> Optional[int]:

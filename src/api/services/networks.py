@@ -1,11 +1,12 @@
 import asyncio
+import logging
 import re
 from abc import ABC
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from fastapi import HTTPException
 
-from src.api.models import App, Network, create_resource, delete_resource
+from src.api.models import App, Network, create_resource, delete_resource, get_resources
 from src.api.schemas import UserSchema
 from src.api.services import AppService
 from src.api.tools.name import ResourceName
@@ -32,6 +33,26 @@ def parse_network_info(message: str) -> Dict:
         result[key] = value
 
     return result
+
+
+def parse_networks_list(text: str):
+    """
+    Extract the list of networks from a formatted string.
+    """
+    lines = text.strip().split("\n")
+    networks = [
+        line.strip() for line in lines if line.strip() and not line.startswith("=====>")
+    ]
+    return networks
+
+
+def get_user_id_from_network(name) -> Optional[int]:
+    id = name.split("-", maxsplit=1)[0]
+
+    try:
+        return int(id)
+    except ValueError:
+        return None
 
 
 class NetworkService(ABC):
@@ -158,3 +179,33 @@ class NetworkService(ABC):
                 results.append(app_name)
 
         return True, results
+
+    @staticmethod
+    async def sync_dokku_with_api_database() -> None:
+        success, message = await run_command("network:list")
+
+        if not success:
+            logging.warning("Could not recover networks list to sync with database")
+            return
+
+        logging.warning("[sync_dokku_w_network_database]::Syncing Dokku...")
+
+        networks = parse_networks_list(message)
+        networks = {
+            name: True
+            for name in networks
+            if get_user_id_from_network(name) is not None
+        }
+
+        db_networks = await get_resources(Network, offset=0, limit=None)
+
+        for network in db_networks:
+            networks.pop(network["name"], None)
+
+        for network_name in networks:
+            logging.warning(
+                f"[sync_dokku_w_network_database]:{network_name}::Destroying unused network..."
+            )
+            await run_command(f"--force network:destroy {network_name}")
+
+        logging.warning("[sync_dokku_w_network_database]::Sync complete.")

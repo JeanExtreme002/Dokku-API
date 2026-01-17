@@ -10,17 +10,12 @@ from fastapi.responses import JSONResponse
 
 from src.api.middlewares import SessionUserMiddleware
 from src.api.router import get_router
-from src.api.services import AppService, DatabaseService
+from src.api.services import AppService, DatabaseService, NetworkService
 from src.config import Config
 
 APP_ROOT = Path(__file__).parent
 
 scheduler = AsyncIOScheduler()
-
-
-async def sync_dokku_with_api_database():
-    await DatabaseService.sync_dokku_with_api_database()
-    await AppService.sync_dokku_with_api_database()
 
 
 def get_app() -> FastAPI:
@@ -52,9 +47,27 @@ def get_app() -> FastAPI:
     async def startup():
         scheduler.start()
         scheduler.add_job(
-            sync_dokku_with_api_database,
+            AppService.sync_dokku_with_api_database,
             trigger=IntervalTrigger(hours=1),
-            id="sync_db_w_dokku_task",
+            id="sync_dokku_with_app_database",
+            replace_existing=True,
+            next_run_time=datetime.now(),
+            max_instances=1,
+            coalesce=True,
+        )
+        scheduler.add_job(
+            DatabaseService.sync_dokku_with_api_database,
+            trigger=IntervalTrigger(hours=1),
+            id="sync_dokku_with_service_database",
+            replace_existing=True,
+            next_run_time=datetime.now(),
+            max_instances=1,
+            coalesce=True,
+        )
+        scheduler.add_job(
+            NetworkService.sync_dokku_with_api_database,
+            trigger=IntervalTrigger(minutes=10),
+            id="sync_dokku_with_network_database",
             replace_existing=True,
             next_run_time=datetime.now(),
             max_instances=1,
