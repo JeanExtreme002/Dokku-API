@@ -83,8 +83,11 @@ class DatabaseService(ABC):
 
         _, message = await run_command(f"{plugin_name}:exists {database_name}")
 
-        if "does not exist" not in message.lower():
+        if f"Service {database_name} exists" in message.lower():
             raise HTTPException(status_code=403, detail="Database already exists")
+
+        if "does not exist" not in message.lower():
+            raise HTTPException(status_code=404, detail="Plugin does not exist")
 
         await create_resource(
             session_user.email, f"{plugin_name}:{database_name}", Service
