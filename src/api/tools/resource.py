@@ -56,6 +56,9 @@ async def check_shared_app(
 
     If it's a valid shared app, the function returns the owner.
     """
+    if session_user.email == shared_by:
+        return session_user
+
     if (shared_by, app_name) not in session_user.shared_apps:
         raise HTTPException(
             status_code=404,

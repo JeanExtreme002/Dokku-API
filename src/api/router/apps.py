@@ -183,14 +183,8 @@ def get_router(app: FastAPI) -> APIRouter:
     async def get_deployment_token(
         request: Request,
         app_name: str,
-        shared_by: Optional[str] = None,
     ):
-        session_user = request.state.session_user
-
-        if shared_by is not None:
-            session_user = await check_shared_app(session_user, app_name, shared_by)
-
-        success, result = await AppService.get_deployment_token(session_user, app_name)
+        success, result = await AppService.get_deployment_token(request.state.session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
