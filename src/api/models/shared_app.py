@@ -12,7 +12,6 @@ class SharedApp(Base):
     pretty_app_name = Column(String(255), nullable=False)
     author_email = Column(String(100), nullable=False)
 
-    deploy_allowed = Column(Boolean, nullable=False, default=False)
     shared_at = Column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
