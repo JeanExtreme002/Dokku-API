@@ -240,6 +240,9 @@ class AppService(ABC):
     async def share_app(
         session_user: UserSchema, app_name: str, target_email: str
     ) -> Tuple[bool, Any]:
+        if session_user.email == target_email:
+            raise HTTPException(status_code=400, detail="You cannot share the application with yourself")
+
         system_app_name = ResourceName(session_user, app_name, App).for_system()
 
         if system_app_name not in session_user.apps:
