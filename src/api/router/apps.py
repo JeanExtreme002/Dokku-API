@@ -62,7 +62,6 @@ def get_router(app: FastAPI) -> APIRouter:
             app_name,
             container_type,
             command,
-            shared_by,
         )
 
         return JSONResponse(
@@ -127,7 +126,7 @@ def get_router(app: FastAPI) -> APIRouter:
             session_user = await check_shared_app(session_user, app_name, shared_by)
 
         success, result = await AppService.get_app_url(
-            session_user, app_name, shared_by
+            session_user, app_name
         )
 
         return JSONResponse(
