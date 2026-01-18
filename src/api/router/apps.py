@@ -184,7 +184,9 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
     ):
-        success, result = await AppService.get_deployment_token(request.state.session_user, app_name)
+        success, result = await AppService.get_deployment_token(
+            request.state.session_user, app_name
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
