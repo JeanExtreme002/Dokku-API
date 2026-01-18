@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from pydantic import BaseModel
 
@@ -18,6 +18,7 @@ class UserSchema(BaseModel):
     services_quota: int = Config.API_DEFAULT_SERVICES_QUOTA
     networks_quota: int = Config.API_DEFAULT_NETWORKS_QUOTA
     apps: List[str] = []
+    shared_apps: List[Tuple[str]] = []
     services: List[str] = []
     networks: List[str] = []
 

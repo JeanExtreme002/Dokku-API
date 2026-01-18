@@ -15,6 +15,10 @@ class App(Resource):
     user_email = Column(String(255), ForeignKey("user.email"))
     user = relationship("User", back_populates="apps", foreign_keys=[user_email])
 
+    shared_users = relationship(
+        "SharedApp", back_populates="app", cascade="all, delete-orphan"
+    )
+
     def __init__(
         self,
         name: str,

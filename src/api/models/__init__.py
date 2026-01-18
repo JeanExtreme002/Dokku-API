@@ -4,6 +4,7 @@ from src.api.models.models import (
     Network,
     Resource,
     Service,
+    SharedApp,
     User,
     create_resource,
     create_take_over_access_token,
@@ -17,5 +18,6 @@ from src.api.models.models import (
     get_user_by_access_token,
     get_users,
     init_models,
+    share_app,
     update_user,
 )

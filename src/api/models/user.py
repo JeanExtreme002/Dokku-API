@@ -26,6 +26,10 @@ class User(Base):
     services = relationship("Service", back_populates="user", cascade="all, delete")
     networks = relationship("Network", back_populates="user", cascade="all, delete")
 
+    shared_apps = relationship(
+        "SharedApp", back_populates="user", cascade="all, delete-orphan"
+    )
+
 
 USER_EAGER_LOAD = [
     selectinload(User.apps),

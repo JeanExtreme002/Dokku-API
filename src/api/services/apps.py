@@ -15,6 +15,8 @@ from src.api.models import (
     delete_resource,
     get_app_deployment_token,
     get_resources,
+    get_user,
+    share_app,
 )
 from src.api.schemas import UserSchema
 from src.api.services.databases import DatabaseService
@@ -208,6 +210,19 @@ class AppService(ABC):
         return success, message
 
     @staticmethod
+    async def share_app(
+        session_user: UserSchema, app_name: str, target_email: str
+    ) -> Tuple[bool, Any]:
+        system_app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if system_app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        await share_app(session_user, system_app_name, app_name, target_email)
+
+        return True, None
+
+    @staticmethod
     async def get_deployment_token(
         session_user: UserSchema,
         app_name: str,
@@ -252,7 +267,17 @@ class AppService(ABC):
         return await run_command(f"url {app_name}")
 
     @staticmethod
-    async def get_app_info(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def get_app_info(
+        session_user: UserSchema, app_name: str, shared_by: Optional[str] = None
+    ) -> Tuple[bool, Any]:
+        if shared_by is not None:
+            if (shared_by, app_name) not in session_user.shared_apps:
+                raise HTTPException(
+                    status_code=404,
+                    detail="App does not exist or not shared by the owner",
+                )
+            session_user = await get_user(shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -293,6 +318,33 @@ class AppService(ABC):
             app_name = str(ResourceName(session_user, app_name, App, from_system=True))
             app_names.append(app_name)
             tasks.append(AppService.get_app_info(session_user, app_name))
+
+        app_infos = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for name, info in zip(app_names, app_infos):
+            result[name] = {} if isinstance(info, Exception) else info[1]
+
+        return True, result
+
+    @staticmethod
+    async def list_shared_apps(
+        session_user: UserSchema, return_info: bool = True
+    ) -> Tuple[bool, Any]:
+        result = {}
+
+        tasks = []
+        app_names = []
+
+        if not return_info:
+            for author_email, app_name in session_user.shared_apps:
+                result[f"{author_email}:{app_name}"] = {}
+            return True, result
+
+        for author_email, app_name in session_user.shared_apps:
+            app_names.append(f"{author_email}:{app_name}")
+            tasks.append(
+                AppService.get_app_info(session_user, app_name, shared_by=author_email)
+            )
 
         app_infos = await asyncio.gather(*tasks, return_exceptions=True)
 

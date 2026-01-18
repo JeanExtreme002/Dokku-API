@@ -16,8 +16,10 @@ from src.api.models.base import (
     Network,
     Resource,
     Service,
+    SharedApp,
     User,
 )
+from src.api.models.shared_app import SharedApp
 from src.api.schemas import UserSchema
 from src.api.tools import hash_access_token, validate_email_format
 from src.config import Config
@@ -59,6 +61,9 @@ def get_user_schema(user: User) -> UserSchema:
         services_quota=user.services_quota,
         networks_quota=user.networks_quota,
         apps=[app.name for app in user.apps],
+        shared_apps=[
+            (app.author_email, app.pretty_app_name) for app in user.shared_apps
+        ],
         services=[service.name for service in user.services],
         networks=[network.name for network in user.networks],
         created_at=user.created_at,
@@ -316,6 +321,31 @@ async def create_take_over_access_token(email: str) -> str:
         await db.refresh(user)
 
     return take_over_access_token
+
+
+async def share_app(
+    author_user: UserSchema, system_app_name: str, app_name: str, email: str
+) -> None:
+    async with AsyncSessionLocal() as db:
+        target_user = await get_user(email)
+
+        shared = (email, app_name) in target_user.shared_apps
+
+        if shared:
+            raise HTTPException(
+                status_code=400, detail="App already shared with this user"
+            )
+
+        shared_app = SharedApp(
+            app_name=system_app_name,
+            user_email=email,
+            pretty_app_name=app_name,
+            author_email=author_user.email,
+        )
+        db.add(shared_app)
+
+        await db.commit()
+        await db.refresh(shared_app)
 
 
 async def init_models():

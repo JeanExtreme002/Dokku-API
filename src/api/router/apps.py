@@ -432,4 +432,25 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
+    @router.post(
+        "/{app_name}/share/{target_email}",
+        response_description="Share app with a third-party user",
+    )
+    async def share_app(
+        request: Request,
+        app_name: str,
+        target_email: str,
+    ):
+        success, result = await AppService.share_app(
+            request.state.session_user, app_name, target_email
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
     return router
