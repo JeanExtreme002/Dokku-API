@@ -18,7 +18,7 @@ class UserSchema(BaseModel):
     services_quota: int = Config.API_DEFAULT_SERVICES_QUOTA
     networks_quota: int = Config.API_DEFAULT_NETWORKS_QUOTA
     apps: List[str] = []
-    shared_apps: List[Tuple[str]] = []
+    shared_apps: List[Tuple[str, str]] = []
     services: List[str] = []
     networks: List[str] = []
 
