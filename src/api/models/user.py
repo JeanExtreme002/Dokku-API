@@ -35,4 +35,5 @@ USER_EAGER_LOAD = [
     selectinload(User.apps),
     selectinload(User.services),
     selectinload(User.networks),
+    selectinload(User.shared_apps),
 ]
