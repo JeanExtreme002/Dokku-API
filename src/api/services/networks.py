@@ -9,7 +9,7 @@ from fastapi import HTTPException
 from src.api.models import App, Network, create_resource, delete_resource, get_resources
 from src.api.schemas import UserSchema
 from src.api.services import AppService
-from src.api.tools.name import ResourceName
+from src.api.tools.resource import ResourceName
 from src.api.tools.ssh import run_command
 
 

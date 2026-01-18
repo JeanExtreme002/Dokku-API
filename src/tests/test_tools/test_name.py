@@ -2,7 +2,7 @@ import unittest
 
 from src.api.models.models import App, Service
 from src.api.schemas import UserSchema
-from src.api.tools.name import ResourceName
+from src.api.tools.resource import ResourceName
 
 MockUser = UserSchema(
     id=1,

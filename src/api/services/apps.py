@@ -21,7 +21,7 @@ from src.api.models import (
 from src.api.schemas import UserSchema
 from src.api.services.databases import DatabaseService
 from src.api.services.domains import DomainService
-from src.api.tools.name import ResourceName
+from src.api.tools.resource import ResourceName, check_shared_app
 from src.api.tools.ssh import run_command
 from src.config import Config
 
@@ -271,12 +271,7 @@ class AppService(ABC):
         session_user: UserSchema, app_name: str, shared_by: Optional[str] = None
     ) -> Tuple[bool, Any]:
         if shared_by is not None:
-            if (shared_by, app_name) not in session_user.shared_apps:
-                raise HTTPException(
-                    status_code=404,
-                    detail="App does not exist or not shared by the owner",
-                )
-            session_user = await get_user(shared_by)
+            session_user = await check_shared_app(session_user, app_name, shared_by)
 
         app_name = ResourceName(session_user, app_name, App).for_system()
 

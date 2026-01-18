@@ -5,6 +5,7 @@ from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse, Response
 
 from src.api.services import AppService
+from src.api.tools.resource import check_shared_app
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -23,8 +24,10 @@ def get_router(app: FastAPI) -> APIRouter:
                 "result": result,
             },
         )
-    
-    @router.post("/list-shared-apps/", response_description="Return all shared applications")
+
+    @router.post(
+        "/list-shared-apps/", response_description="Return all shared applications"
+    )
     async def list_apps(request: Request, return_info: bool = True):
         success, result = await AppService.list_shared_apps(
             request.state.session_user, return_info
@@ -47,9 +50,19 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         command: str,
         container_type: Optional[str] = "web",
+        shared_by: Optional[str] = None,
     ):
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
         success, result = await AppService.execute_command(
-            request.state.session_user, app_name, container_type, command
+            session_user,
+            app_name,
+            container_type,
+            command,
+            shared_by,
         )
 
         return JSONResponse(
@@ -106,9 +119,15 @@ def get_router(app: FastAPI) -> APIRouter:
     async def get_app_url(
         request: Request,
         app_name: str,
+        shared_by: Optional[str] = None,
     ):
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
         success, result = await AppService.get_app_url(
-            request.state.session_user, app_name
+            session_user, app_name, shared_by
         )
 
         return JSONResponse(
@@ -128,9 +147,12 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         shared_by: Optional[str] = None,
     ):
-        success, result = await AppService.get_app_info(
-            request.state.session_user, app_name, shared_by=shared_by
-        )
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
+        success, result = await AppService.get_app_info(session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -147,10 +169,14 @@ def get_router(app: FastAPI) -> APIRouter:
     async def get_deployment_token(
         request: Request,
         app_name: str,
+        shared_by: Optional[str] = None,
     ):
-        success, result = await AppService.get_deployment_token(
-            request.state.session_user, app_name
-        )
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
+        success, result = await AppService.get_deployment_token(session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -164,10 +190,18 @@ def get_router(app: FastAPI) -> APIRouter:
         "/{app_name}/logs/",
         response_description="Return the logs of an application",
     )
-    async def get_logs(request: Request, app_name: str, n_lines: int = 2000):
-        success, result = await AppService.get_logs(
-            request.state.session_user, app_name, n_lines
-        )
+    async def get_logs(
+        request: Request,
+        app_name: str,
+        n_lines: int = 2000,
+        shared_by: Optional[str] = None,
+    ):
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
+        success, result = await AppService.get_logs(session_user, app_name, n_lines)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -184,10 +218,14 @@ def get_router(app: FastAPI) -> APIRouter:
     async def start_app(
         request: Request,
         app_name: str,
+        shared_by: Optional[str] = None,
     ):
-        success, result = await AppService.start_app(
-            request.state.session_user, app_name
-        )
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
+        success, result = await AppService.start_app(session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -204,10 +242,14 @@ def get_router(app: FastAPI) -> APIRouter:
     async def stop_app(
         request: Request,
         app_name: str,
+        shared_by: Optional[str] = None,
     ):
-        success, result = await AppService.stop_app(
-            request.state.session_user, app_name
-        )
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
+        success, result = await AppService.stop_app(session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -224,10 +266,14 @@ def get_router(app: FastAPI) -> APIRouter:
     async def restart_app(
         request: Request,
         app_name: str,
+        shared_by: Optional[str] = None,
     ):
-        success, result = await AppService.restart_app(
-            request.state.session_user, app_name
-        )
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
+        success, result = await AppService.restart_app(session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -244,10 +290,14 @@ def get_router(app: FastAPI) -> APIRouter:
     async def rebuild_app(
         request: Request,
         app_name: str,
+        shared_by: Optional[str] = None,
     ):
-        success, result = await AppService.rebuild_app(
-            request.state.session_user, app_name
-        )
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
+        success, result = await AppService.rebuild_app(session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -264,10 +314,14 @@ def get_router(app: FastAPI) -> APIRouter:
     async def get_builder_info(
         request: Request,
         app_name: str,
+        shared_by: Optional[str] = None,
     ):
-        success, result = await AppService.get_builder(
-            request.state.session_user, app_name
-        )
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
+        success, result = await AppService.get_builder(session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -285,10 +339,14 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
         builder: str,
+        shared_by: Optional[str] = None,
     ):
-        success, result = await AppService.set_builder(
-            request.state.session_user, app_name, builder
-        )
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
+        success, result = await AppService.set_builder(session_user, app_name, builder)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -305,10 +363,14 @@ def get_router(app: FastAPI) -> APIRouter:
     async def get_linked_databases(
         request: Request,
         app_name: str,
+        shared_by: Optional[str] = None,
     ):
-        success, result = await AppService.get_linked_databases(
-            request.state.session_user, app_name
-        )
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
+        success, result = await AppService.get_linked_databases(session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -325,10 +387,14 @@ def get_router(app: FastAPI) -> APIRouter:
     async def get_network(
         request: Request,
         app_name: str,
+        shared_by: Optional[str] = None,
     ):
-        success, result = await AppService.get_network(
-            request.state.session_user, app_name
-        )
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
+        success, result = await AppService.get_network(session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -346,9 +412,15 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
         use_proxy: bool = False,
+        shared_by: Optional[str] = None,
     ):
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
         success, result = await AppService.list_port_mappings(
-            request.state.session_user, app_name, use_proxy
+            session_user, app_name, use_proxy
         )
 
         return JSONResponse(
@@ -370,9 +442,15 @@ def get_router(app: FastAPI) -> APIRouter:
         dest_port: int,
         protocol: str = "http",
         use_proxy: bool = False,
+        shared_by: Optional[str] = None,
     ):
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
         success, result = await AppService.add_port_mapping(
-            request.state.session_user,
+            session_user,
             app_name,
             origin_port,
             dest_port,
@@ -399,9 +477,15 @@ def get_router(app: FastAPI) -> APIRouter:
         dest_port: int,
         protocol: str = "http",
         use_proxy: bool = False,
+        shared_by: Optional[str] = None,
     ):
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
         success, result = await AppService.remove_port_mapping(
-            request.state.session_user,
+            session_user,
             app_name,
             origin_port,
             dest_port,
@@ -425,9 +509,15 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
         filename: str,
+        shared_by: Optional[str] = None,
     ):
+        session_user = request.state.session_user
+
+        if shared_by is not None:
+            session_user = await check_shared_app(session_user, app_name, shared_by)
+
         success, result = await AppService.download_file(
-            request.state.session_user, app_name, filename
+            session_user, app_name, filename
         )
 
         if not success:

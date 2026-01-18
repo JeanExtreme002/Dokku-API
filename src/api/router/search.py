@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from src.api.models import App, Network, Service
 from src.api.schemas import UserSchema
 from src.api.services import AppService, DatabaseService
-from src.api.tools.name import ResourceName
+from src.api.tools.resource import ResourceName
 
 
 def get_router(app: FastAPI) -> APIRouter:
