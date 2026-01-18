@@ -28,7 +28,7 @@ def get_router(app: FastAPI) -> APIRouter:
     @router.post(
         "/list-shared-apps/", response_description="Return all shared applications"
     )
-    async def list_apps(request: Request, return_info: bool = True):
+    async def list_shared_apps(request: Request, return_info: bool = True):
         success, result = await AppService.list_shared_apps(
             request.state.session_user, return_info
         )
@@ -125,9 +125,7 @@ def get_router(app: FastAPI) -> APIRouter:
         if shared_by is not None:
             session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        success, result = await AppService.get_app_url(
-            session_user, app_name
-        )
+        success, result = await AppService.get_app_url(session_user, app_name)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

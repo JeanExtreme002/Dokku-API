@@ -15,7 +15,6 @@ from src.api.models import (
     delete_resource,
     get_app_deployment_token,
     get_resources,
-    get_user,
     share_app,
 )
 from src.api.schemas import UserSchema

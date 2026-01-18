@@ -19,7 +19,6 @@ from src.api.models.base import (
     SharedApp,
     User,
 )
-from src.api.models.shared_app import SharedApp
 from src.api.schemas import UserSchema
 from src.api.tools import hash_access_token, validate_email_format
 from src.config import Config

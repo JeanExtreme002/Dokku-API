@@ -52,8 +52,8 @@ async def check_shared_app(
     session_user: UserSchema, app_name: str, shared_by: str
 ) -> UserSchema:
     """
-    Check if the app is being shared by the target user. 
-    
+    Check if the app is being shared by the target user.
+
     If it's a valid shared app, the function returns the owner.
     """
     if (shared_by, app_name) not in session_user.shared_apps:
