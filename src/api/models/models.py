@@ -355,6 +355,22 @@ async def get_shared_app_users(app_name: str) -> List[str]:
         return [shared.user_email for shared in shared_list]
 
 
+async def unshare_app(app_name: str, email: str) -> None:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(SharedApp).filter_by(app_name=app_name, user_email=email)
+        )
+        shared = result.scalar_one_or_none()
+
+        if not shared:
+            raise HTTPException(
+                status_code=404, detail="Sharing not found for this user and app"
+            )
+
+        await db.delete(shared)
+        await db.commit()
+
+
 async def init_models():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

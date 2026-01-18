@@ -17,6 +17,7 @@ from src.api.models import (
     get_resources,
     get_shared_app_users,
     share_app,
+    unshare_app,
 )
 from src.api.schemas import UserSchema
 from src.api.services.databases import DatabaseService
@@ -221,6 +222,19 @@ class AppService(ABC):
         results = await get_shared_app_users(app_name)
 
         return True, results
+
+    @staticmethod
+    async def unshare_app(
+        session_user: UserSchema, app_name: str, email: str
+    ) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        await unshare_app(app_name, email)
+
+        return True, None
 
     @staticmethod
     async def share_app(

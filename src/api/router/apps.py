@@ -572,4 +572,25 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
+    @router.delete(
+        "/{app_name}/share/{target_email}/",
+        response_description="Unshare app with a third-party user",
+    )
+    async def unshare_app(
+        request: Request,
+        app_name: str,
+        target_email: str,
+    ):
+        success, result = await AppService.unshare_app(
+            request.state.session_user, app_name, target_email
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
     return router

@@ -20,5 +20,6 @@ from src.api.models.models import (
     get_users,
     init_models,
     share_app,
+    unshare_app,
     update_user,
 )
