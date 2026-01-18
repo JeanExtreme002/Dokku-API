@@ -552,7 +552,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/{app_name}/share/{target_email}",
+        "/{app_name}/share/{target_email}/",
         response_description="Share app with a third-party user",
     )
     async def share_app(
