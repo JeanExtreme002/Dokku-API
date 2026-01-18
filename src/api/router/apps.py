@@ -42,6 +42,23 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
+        "/{app_name}/sharing/",
+        response_description="Returns all users with whom the application is being shared",
+    )
+    async def get_shared_app_users(request: Request, app_name: str):
+        success, result = await AppService.get_shared_app_users(
+            request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
+    @router.post(
         "/{app_name}/exec/",
         response_description="Execute a command into the application's container",
     )

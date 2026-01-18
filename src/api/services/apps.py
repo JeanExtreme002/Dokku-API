@@ -15,6 +15,7 @@ from src.api.models import (
     delete_resource,
     get_app_deployment_token,
     get_resources,
+    get_shared_app_users,
     share_app,
 )
 from src.api.schemas import UserSchema
@@ -207,6 +208,19 @@ class AppService(ABC):
             )
 
         return success, message
+
+    @staticmethod
+    async def get_shared_app_users(
+        session_user: UserSchema, app_name: str
+    ) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        results = await get_shared_app_users(app_name)
+
+        return True, results
 
     @staticmethod
     async def share_app(

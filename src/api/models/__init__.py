@@ -14,6 +14,7 @@ from src.api.models.models import (
     get_app_by_deploy_token,
     get_app_deployment_token,
     get_resources,
+    get_shared_app_users,
     get_user,
     get_user_by_access_token,
     get_users,
