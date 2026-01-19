@@ -30,6 +30,18 @@ def get_router(app: FastAPI) -> APIRouter:
                 ]
                 result["apps"] = data
 
+        for author_email, app_name in user.shared_apps:
+            if query in author_email.lower() or query in app_name.lower():
+                details = (
+                    await AppService.get_app_info(
+                        user, app_name, shared_by=author_email
+                    )
+                )[1]
+                data = result.get("share_apps", []) + [
+                    {app_name: details},
+                ]
+                result["share_apps"] = data
+
         for service_name in user.services:
             plugin_name, service_name = service_name.split(":", maxsplit=1)
             service_name = str(
