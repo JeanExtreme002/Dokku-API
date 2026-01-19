@@ -38,7 +38,7 @@ def get_router(app: FastAPI) -> APIRouter:
                     )
                 )[1]
                 data = result.get("share_apps", []) + [
-                    {app_name: details},
+                    {f"{author_email}:{app_name}": details},
                 ]
                 result["share_apps"] = data
 
