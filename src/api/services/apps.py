@@ -655,7 +655,7 @@ class AppService(ABC):
 
     @staticmethod
     async def sync_dokku_with_api_database() -> None:
-        success, message = await run_command("apps:list")
+        success, message = await run_command("apps:list", use_log=False)
 
         if not success:
             logging.warning("Could not recover apps list to sync with database")
@@ -675,6 +675,6 @@ class AppService(ABC):
             logging.warning(
                 f"[sync_dokku_w_app_database]:{app_name}::Destroying unused application..."
             )
-            await run_command(f"--force apps:destroy {app_name}")
+            await run_command(f"--force apps:destroy {app_name}", use_log=False)
 
         logging.warning("[sync_dokku_w_app_database]::Sync complete.")

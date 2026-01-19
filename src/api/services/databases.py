@@ -389,7 +389,7 @@ class DatabaseService(ABC):
         services = {}
 
         for plugin_name in available_databases:
-            success, message = await run_command(f"{plugin_name}:list")
+            success, message = await run_command(f"{plugin_name}:list", use_log=False)
 
             if not success:
                 logging.warning(
@@ -413,6 +413,8 @@ class DatabaseService(ABC):
             logging.warning(
                 f"[sync_dokku_w_service_database]:{plugin_name}:{service_name}::Destroying unused service..."
             )
-            await run_command(f"--force {plugin_name}:destroy {service_name}")
+            await run_command(
+                f"--force {plugin_name}:destroy {service_name}", use_log=False
+            )
 
         logging.warning("[sync_dokku_w_service_database]::Sync complete.")

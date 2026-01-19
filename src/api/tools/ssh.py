@@ -34,13 +34,17 @@ def get_command_history() -> list:
         return list(command_history)
 
 
-async def __execute_command(command: str, username: str) -> Tuple[bool, str]:
+async def __execute_command(
+    command: str, username: str, use_log: bool = True, dry_run: bool = False
+) -> Tuple[bool, str]:
     """
     Execute a command on the remote server via SSH.
 
     Args:
         command (str): The command to execute.
         username (str): The SSH username.
+        use_log (bool): If True, save the command at a command history (in-memory).
+        dry_run (bool): If True, the command is not actually executed.
     Returns:
         Tuple[bool, str]: A tuple containing a boolean indicating success
         or failure and the output or error message.
@@ -48,7 +52,11 @@ async def __execute_command(command: str, username: str) -> Tuple[bool, str]:
     if username == "root":
         command = f"dokku {command}"
 
-    _log_command(command)
+    if use_log:
+        _log_command(command)
+
+    if dry_run:
+        return True, ""
 
     try:
         async with asyncssh.connect(
@@ -80,17 +88,23 @@ async def __execute_command(command: str, username: str) -> Tuple[bool, str]:
         return False, str(error)
 
 
-async def run_command(command: str) -> Tuple[bool, str]:
+async def run_command(
+    command: str, use_log: bool = True, dry_run: bool = False
+) -> Tuple[bool, str]:
     """
     Run a command on the remote server via SSH.
 
     Args:
         command (str): The command to execute.
+        use_log (bool): If True, save the command at a command history (in-memory).
+        dry_run (bool): If True, the command is not actually executed.
     Returns:
         Tuple[bool, str]: A tuple containing a boolean indicating success
         or failure and the output or error message.
     """
-    success, message = await __execute_command(command, "dokku")
+    success, message = await __execute_command(
+        command, "dokku", use_log=use_log, dry_run=dry_run
+    )
 
     if success:
         logging.info(f"Command executed successfully: {command}")
@@ -99,17 +113,23 @@ async def run_command(command: str) -> Tuple[bool, str]:
     return success, message
 
 
-async def run_command_as_root(command: str) -> Tuple[bool, str]:
+async def run_command_as_root(
+    command: str, use_log: bool = True, dry_run: bool = False
+) -> Tuple[bool, str]:
     """
     Run a command on the remote server via SSH as root.
 
     Args:
         command (str): The command to execute.
+        use_log (bool): If True, save the command at a command history (in-memory).
+        dry_run (bool): If True, the command is not actually executed.
     Returns:
         Tuple[bool, str]: A tuple containing a boolean indicating success
         or failure and the output or error message.
     """
-    success, message = await __execute_command(command, "root")
+    success, message = await __execute_command(
+        command, "root", use_log=use_log, dry_run=dry_run
+    )
 
     if success:
         logging.info(f"Command executed successfully: {command}")

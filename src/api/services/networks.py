@@ -182,7 +182,7 @@ class NetworkService(ABC):
 
     @staticmethod
     async def sync_dokku_with_api_database() -> None:
-        success, message = await run_command("network:list")
+        success, message = await run_command("network:list", use_log=False)
 
         if not success:
             logging.warning("Could not recover networks list to sync with database")
@@ -206,6 +206,6 @@ class NetworkService(ABC):
             logging.warning(
                 f"[sync_dokku_w_network_database]:{network_name}::Destroying unused network..."
             )
-            await run_command(f"--force network:destroy {network_name}")
+            await run_command(f"--force network:destroy {network_name}", use_log=False)
 
         logging.warning("[sync_dokku_w_network_database]::Sync complete.")
