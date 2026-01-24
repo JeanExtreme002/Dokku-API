@@ -6,6 +6,9 @@ from fastapi import APIRouter, FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 
 from src.api.models import (
+    App,
+    Network,
+    Service,
     create_take_over_access_token,
     create_user,
     delete_user,
@@ -13,8 +16,9 @@ from src.api.models import (
     get_users,
     update_user,
 )
-from src.api.services import AppService, DatabaseService
+from src.api.services import AppService, DatabaseService, NetworkService
 from src.api.tools import hash_access_token
+from src.api.tools.resource import ResourceName
 from src.api.tools.ssh import run_command_as_root
 
 
@@ -43,11 +47,17 @@ def get_router(app: FastAPI) -> APIRouter:
         user = await get_user(email)
 
         for app_name in user.apps:
+            app_name = str(ResourceName(user, app_name, App, from_system=True))
             await AppService.delete_app(user, app_name)
 
         for service_name in user.services:
             plugin_name, database_name = service_name.split(":", maxsplit=1)
+            database_name = str(ResourceName(user, database_name, Service, from_system=True))
             await DatabaseService.delete_database(user, plugin_name, database_name)
+
+        for network_name in user.networks:
+            network_name = str(ResourceName(user, network_name, Network, from_system=True))
+            await NetworkService.delete_network(user, network_name)
 
         await delete_user(email)
 
