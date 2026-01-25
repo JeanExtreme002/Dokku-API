@@ -52,11 +52,15 @@ def get_router(app: FastAPI) -> APIRouter:
 
         for service_name in user.services:
             plugin_name, database_name = service_name.split(":", maxsplit=1)
-            database_name = str(ResourceName(user, database_name, Service, from_system=True))
+            database_name = str(
+                ResourceName(user, database_name, Service, from_system=True)
+            )
             await DatabaseService.delete_database(user, plugin_name, database_name)
 
         for network_name in user.networks:
-            network_name = str(ResourceName(user, network_name, Network, from_system=True))
+            network_name = str(
+                ResourceName(user, network_name, Network, from_system=True)
+            )
             await NetworkService.delete_network(user, network_name)
 
         await delete_user(email)
