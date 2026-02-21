@@ -283,6 +283,33 @@ class AppService(ABC):
         return await run_command(f"--force apps:destroy {app_name}")
 
     @staticmethod
+    async def set_owner(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+        _, message = await run_command(f"apps:exists {app_name}")
+
+        if "does not exist" in message.lower():
+            raise HTTPException(status_code=404, detail="App does not exist on Dokku")
+
+        system_app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if system_app_name not in session_user.apps:
+            await create_resource(session_user.email, system_app_name, App)
+
+        await run_command(f"apps:rename {app_name} {system_app_name}")
+
+        return True, None
+
+    @staticmethod
+    async def unset_owner(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+        system_app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if system_app_name in session_user.apps:
+            await delete_resource(session_user.email, system_app_name, App)
+
+        await run_command(f"apps:rename {system_app_name} {app_name}")
+
+        return True, None
+
+    @staticmethod
     async def execute_command(
         session_user: UserSchema, app_name: str, container_type: str, command: str
     ) -> Tuple[bool, Any]:
