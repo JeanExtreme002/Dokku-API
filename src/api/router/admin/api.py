@@ -42,13 +42,15 @@ def get_router(app: FastAPI) -> APIRouter:
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
-                "workers_count": Config.WORKERS_COUNT,
-                "max_connections_per_request": Config.MAX_CONNECTIONS_PER_REQUEST,
-                "reload": Config.RELOAD,
-                "log_level": Config.LOG_LEVEL,
+                "workers_count": Config.API_WORKERS_COUNT,
+                "max_connections_per_request": Config.API_MAX_CONNECTIONS_PER_REQUEST,
+                "reload": Config.API_RELOAD,
+                "log_level": Config.API_LOG_LEVEL,
                 "api_key": Config.API_KEY,
                 "api_name": Config.API_NAME,
                 "api_version_number": Config.API_VERSION_NUMBER,
+                "api_allow_users_register_ssh_key": Config.API_ALLOW_USERS_REGISTER_SSH_KEY,
+                "api_use_per_user_resource_names": Config.API_USE_PER_USER_RESOURCE_NAMES,
                 "volume_dir": Config.VOLUME_DIR,
                 "ssh_server": {
                     "hostname": Config.SSH_SERVER.SSH_HOSTNAME,

@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from src.api.models import get_user
 from src.api.models.models import App, Resource
 from src.api.schemas import UserSchema
+from src.config import Config
 
 
 class ResourceName:
@@ -29,14 +30,16 @@ class ResourceName:
             [(char if char in allowed else self.__separator) for char in self.__name]
         )
 
-        if from_system:
+        if from_system and Config.API_USE_PER_USER_RESOURCE_NAMES:
             self.__name = self.__name.lstrip(f"{self.__user}{self.__separator}")
 
     def for_system(self) -> str:
         """
         Get the system resource name for the API system.
         """
-        return f"{self.__user}{self.__separator}{self.__name}"
+        if Config.API_USE_PER_USER_RESOURCE_NAMES:
+            return f"{self.__user}{self.__separator}{self.__name}"
+        return self.__name
 
     def normalized(self) -> str:
         """

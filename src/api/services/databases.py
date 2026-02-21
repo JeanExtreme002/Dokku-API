@@ -83,7 +83,7 @@ class DatabaseService(ABC):
 
         _, message = await run_command(f"{plugin_name}:exists {database_name}")
 
-        if f"Service {database_name} exists" in message.lower():
+        if f"service {database_name} exists" in message.lower():
             raise HTTPException(status_code=403, detail="Database already exists")
 
         if "does not exist" not in message.lower():
@@ -385,6 +385,12 @@ class DatabaseService(ABC):
 
     @staticmethod
     async def sync_dokku_with_api_database() -> None:
+        if not Config.API_USE_PER_USER_RESOURCE_NAMES:
+            logging.warning(
+                "[sync_dokku_w_service_database]::Not implemented on API_USE_PER_USER_RESOURCE_NAMES=false..."
+            )
+            return
+
         available_databases = (await DatabaseService.list_available_databases())[1]
         services = {}
 

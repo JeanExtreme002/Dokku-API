@@ -12,11 +12,11 @@ def main() -> None:
 
     uvicorn.run(
         "src.api.app:get_app",
-        workers=Config.WORKERS_COUNT,
-        host=Config.HOST,
-        port=Config.PORT,
-        reload=Config.RELOAD,
-        log_level=Config.LOG_LEVEL,
+        workers=Config.API_WORKERS_COUNT,
+        host=Config.API_HOST,
+        port=Config.API_PORT,
+        reload=Config.API_RELOAD,
+        log_level=Config.API_LOG_LEVEL,
         factory=True,
     )
 

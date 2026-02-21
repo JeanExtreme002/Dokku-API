@@ -24,7 +24,7 @@ def get_app() -> FastAPI:
 
     This is the main constructor of the application.
     """
-    logging.basicConfig(level=Config.LOG_LEVEL.upper())
+    logging.basicConfig(level=Config.API_LOG_LEVEL.upper())
 
     _app = FastAPI(
         title="Dokku API",

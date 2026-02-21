@@ -12,4 +12,4 @@ When installed via pip, all these files are available within the dokku_api packa
 """
 
 __author__ = "Jean Loui Bernard Silva de Jesus"
-__version__ = "1.2.8"
+__version__ = "1.2.9"

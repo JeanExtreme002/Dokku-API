@@ -11,6 +11,7 @@ from src.api.schemas import UserSchema
 from src.api.services import AppService
 from src.api.tools.resource import ResourceName
 from src.api.tools.ssh import run_command
+from src.config import Config
 
 
 def parse_network_info(message: str) -> Dict:
@@ -182,6 +183,12 @@ class NetworkService(ABC):
 
     @staticmethod
     async def sync_dokku_with_api_database() -> None:
+        if not Config.API_USE_PER_USER_RESOURCE_NAMES:
+            logging.warning(
+                "[sync_dokku_w_network_database]::Not implemented on API_USE_PER_USER_RESOURCE_NAMES=false..."
+            )
+            return
+
         success, message = await run_command("network:list", use_log=False)
 
         if not success:

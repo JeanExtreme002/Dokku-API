@@ -124,7 +124,9 @@ def get_user_id_from_app(name) -> Optional[int]:
 
 
 def get_raw_app(name):
-    return name.split("-", maxsplit=1)[-1]
+    if Config.API_USE_PER_USER_RESOURCE_NAMES:
+        return name.split("-", maxsplit=1)[-1]
+    return name
 
 
 def parse_xxd_to_bytes(text: str) -> bytes:
@@ -175,6 +177,8 @@ class AppService(ABC):
         session_user: UserSchema, app_name: str, unique_app: Optional[bool] = False
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
+
+        unique_app = unique_app and Config.API_USE_PER_USER_RESOURCE_NAMES
 
         if unique_app:
             success, message = await run_command("apps:list")
@@ -655,6 +659,12 @@ class AppService(ABC):
 
     @staticmethod
     async def sync_dokku_with_api_database() -> None:
+        if not Config.API_USE_PER_USER_RESOURCE_NAMES:
+            logging.warning(
+                "[sync_dokku_w_network_database]::Not implemented on API_USE_PER_USER_RESOURCE_NAMES=false..."
+            )
+            return
+
         success, message = await run_command("apps:list", use_log=False)
 
         if not success:

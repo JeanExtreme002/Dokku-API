@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from src.api.models.models import App, Service
 from src.api.schemas import UserSchema
@@ -16,6 +17,7 @@ MockUser = UserSchema(
 )
 
 
+@patch("src.api.tools.resource.Config.API_USE_PER_USER_RESOURCE_NAMES", True)
 class TestResourceName(unittest.TestCase):
     def test_normalization_for_app(self):
         name = "My Resource!Name"
