@@ -51,7 +51,7 @@ class Config:
         os.getenv("API_ALLOW_USERS_REGISTER_SSH_KEY", "true").lower() == "true"
     )
     API_USE_PER_USER_RESOURCE_NAMES = (
-        os.getenv("API_USE_PER_USER_RESOURCE_NAMES", "false").lower() == "false"
+        os.getenv("API_USE_PER_USER_RESOURCE_NAMES", "false").lower() == "true"
     )
     API_DEFAULT_APPS_QUOTA = int(os.getenv("API_DEFAULT_APPS_QUOTA", "0"))
     API_DEFAULT_SERVICES_QUOTA = int(os.getenv("API_DEFAULT_SERVICES_QUOTA", "0"))
