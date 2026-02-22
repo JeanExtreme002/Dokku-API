@@ -253,6 +253,40 @@ async def create_resource(email: str, name: str, resource_type: Type[Resource]) 
         await db.refresh(resource)
 
 
+async def rename_resource(
+    email: str, old_name: str, new_name: str, resource_type: Type[Resource]
+) -> None:
+    async with AsyncSessionLocal() as db:
+        user_result = await db.execute(select(User).filter_by(email=email))
+        db_user = user_result.scalar_one_or_none()
+
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Get the target resource.
+        resource_result = await db.execute(
+            select(resource_type).filter_by(name=old_name, user_email=email)
+        )
+        resource = resource_result.scalar_one_or_none()
+
+        if not resource:
+            raise HTTPException(status_code=404, detail="Resource not found")
+
+        # Check if there is a resource with the new name.
+        existing_result = await db.execute(
+            select(resource_type).filter_by(name=new_name, user_email=email)
+        )
+        if existing_result.scalar_one_or_none():
+            raise HTTPException(
+                status_code=400, detail="Resource with new name already exists"
+            )
+
+        # Update resource name
+        resource.name = new_name
+        await db.commit()
+        await db.refresh(resource)
+
+
 async def delete_resource(email: str, name: str, resource_type: Type[Resource]) -> None:
     async with AsyncSessionLocal() as db:
         user_result = await db.execute(select(User).filter_by(email=email))

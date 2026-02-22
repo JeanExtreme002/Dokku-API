@@ -153,6 +153,30 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
+        "/{app_name}/rename/{new_app_name}/",
+        response_description="Rename the application",
+    )
+    async def rename_app(
+        request: Request,
+        app_name: str,
+        new_app_name: str,
+        unique_app: Optional[bool] = False,
+    ):
+        session_user = request.state.session_user
+
+        success, result = await AppService.rename_app(
+            session_user, app_name, new_app_name, unique_app
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
+    @router.post(
         "/{app_name}/info/",
         response_description="Return information about an application",
     )

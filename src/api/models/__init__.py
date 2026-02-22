@@ -19,6 +19,7 @@ from src.api.models.models import (
     get_user_by_access_token,
     get_users,
     init_models,
+    rename_resource,
     share_app,
     unshare_app,
     update_user,

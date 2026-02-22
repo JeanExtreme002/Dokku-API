@@ -16,6 +16,7 @@ from src.api.models import (
     get_app_deployment_token,
     get_resources,
     get_shared_app_users,
+    rename_resource,
     share_app,
     unshare_app,
 )
@@ -208,8 +209,12 @@ class AppService(ABC):
         if unique_app and success:
             session_user.apps.append(app_name)
             app_name = get_raw_app(app_name)
+
+            _, url = await AppService.get_app_url(session_user, app_name)
+            hostname = url.split(".", maxsplit=1)[-1]
+
             await DomainService.set_domain(
-                session_user, app_name, f"{app_name}.{Config.SSH_SERVER.SSH_HOSTNAME}"
+                session_user, app_name, f"{app_name}.{hostname}"
             )
 
         return success, message
@@ -255,6 +260,72 @@ class AppService(ABC):
             raise HTTPException(status_code=404, detail="App does not exist")
 
         await share_app(session_user, system_app_name, app_name, target_email)
+
+        return True, None
+
+    @staticmethod
+    async def rename_app(
+        session_user: UserSchema,
+        app_name: str,
+        new_app_name: str,
+        unique_app: Optional[bool] = False,
+    ) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+        new_app_name = ResourceName(session_user, new_app_name, App).for_system()
+
+        unique_app = unique_app and Config.API_USE_PER_USER_RESOURCE_NAMES
+
+        if unique_app:
+            success, message = await run_command("apps:list")
+
+            if not success:
+                raise HTTPException(
+                    status_code=500, detail="Could not recover apps list"
+                )
+
+            apps = parse_apps_list(message)
+
+            app_exists = any(
+                [get_raw_app(app) == get_raw_app(new_app_name) for app in apps]
+            )
+
+            if app_exists:
+                raise HTTPException(status_code=403, detail="App name already in use")
+        else:
+            _, message = await run_command(f"apps:exists {new_app_name}")
+
+            if "does not exist" not in message.lower():
+                raise HTTPException(status_code=403, detail="App already exists")
+            
+        await rename_resource(session_user.email, app_name, new_app_name, App)
+
+        async def run_rename_in_background():
+            try:
+                success, message = await run_command(
+                    f"apps:rename {app_name} {new_app_name}"
+                )
+
+                if not success:
+                    return logging.warning("apps:rename failed: %s", message)
+
+                if unique_app:
+                    session_user.apps.append(new_app_name)
+                    raw_new_app_name = get_raw_app(new_app_name)
+
+                    _, url = await AppService.get_app_url(
+                        session_user, raw_new_app_name
+                    )
+                    hostname = url.split(".", maxsplit=1)[-1]
+
+                    await DomainService.set_domain(
+                        session_user,
+                        raw_new_app_name,
+                        f"{raw_new_app_name}.{hostname}",
+                    )
+            except Exception:
+                logging.exception("apps:rename background task failed")
+
+        asyncio.create_task(run_rename_in_background())
 
         return True, None
 
