@@ -9,7 +9,7 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post(
-        "/{email}/set-owner/{app_name}",
+        "/{email}/set-owner/{app_name}/",
         response_description="Set a user as owner of an existing app",
     )
     async def set_owner(request: Request, email: str, app_name: str):
@@ -19,7 +19,7 @@ def get_router(app: FastAPI) -> APIRouter:
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
 
     @router.delete(
-        "/{email}/set-owner/{app_name}", response_description="Unset owner from an app"
+        "/{email}/set-owner/{app_name}/", response_description="Unset owner from an app"
     )
     async def unset_owner(request: Request, email: str, app_name: str):
         user = await get_user(email)
