@@ -296,8 +296,6 @@ class AppService(ABC):
 
             if "does not exist" not in message.lower():
                 raise HTTPException(status_code=403, detail="App already exists")
-            
-        await rename_resource(session_user.email, app_name, new_app_name, App)
 
         async def run_rename_in_background():
             try:
@@ -308,10 +306,13 @@ class AppService(ABC):
                 if not success:
                     return logging.warning("apps:rename failed: %s", message)
 
+                raw_new_app_name = get_raw_app(new_app_name)
+                await rename_resource(
+                    session_user.email, app_name, new_app_name, raw_new_app_name, App
+                )
+
                 if unique_app:
                     session_user.apps.append(new_app_name)
-                    raw_new_app_name = get_raw_app(new_app_name)
-
                     _, url = await AppService.get_app_url(
                         session_user, raw_new_app_name
                     )

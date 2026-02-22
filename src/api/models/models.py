@@ -4,7 +4,7 @@ import time
 from typing import List, Optional, Tuple, Type
 
 from fastapi import HTTPException
-from sqlalchemy import and_, select
+from sqlalchemy import and_, select, update
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import selectinload
@@ -254,7 +254,11 @@ async def create_resource(email: str, name: str, resource_type: Type[Resource]) 
 
 
 async def rename_resource(
-    email: str, old_name: str, new_name: str, resource_type: Type[Resource]
+    email: str,
+    old_name: str,
+    new_name: str,
+    pretty_new_name: str,
+    resource_type: Type[Resource],
 ) -> None:
     async with AsyncSessionLocal() as db:
         user_result = await db.execute(select(User).filter_by(email=email))
@@ -281,10 +285,37 @@ async def rename_resource(
                 status_code=400, detail="Resource with new name already exists"
             )
 
-        # Update resource name
-        resource.name = new_name
+        # Update resource name field if it is not App
+        if resource_type is not App:
+            resource.name = new_name
+
+            await db.commit()
+            await db.refresh(resource)
+
+            return None
+
+        # Update App name by creating a new App instance.
+        new_app = App(
+            name=new_name,
+            user_email=resource.user_email,
+            created_at=resource.created_at,
+        )
+        db.add(new_app)
+        await db.flush()
+
+        update_values = {"app_name": new_name}
+        if pretty_new_name:
+            update_values["pretty_app_name"] = pretty_new_name
+
+        await db.execute(
+            update(SharedApp)
+            .where(SharedApp.app_name == old_name)
+            .values(**update_values)
+        )
+
+        await db.delete(resource)
         await db.commit()
-        await db.refresh(resource)
+        await db.refresh(new_app)
 
 
 async def delete_resource(email: str, name: str, resource_type: Type[Resource]) -> None:
