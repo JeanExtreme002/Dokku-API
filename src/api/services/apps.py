@@ -173,6 +173,16 @@ def parse_xxd_to_bytes(text: str) -> bytes:
 
 class AppService(ABC):
 
+    staticmethod
+
+    async def app_exists(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            return False, f"App {app_name} does not exist on the API"
+
+        return await run_command(f"apps:exists {app_name}")
+
     @staticmethod
     async def create_app(
         session_user: UserSchema, app_name: str, unique_app: Optional[bool] = False

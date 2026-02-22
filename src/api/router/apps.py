@@ -111,6 +111,27 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
+    @router.post(
+        "/{app_name}/exists/",
+        response_description="Check if an application exists",
+    )
+    async def app_exists(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = await AppService.app_exists(
+            request.state.session_user, app_name
+        )
+        status_code = status.HTTP_200_OK if success else status.HTTP_404_NOT_FOUND
+
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
     @router.delete("/{app_name}/", response_description="Delete an application")
     async def delete_app(
         request: Request,
