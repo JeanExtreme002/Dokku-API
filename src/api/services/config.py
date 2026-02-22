@@ -72,7 +72,11 @@ class ConfigService(ABC):
                 status_code=404,
                 detail="App does not exist",
             )
-        return await run_command(f"config:set --no-restart {app_name} {key}={value}")
+        allowed = "abcdefghijklmnopqrstuvwxyz0123456789_"
+
+        key = "".join([(c if c.lower() in allowed else "_") for c in key])
+
+        return await run_command(f"config:set --no-restart {app_name} {key}='{value}'")
 
     @staticmethod
     async def unset_config(
