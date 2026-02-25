@@ -7,7 +7,7 @@ from starlette.responses import JSONResponse
 from src.api.models import get_user_by_access_token
 
 
-class SessionUserMiddleware(BaseHTTPMiddleware):
+class UserSessionMiddleware(BaseHTTPMiddleware):
     """
     This middleware checks for an access token in the request body and sets the session user accordingly.
     """

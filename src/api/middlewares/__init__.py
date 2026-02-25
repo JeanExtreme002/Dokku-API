@@ -1,1 +1,1 @@
-from src.api.middlewares.session import SessionUserMiddleware
+from src.api.middlewares.session import UserSessionMiddleware

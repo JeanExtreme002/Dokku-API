@@ -1,11 +1,11 @@
 from fastapi import APIRouter, FastAPI
 
-from src.api.router.admin.api import get_router as api_router
-from src.api.router.admin.apps import get_router as apps_router
-from src.api.router.admin.letsencrypt import get_router as letsencrypt_router
-from src.api.router.admin.plugins import get_router as plugins_router
-from src.api.router.admin.resources import get_router as resources_router
-from src.api.router.admin.users import get_router as users_router
+from src.api.routers.admin.api import get_router as api_router
+from src.api.routers.admin.apps import get_router as apps_router
+from src.api.routers.admin.letsencrypt import get_router as letsencrypt_router
+from src.api.routers.admin.plugins import get_router as plugins_router
+from src.api.routers.admin.resources import get_router as resources_router
+from src.api.routers.admin.users import get_router as users_router
 
 
 def get_router(app: FastAPI) -> APIRouter:

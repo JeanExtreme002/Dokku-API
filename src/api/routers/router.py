@@ -1,19 +1,19 @@
 from fastapi import APIRouter, Depends, FastAPI
 
-from src.api.router.admin import get_router as admin_router
-from src.api.router.api import get_router as api_router
-from src.api.router.apps import get_router as apps_router
-from src.api.router.base import get_router as base_router
-from src.api.router.config import get_router as config_router
-from src.api.router.databases import get_router as databases_router
-from src.api.router.domains import get_router as domains_router
-from src.api.router.git import get_router as git_router
-from src.api.router.letsencrypt import get_router as letsencrypt_router
-from src.api.router.networks import get_router as networks_router
-from src.api.router.quota import get_router as quota_router
-from src.api.router.search import get_router as search_router
-from src.api.router.ssh import get_router as ssh_router
-from src.api.router.upload import get_router as upload_router
+from src.api.routers.admin import get_router as admin_router
+from src.api.routers.api import get_router as api_router
+from src.api.routers.apps import get_router as apps_router
+from src.api.routers.base import get_router as base_router
+from src.api.routers.config import get_router as config_router
+from src.api.routers.databases import get_router as databases_router
+from src.api.routers.domains import get_router as domains_router
+from src.api.routers.git import get_router as git_router
+from src.api.routers.letsencrypt import get_router as letsencrypt_router
+from src.api.routers.networks import get_router as networks_router
+from src.api.routers.quota import get_router as quota_router
+from src.api.routers.search import get_router as search_router
+from src.api.routers.ssh import get_router as ssh_router
+from src.api.routers.upload import get_router as upload_router
 from src.api.tools.validator import (
     validate_admin,
     validate_api_key,
