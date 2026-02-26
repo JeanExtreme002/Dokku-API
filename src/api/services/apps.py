@@ -320,14 +320,10 @@ class AppService(ABC):
 
         async def run_rename_in_background():
             try:
-                success, message = await run_command(
-                    f"apps:rename {app_name} {new_app_name}"
-                )
-
-                if not success:
-                    return logging.warning("apps:rename failed: %s", message)
+                await run_command(f"apps:rename {app_name} {new_app_name}")
 
                 raw_new_app_name = get_raw_app(new_app_name)
+
                 async with AsyncSessionLocal() as task_session:
                     await rename_resource(
                         session_user.email,
