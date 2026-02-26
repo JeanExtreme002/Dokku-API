@@ -1,0 +1,404 @@
+import datetime
+import secrets
+import time
+from typing import List, Optional, Tuple, Type
+
+from fastapi import HTTPException
+from sqlalchemy import and_, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from src.api.models.base import (
+    USER_EAGER_LOAD,
+    App,
+    Network,
+    Resource,
+    Service,
+    SharedApp,
+    User,
+)
+from src.api.schemas import UserSchema
+from src.api.tools import hash_access_token, validate_email_format
+
+
+def get_user_schema(user: User) -> UserSchema:
+    return UserSchema(
+        id=user.id,
+        email=user.email,
+        access_token=user.access_token,
+        apps_quota=user.apps_quota,
+        services_quota=user.services_quota,
+        networks_quota=user.networks_quota,
+        apps=[app.name for app in user.apps],
+        shared_apps=[
+            (app.author_email, app.pretty_app_name) for app in user.shared_apps
+        ],
+        services=[service.name for service in user.services],
+        networks=[network.name for network in user.networks],
+        created_at=user.created_at,
+        is_admin=user.is_admin,
+        take_over_access_token=user.take_over_access_token,
+        take_over_access_token_expiration=user.take_over_access_token_expiration,
+    )
+
+
+async def get_users(db_session: AsyncSession, only_admin: bool = False) -> List[str]:
+    result = await db_session.execute(select(User))
+    users = result.scalars().all()
+
+    return [user.email for user in users if not only_admin or user.is_admin]
+
+
+async def get_user(email: str, db_session: AsyncSession) -> UserSchema:
+    result = await db_session.execute(
+        select(User).options(*USER_EAGER_LOAD).filter_by(email=email)
+    )
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return get_user_schema(user)
+
+
+async def get_user_by_access_token(
+    access_token: str, db_session: AsyncSession
+) -> UserSchema:
+    could_be_take_over = access_token.startswith("take-over")
+    access_token = hash_access_token(access_token)
+
+    result = await db_session.execute(
+        select(User).options(*USER_EAGER_LOAD).filter_by(access_token=access_token)
+    )
+    user = result.scalar_one_or_none()
+
+    if not user and could_be_take_over:
+        now = datetime.datetime.now(datetime.timezone.utc)
+
+        result = await db_session.execute(
+            select(User)
+            .options(*USER_EAGER_LOAD)
+            .filter(
+                and_(
+                    User.take_over_access_token == access_token,
+                    User.take_over_access_token_expiration > now,
+                )
+            )
+        )
+        user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+
+    return get_user_schema(user)
+
+
+async def create_user(email: str, access_token: str, db_session: AsyncSession) -> None:
+    access_token = hash_access_token(access_token)
+    validate_email_format(email)
+
+    result = await db_session.execute(select(User).filter_by(email=email))
+
+    if result.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="User already exists")
+
+    db_user = User(
+        email=email,
+        access_token=access_token,
+    )
+    db_session.add(db_user)
+
+    await db_session.commit()
+    await db_session.refresh(db_user)
+
+
+async def update_user(email: str, user: UserSchema, db_session: AsyncSession) -> None:
+    result = await db_session.execute(
+        select(User).options(*USER_EAGER_LOAD).filter_by(email=email)
+    )
+    db_user = result.scalar_one_or_none()
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db_user.email = user.email
+    db_user.is_admin = user.is_admin
+    db_user.access_token = user.access_token
+    db_user.apps_quota = user.apps_quota
+    db_user.services_quota = user.services_quota
+    db_user.networks_quota = user.networks_quota
+
+    await db_session.commit()
+    await db_session.refresh(db_user)
+
+
+async def delete_user(email: str, db_session: AsyncSession) -> None:
+    result = await db_session.execute(select(User).filter_by(email=email))
+    db_user = result.scalar_one_or_none()
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    await db_session.delete(db_user)
+    await db_session.commit()
+
+
+async def get_resources(
+    resource_type: Type[Resource],
+    offset: int,
+    limit: Optional[int],
+    db_session: AsyncSession,
+    asc_created_at: Optional[bool] = None,
+) -> List[dict]:
+    query = select(resource_type)
+
+    if asc_created_at is not None:
+        created_col = getattr(resource_type, "created_at", None)
+
+        if asc_created_at:
+            query = query.order_by(created_col.asc())
+        else:
+            query = query.order_by(created_col.desc())
+
+    query = query.offset(offset)
+
+    if limit is not None:
+        query = query.limit(limit)
+
+    result = await db_session.execute(query)
+    resources = result.scalars().all()
+
+    def serialize_resource(r: Resource) -> dict:
+        data = {
+            "name": getattr(r, "name", None),
+            "user_email": getattr(r, "user_email", None),
+            "created_at": (
+                r.created_at.isoformat() if getattr(r, "created_at", None) else None
+            ),
+        }
+        return data
+
+    return [serialize_resource(r) for r in resources]
+
+
+async def create_resource(
+    email: str,
+    name: str,
+    resource_type: Type[Resource],
+    db_session: AsyncSession,
+) -> None:
+    ResourceType = resource_type
+
+    user_result = await db_session.execute(
+        select(User).options(*USER_EAGER_LOAD).filter_by(email=email)
+    )
+
+    db_user = user_result.scalar_one_or_none()
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    existing_result = await db_session.execute(
+        select(ResourceType).filter_by(name=name, user_email=email)
+    )
+
+    if existing_result.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Resource already exists")
+
+    quota_map = {
+        App: (db_user.apps_quota, db_user.apps),
+        Service: (db_user.services_quota, db_user.services),
+        Network: (db_user.networks_quota, db_user.networks),
+    }
+    quota, resources = quota_map.get(ResourceType)
+
+    if quota <= len(resources):
+        raise HTTPException(status_code=403, detail="Quota exceeded")
+
+    resource = ResourceType(name=name, user_email=db_user.email)
+
+    db_session.add(resource)
+
+    await db_session.commit()
+    await db_session.refresh(resource)
+
+
+async def rename_resource(
+    email: str,
+    old_name: str,
+    new_name: str,
+    pretty_new_name: str,
+    resource_type: Type[Resource],
+    db_session: AsyncSession,
+) -> None:
+    user_result = await db_session.execute(select(User).filter_by(email=email))
+    db_user = user_result.scalar_one_or_none()
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Get the target resource.
+    resource_result = await db_session.execute(
+        select(resource_type).filter_by(name=old_name, user_email=email)
+    )
+    resource = resource_result.scalar_one_or_none()
+
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+
+    # Check if there is a resource with the new name.
+    existing_result = await db_session.execute(
+        select(resource_type).filter_by(name=new_name, user_email=email)
+    )
+    if existing_result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=400, detail="Resource with new name already exists"
+        )
+
+    # Update resource name field if it is not App
+    if resource_type is not App:
+        resource.name = new_name
+
+        await db_session.commit()
+        await db_session.refresh(resource)
+
+        return None
+
+    # Update App name by creating a new App instance.
+    new_app = App(
+        name=new_name,
+        user_email=resource.user_email,
+        created_at=resource.created_at,
+    )
+    db_session.add(new_app)
+    await db_session.flush()
+
+    update_values = {"app_name": new_name}
+    if pretty_new_name:
+        update_values["pretty_app_name"] = pretty_new_name
+
+    await db_session.execute(
+        update(SharedApp).where(SharedApp.app_name == old_name).values(**update_values)
+    )
+
+    await db_session.delete(resource)
+    await db_session.commit()
+    await db_session.refresh(new_app)
+
+
+async def delete_resource(
+    email: str,
+    name: str,
+    resource_type: Type[Resource],
+    db_session: AsyncSession,
+) -> None:
+    user_result = await db_session.execute(select(User).filter_by(email=email))
+    db_user = user_result.scalar_one_or_none()
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    resource_result = await db_session.execute(
+        select(resource_type).filter_by(name=name, user_email=email)
+    )
+    resource = resource_result.scalar_one_or_none()
+
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+
+    await db_session.delete(resource)
+    await db_session.commit()
+
+
+async def get_app_by_deploy_token(
+    deploy_token: str, db_session: AsyncSession
+) -> Tuple[App, UserSchema]:
+    result = await db_session.execute(
+        select(App)
+        .options(selectinload(App.user).options(*USER_EAGER_LOAD))
+        .filter_by(deploy_token=deploy_token)
+    )
+    app = result.scalar_one_or_none()
+
+    if not app:
+        raise HTTPException(status_code=404, detail="App does not exist")
+
+    return app, get_user_schema(app.user)
+
+
+async def get_app_deployment_token(name: str, db_session: AsyncSession) -> str:
+    result = await db_session.execute(select(App).filter_by(name=name))
+    app = result.scalar_one_or_none()
+
+    if not app:
+        raise HTTPException(status_code=404, detail="App does not exist")
+
+    return app.deploy_token
+
+
+async def create_take_over_access_token(email: str, db_session: AsyncSession) -> str:
+    result = await db_session.execute(select(User).filter_by(email=email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    take_over_access_token = f"take-over-{secrets.token_urlsafe(64)}-{int(time.time())}"
+
+    user.take_over_access_token = hash_access_token(take_over_access_token)
+    user.take_over_access_token_expiration = datetime.datetime.now(
+        datetime.timezone.utc
+    ) + datetime.timedelta(days=1)
+
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    return take_over_access_token
+
+
+async def share_app(
+    author_user: UserSchema,
+    system_app_name: str,
+    app_name: str,
+    email: str,
+    db_session: AsyncSession,
+) -> None:
+    target_user = await get_user(email, db_session)
+
+    shared = (email, app_name) in target_user.shared_apps
+
+    if shared:
+        raise HTTPException(status_code=400, detail="App already shared with this user")
+
+    shared_app = SharedApp(
+        app_name=system_app_name,
+        user_email=email,
+        pretty_app_name=app_name,
+        author_email=author_user.email,
+    )
+    db_session.add(shared_app)
+
+    await db_session.commit()
+    await db_session.refresh(shared_app)
+
+
+async def get_shared_app_users(app_name: str, db_session: AsyncSession) -> List[str]:
+    result = await db_session.execute(select(SharedApp).filter_by(app_name=app_name))
+    shared_list = result.scalars().all()
+
+    return [shared.user_email for shared in shared_list]
+
+
+async def unshare_app(app_name: str, email: str, db_session: AsyncSession) -> None:
+    result = await db_session.execute(
+        select(SharedApp).filter_by(app_name=app_name, user_email=email)
+    )
+    shared = result.scalar_one_or_none()
+
+    if not shared:
+        raise HTTPException(
+            status_code=404, detail="Sharing not found for this user and app"
+        )
+
+    await db_session.delete(shared)
+    await db_session.commit()
