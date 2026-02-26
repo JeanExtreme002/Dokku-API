@@ -6,7 +6,7 @@ import zipfile
 from abc import ABC
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Any, Optional, Tuple
 
 import aiofiles
 from fastapi import HTTPException, UploadFile
@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.models import App, get_app_by_deploy_token
 from src.api.schemas import UserSchema
-from src.api.tools.resource import ResourceName
+from src.api.tools.resource import ResourceName, check_shared_app
 from src.api.tools.ssh import run_command
 from src.config import Config
 
@@ -271,7 +271,10 @@ class GitService(ABC):
         app_name: str,
         repo_url: str,
         branch: str,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -286,7 +289,10 @@ class GitService(ABC):
     async def get_deployment_info(
         session_user: UserSchema,
         app_name: str,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:

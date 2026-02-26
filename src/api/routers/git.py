@@ -4,7 +4,6 @@ from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from src.api.services import GitService
-from src.api.tools.resource import check_shared_app
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -19,12 +18,9 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         shared_by: Optional[str] = None,
     ):
-        session_user = request.state.session_user
-
-        if shared_by is not None:
-            session_user = await check_shared_app(session_user, app_name, shared_by)
-
-        success, result = await GitService.get_deployment_info(session_user, app_name)
+        success, result = await GitService.get_deployment_info(
+            request.state.session_user, app_name, shared_by
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -45,13 +41,8 @@ def get_router(app: FastAPI) -> APIRouter:
         branch: str = "main",
         shared_by: Optional[str] = None,
     ):
-        session_user = request.state.session_user
-
-        if shared_by is not None:
-            session_user = await check_shared_app(session_user, app_name, shared_by)
-
         success, result = await GitService.deploy_application_by_url(
-            session_user, app_name, repo_url, branch
+            request.state.session_user, app_name, repo_url, branch, shared_by
         )
 
         return JSONResponse(

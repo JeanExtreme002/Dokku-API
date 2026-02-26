@@ -4,7 +4,6 @@ from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from src.api.services import ConfigService
-from src.api.tools.resource import check_shared_app
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -19,12 +18,9 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         shared_by: Optional[str] = None,
     ):
-        session_user = request.state.session_user
-
-        if shared_by is not None:
-            session_user = await check_shared_app(session_user, app_name, shared_by)
-
-        success, result = await ConfigService.list_config(session_user, app_name)
+        success, result = await ConfigService.list_config(
+            request.state.session_user, app_name, shared_by
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -44,12 +40,9 @@ def get_router(app: FastAPI) -> APIRouter:
         key: str,
         shared_by: Optional[str] = None,
     ):
-        session_user = request.state.session_user
-
-        if shared_by is not None:
-            session_user = await check_shared_app(session_user, app_name, shared_by)
-
-        success, result = await ConfigService.get_config(session_user, app_name, key)
+        success, result = await ConfigService.get_config(
+            request.state.session_user, app_name, key, shared_by
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -70,13 +63,8 @@ def get_router(app: FastAPI) -> APIRouter:
         value: str,
         shared_by: Optional[str] = None,
     ):
-        session_user = request.state.session_user
-
-        if shared_by is not None:
-            session_user = await check_shared_app(session_user, app_name, shared_by)
-
         success, result = await ConfigService.set_config(
-            session_user, app_name, key, value
+            request.state.session_user, app_name, key, value, shared_by
         )
 
         return JSONResponse(
@@ -97,12 +85,9 @@ def get_router(app: FastAPI) -> APIRouter:
         key: str,
         shared_by: Optional[str] = None,
     ):
-        session_user = request.state.session_user
-
-        if shared_by is not None:
-            session_user = await check_shared_app(session_user, app_name, shared_by)
-
-        success, result = await ConfigService.unset_config(session_user, app_name, key)
+        success, result = await ConfigService.unset_config(
+            request.state.session_user, app_name, key, shared_by
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

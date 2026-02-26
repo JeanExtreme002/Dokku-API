@@ -419,8 +419,14 @@ class AppService(ABC):
 
     @staticmethod
     async def execute_command(
-        session_user: UserSchema, app_name: str, container_type: str, command: str
+        session_user: UserSchema,
+        app_name: str,
+        container_type: str,
+        command: str,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -429,7 +435,11 @@ class AppService(ABC):
         return await run_command(f"enter {app_name} {container_type} {command}")
 
     @staticmethod
-    async def get_app_url(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def get_app_url(
+        session_user: UserSchema, app_name: str, shared_by: Optional[str] = None
+    ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -441,8 +451,7 @@ class AppService(ABC):
     async def get_app_info(
         session_user: UserSchema, app_name: str, shared_by: Optional[str] = None
     ) -> Tuple[bool, Any]:
-        if shared_by is not None:
-            session_user = await check_shared_app(session_user, app_name, shared_by)
+        session_user = await check_shared_app(session_user, app_name, shared_by)
 
         app_name = ResourceName(session_user, app_name, App).for_system()
 
@@ -521,8 +530,13 @@ class AppService(ABC):
 
     @staticmethod
     async def get_logs(
-        session_user: UserSchema, app_name: str, n_lines: int = 2000
+        session_user: UserSchema,
+        app_name: str,
+        n_lines: int = 2000,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -531,7 +545,11 @@ class AppService(ABC):
         return await run_command(f"logs {app_name} --num {n_lines}")
 
     @staticmethod
-    async def start_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def start_app(
+        session_user: UserSchema, app_name: str, shared_by: Optional[str] = None
+    ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -540,7 +558,11 @@ class AppService(ABC):
         return await run_command(f"ps:start {app_name}")
 
     @staticmethod
-    async def stop_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def stop_app(
+        session_user: UserSchema, app_name: str, shared_by: Optional[str] = None
+    ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -549,7 +571,11 @@ class AppService(ABC):
         return await run_command(f"ps:stop {app_name}")
 
     @staticmethod
-    async def restart_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def restart_app(
+        session_user: UserSchema, app_name: str, shared_by: Optional[str] = None
+    ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -558,7 +584,11 @@ class AppService(ABC):
         return await run_command(f"ps:restart {app_name}")
 
     @staticmethod
-    async def rebuild_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def rebuild_app(
+        session_user: UserSchema, app_name: str, shared_by: Optional[str] = None
+    ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -567,7 +597,11 @@ class AppService(ABC):
         return await run_command(f"ps:rebuild {app_name}")
 
     @staticmethod
-    async def get_builder(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def get_builder(
+        session_user: UserSchema, app_name: str, shared_by: Optional[str] = None
+    ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -591,8 +625,13 @@ class AppService(ABC):
 
     @staticmethod
     async def set_builder(
-        session_user: UserSchema, app_name: str, builder: str
+        session_user: UserSchema,
+        app_name: str,
+        builder: str,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         available_builders = ["herokuish", "dockerfile", "lambda", "pack"]
@@ -612,7 +651,11 @@ class AppService(ABC):
         return await run_command(f"builder:set {app_name} selected {builder}")
 
     @staticmethod
-    async def get_network(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def get_network(
+        session_user: UserSchema, app_name: str, shared_by: Optional[str] = None
+    ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -627,8 +670,12 @@ class AppService(ABC):
 
     @staticmethod
     async def list_port_mappings(
-        session_user: UserSchema, app_name: str, use_proxy: bool = False
+        session_user: UserSchema,
+        app_name: str,
+        use_proxy: bool = False,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -655,7 +702,10 @@ class AppService(ABC):
         dest_port: int,
         protocol: str,
         use_proxy: bool = False,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -678,7 +728,10 @@ class AppService(ABC):
         dest_port: int,
         protocol: str,
         use_proxy: bool = False,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -697,7 +750,10 @@ class AppService(ABC):
     async def get_linked_databases(
         session_user: UserSchema,
         app_name: str,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         sys_app_name = ResourceName(session_user, app_name, App).for_system()
 
         if sys_app_name not in session_user.apps:
@@ -770,12 +826,15 @@ class AppService(ABC):
         session_user: UserSchema,
         app_name: str,
         filename: str,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
         """
         Run `xxd {filename}` inside the app's web container and reconstruct bytes.
 
         Returns (success, bytes) on success, else (False, error_message).
         """
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:

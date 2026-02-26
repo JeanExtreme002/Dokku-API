@@ -1,8 +1,9 @@
-from typing import Type
+from typing import Optional, Type
 
 from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.models import get_user
+from src.api.models import AsyncSessionLocal, get_user
 from src.api.models.models import App, Resource
 from src.api.schemas import UserSchema
 from src.config import Config
@@ -52,14 +53,17 @@ class ResourceName:
 
 
 async def check_shared_app(
-    session_user: UserSchema, app_name: str, shared_by: str
+    session_user: UserSchema,
+    app_name: str,
+    shared_by: str,
+    db_session: Optional[AsyncSession] = None,
 ) -> UserSchema:
     """
     Check if the app is being shared by the target user.
 
     If it's a valid shared app, the function returns the owner.
     """
-    if session_user.email == shared_by:
+    if shared_by is None or session_user.email == shared_by:
         return session_user
 
     if (shared_by, app_name) not in session_user.shared_apps:
@@ -67,4 +71,9 @@ async def check_shared_app(
             status_code=404,
             detail="App does not exist or not shared by the owner",
         )
-    return await get_user(shared_by)
+
+    if db_session is not None:
+        return await get_user(shared_by, db_session)
+
+    async with AsyncSessionLocal() as db_session:
+        return await get_user(shared_by, db_session)

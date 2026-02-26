@@ -1,12 +1,12 @@
 import re
 from abc import ABC
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from fastapi import HTTPException
 
 from src.api.models import App
 from src.api.schemas import UserSchema
-from src.api.tools.resource import ResourceName
+from src.api.tools.resource import ResourceName, check_shared_app
 from src.api.tools.ssh import run_command
 
 
@@ -31,7 +31,11 @@ def parse_env_vars(text: str) -> Dict:
 class ConfigService(ABC):
 
     @staticmethod
-    async def list_config(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def list_config(
+        session_user: UserSchema, app_name: str, shared_by: Optional[str] = None
+    ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -48,7 +52,10 @@ class ConfigService(ABC):
         session_user: UserSchema,
         app_name: str,
         key: str,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -64,7 +71,10 @@ class ConfigService(ABC):
         app_name: str,
         key: str,
         value: str,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
@@ -83,7 +93,10 @@ class ConfigService(ABC):
         session_user: UserSchema,
         app_name: str,
         key: str,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
