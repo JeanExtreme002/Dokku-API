@@ -6,9 +6,11 @@ from abc import ABC
 from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.models import (
     App,
+    AsyncSessionLocal,
     Network,
     Service,
     create_resource,
@@ -185,7 +187,10 @@ class AppService(ABC):
 
     @staticmethod
     async def create_app(
-        session_user: UserSchema, app_name: str, unique_app: Optional[bool] = False
+        session_user: UserSchema,
+        app_name: str,
+        db_session: AsyncSession,
+        unique_app: Optional[bool] = False,
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
@@ -213,7 +218,7 @@ class AppService(ABC):
             if "does not exist" not in message.lower():
                 raise HTTPException(status_code=403, detail="App already exists")
 
-        await create_resource(session_user.email, app_name, App)
+        await create_resource(session_user.email, app_name, App, db_session)
         success, message = await run_command(f"apps:create {app_name}")
 
         if unique_app and success:
@@ -231,33 +236,36 @@ class AppService(ABC):
 
     @staticmethod
     async def get_shared_app_users(
-        session_user: UserSchema, app_name: str
+        session_user: UserSchema, app_name: str, db_session: AsyncSession
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        results = await get_shared_app_users(app_name)
+        results = await get_shared_app_users(app_name, db_session)
 
         return True, results
 
     @staticmethod
     async def unshare_app(
-        session_user: UserSchema, app_name: str, email: str
+        session_user: UserSchema, app_name: str, email: str, db_session: AsyncSession
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        await unshare_app(app_name, email)
+        await unshare_app(app_name, email, db_session)
 
         return True, None
 
     @staticmethod
     async def share_app(
-        session_user: UserSchema, app_name: str, target_email: str
+        session_user: UserSchema,
+        app_name: str,
+        target_email: str,
+        db_session: AsyncSession,
     ) -> Tuple[bool, Any]:
         if session_user.email == target_email:
             raise HTTPException(
@@ -269,7 +277,9 @@ class AppService(ABC):
         if system_app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        await share_app(session_user, system_app_name, app_name, target_email)
+        await share_app(
+            session_user, system_app_name, app_name, target_email, db_session
+        )
 
         return True, None
 
@@ -278,6 +288,7 @@ class AppService(ABC):
         session_user: UserSchema,
         app_name: str,
         new_app_name: str,
+        db_session: AsyncSession,
         unique_app: Optional[bool] = False,
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
@@ -317,9 +328,15 @@ class AppService(ABC):
                     return logging.warning("apps:rename failed: %s", message)
 
                 raw_new_app_name = get_raw_app(new_app_name)
-                await rename_resource(
-                    session_user.email, app_name, new_app_name, raw_new_app_name, App
-                )
+                async with AsyncSessionLocal() as task_session:
+                    await rename_resource(
+                        session_user.email,
+                        app_name,
+                        new_app_name,
+                        raw_new_app_name,
+                        App,
+                        task_session,
+                    )
 
                 if unique_app:
                     session_user.apps.append(new_app_name)
@@ -344,28 +361,35 @@ class AppService(ABC):
     async def get_deployment_token(
         session_user: UserSchema,
         app_name: str,
+        db_session: AsyncSession,
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        deploy_token = await get_app_deployment_token(app_name)
+        deploy_token = await get_app_deployment_token(app_name, db_session)
 
         return True, deploy_token
 
     @staticmethod
-    async def delete_app(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def delete_app(
+        session_user: UserSchema,
+        app_name: str,
+        db_session: AsyncSession,
+    ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
 
-        await delete_resource(session_user.email, app_name, App)
+        await delete_resource(session_user.email, app_name, App, db_session)
         return await run_command(f"--force apps:destroy {app_name}")
 
     @staticmethod
-    async def set_owner(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def set_owner(
+        session_user: UserSchema, app_name: str, db_session: AsyncSession
+    ) -> Tuple[bool, Any]:
         _, message = await run_command(f"apps:exists {app_name}")
 
         if "does not exist" in message.lower():
@@ -374,18 +398,20 @@ class AppService(ABC):
         system_app_name = ResourceName(session_user, app_name, App).for_system()
 
         if system_app_name not in session_user.apps:
-            await create_resource(session_user.email, system_app_name, App)
+            await create_resource(session_user.email, system_app_name, App, db_session)
 
         await run_command(f"apps:rename {app_name} {system_app_name}")
 
         return True, None
 
     @staticmethod
-    async def unset_owner(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
+    async def unset_owner(
+        session_user: UserSchema, app_name: str, db_session: AsyncSession
+    ) -> Tuple[bool, Any]:
         system_app_name = ResourceName(session_user, app_name, App).for_system()
 
         if system_app_name in session_user.apps:
-            await delete_resource(session_user.email, system_app_name, App)
+            await delete_resource(session_user.email, system_app_name, App, db_session)
 
         await run_command(f"apps:rename {system_app_name} {app_name}")
 
@@ -767,7 +793,7 @@ class AppService(ABC):
             return False, f"Failed to parse xxd output: {error}"
 
     @staticmethod
-    async def sync_dokku_with_api_database() -> None:
+    async def sync_dokku_with_api_database(db_session: AsyncSession) -> None:
         if not Config.API_USE_PER_USER_RESOURCE_NAMES:
             logging.warning(
                 "[sync_dokku_w_network_database]::Not implemented on API_USE_PER_USER_RESOURCE_NAMES=false..."
@@ -785,7 +811,7 @@ class AppService(ABC):
         apps = parse_apps_list(message)
         apps = {name: True for name in apps if get_user_id_from_app(name) is not None}
 
-        db_apps = await get_resources(App, offset=0, limit=None)
+        db_apps = await get_resources(App, offset=0, limit=None, db_session=db_session)
 
         for app in db_apps:
             apps.pop(app["name"], None)

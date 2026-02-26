@@ -1,6 +1,8 @@
-from fastapi import APIRouter, FastAPI, Request, status
+from fastapi import APIRouter, Depends, FastAPI, Request, status
 from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.models import get_db_session
 from src.api.services import NetworkService
 
 
@@ -25,9 +27,10 @@ def get_router(app: FastAPI) -> APIRouter:
     async def create_network(
         request: Request,
         network_name: str,
+        db_session: AsyncSession = Depends(get_db_session),
     ):
         success, result = await NetworkService.create_network(
-            request.state.session_user, network_name
+            request.state.session_user, network_name, db_session
         )
         status_code = status.HTTP_201_CREATED
 
@@ -46,9 +49,10 @@ def get_router(app: FastAPI) -> APIRouter:
     async def delete_network(
         request: Request,
         network_name: str,
+        db_session: AsyncSession = Depends(get_db_session),
     ):
         success, result = await NetworkService.delete_network(
-            request.state.session_user, network_name
+            request.state.session_user, network_name, db_session
         )
 
         return JSONResponse(

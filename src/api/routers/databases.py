@@ -1,6 +1,8 @@
-from fastapi import APIRouter, FastAPI, Request, status
+from fastapi import APIRouter, Depends, FastAPI, Request, status
 from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.models import get_db_session
 from src.api.services import DatabaseService
 
 
@@ -50,9 +52,10 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         plugin_name: str,
         database_name: str,
+        db_session: AsyncSession = Depends(get_db_session),
     ):
         success, result = await DatabaseService.create_database(
-            request.state.session_user, plugin_name, database_name
+            request.state.session_user, plugin_name, database_name, db_session
         )
         status_code = status.HTTP_201_CREATED
 
@@ -75,9 +78,10 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         plugin_name: str,
         database_name: str,
+        db_session: AsyncSession = Depends(get_db_session),
     ):
         success, result = await DatabaseService.delete_database(
-            request.state.session_user, plugin_name, database_name
+            request.state.session_user, plugin_name, database_name, db_session
         )
 
         return JSONResponse(

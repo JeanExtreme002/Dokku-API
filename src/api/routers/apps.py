@@ -1,9 +1,11 @@
 import os
 from typing import Optional
 
-from fastapi import APIRouter, FastAPI, Request, status
+from fastapi import APIRouter, Depends, FastAPI, Request, status
 from fastapi.responses import JSONResponse, Response
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.models import get_db_session
 from src.api.services import AppService
 from src.api.tools.resource import check_shared_app
 
@@ -45,9 +47,15 @@ def get_router(app: FastAPI) -> APIRouter:
         "/{app_name}/sharing/",
         response_description="Returns all users with whom the application is being shared",
     )
-    async def get_shared_app_users(request: Request, app_name: str):
+    async def get_shared_app_users(
+        request: Request,
+        app_name: str,
+        db_session: AsyncSession = Depends(get_db_session),
+    ):
         success, result = await AppService.get_shared_app_users(
-            request.state.session_user, app_name
+            request.state.session_user,
+            app_name,
+            db_session,
         )
 
         return JSONResponse(
@@ -94,9 +102,13 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
         unique_app: Optional[bool] = False,
+        db_session: AsyncSession = Depends(get_db_session),
     ):
         success, result = await AppService.create_app(
-            request.state.session_user, app_name, unique_app
+            request.state.session_user,
+            app_name,
+            db_session,
+            unique_app,
         )
         status_code = status.HTTP_201_CREATED
 
@@ -136,9 +148,10 @@ def get_router(app: FastAPI) -> APIRouter:
     async def delete_app(
         request: Request,
         app_name: str,
+        db_session: AsyncSession = Depends(get_db_session),
     ):
         success, result = await AppService.delete_app(
-            request.state.session_user, app_name
+            request.state.session_user, app_name, db_session
         )
 
         return JSONResponse(
@@ -182,11 +195,16 @@ def get_router(app: FastAPI) -> APIRouter:
         app_name: str,
         new_app_name: str,
         unique_app: Optional[bool] = False,
+        db_session: AsyncSession = Depends(get_db_session),
     ):
         session_user = request.state.session_user
 
         success, result = await AppService.rename_app(
-            session_user, app_name, new_app_name, unique_app
+            session_user,
+            app_name,
+            new_app_name,
+            db_session,
+            unique_app,
         )
 
         return JSONResponse(
@@ -228,9 +246,10 @@ def get_router(app: FastAPI) -> APIRouter:
     async def get_deployment_token(
         request: Request,
         app_name: str,
+        db_session: AsyncSession = Depends(get_db_session),
     ):
         success, result = await AppService.get_deployment_token(
-            request.state.session_user, app_name
+            request.state.session_user, app_name, db_session
         )
 
         return JSONResponse(
@@ -600,9 +619,10 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
         target_email: str,
+        db_session: AsyncSession = Depends(get_db_session),
     ):
         success, result = await AppService.share_app(
-            request.state.session_user, app_name, target_email
+            request.state.session_user, app_name, target_email, db_session
         )
 
         return JSONResponse(
@@ -621,9 +641,10 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
         target_email: str,
+        db_session: AsyncSession = Depends(get_db_session),
     ):
         success, result = await AppService.unshare_app(
-            request.state.session_user, app_name, target_email
+            request.state.session_user, app_name, target_email, db_session
         )
 
         return JSONResponse(

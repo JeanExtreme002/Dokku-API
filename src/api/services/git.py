@@ -10,6 +10,7 @@ from typing import Any, Tuple
 
 import aiofiles
 from fastapi import HTTPException, UploadFile
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.models import App, get_app_by_deploy_token
 from src.api.schemas import UserSchema
@@ -18,7 +19,9 @@ from src.api.tools.ssh import run_command
 from src.config import Config
 
 
-async def save_app_zip(file: UploadFile, dest_dir: Path) -> Tuple[Path, App]:
+async def save_app_zip(
+    file: UploadFile, dest_dir: Path, db_session: AsyncSession
+) -> Tuple[Path, App]:
     temp_zip_path = dest_dir / "repository.zip"
     git_path = dest_dir / ".git"
 
@@ -58,7 +61,7 @@ async def save_app_zip(file: UploadFile, dest_dir: Path) -> Tuple[Path, App]:
     with open(deploy_token_path, "r") as deploy_token_file:
         deploy_token = deploy_token_file.read().strip().strip("\n").strip("\r")
 
-    app, user = await get_app_by_deploy_token(deploy_token)
+    app, user = await get_app_by_deploy_token(deploy_token, db_session)
     return dest_dir, app, user
 
 
@@ -295,6 +298,7 @@ class GitService(ABC):
     @staticmethod
     async def deploy_application(
         file: UploadFile,
+        db_session: AsyncSession,
         wait: bool = False,
     ) -> Tuple[bool, Any]:
         filename = file.filename.split(".")[0]
@@ -309,7 +313,7 @@ class GitService(ABC):
         dest_dir = BASE_DIR / f"dokku-api-deploy-{filename}-{timestamp}"
         dest_dir.mkdir(parents=True, exist_ok=True)
 
-        dest_dir, app, user = await save_app_zip(file, dest_dir)
+        dest_dir, app, user = await save_app_zip(file, dest_dir, db_session)
         app_name = ResourceName(user, app.name, App, from_system=True).for_system()
 
         task = push_to_dokku(dest_dir, SSH_HOSTNAME, SSH_PORT, app_name, branch=BRANCH)

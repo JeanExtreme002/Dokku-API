@@ -5,6 +5,7 @@ from abc import ABC
 from typing import Any, Dict, Optional, Tuple
 
 from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.models import App, Network, create_resource, delete_resource, get_resources
 from src.api.schemas import UserSchema
@@ -60,7 +61,7 @@ class NetworkService(ABC):
 
     @staticmethod
     async def create_network(
-        session_user: UserSchema, network_name: str
+        session_user: UserSchema, network_name: str, db_session: AsyncSession
     ) -> Tuple[bool, Any]:
         network_name = ResourceName(session_user, network_name, Network).for_system()
 
@@ -69,19 +70,19 @@ class NetworkService(ABC):
         if "does not exist" not in message.lower():
             raise HTTPException(status_code=403, detail="Network already exists")
 
-        await create_resource(session_user.email, network_name, Network)
+        await create_resource(session_user.email, network_name, Network, db_session)
         return await run_command(f"network:create {network_name}")
 
     @staticmethod
     async def delete_network(
-        session_user: UserSchema, network_name: str
+        session_user: UserSchema, network_name: str, db_session: AsyncSession
     ) -> Tuple[bool, Any]:
         network_name = ResourceName(session_user, network_name, Network).for_system()
 
         if network_name not in session_user.networks:
             raise HTTPException(status_code=404, detail="Network does not exist")
 
-        await delete_resource(session_user.email, network_name, Network)
+        await delete_resource(session_user.email, network_name, Network, db_session)
         return await run_command(f"--force network:destroy {network_name}")
 
     @staticmethod
@@ -182,7 +183,7 @@ class NetworkService(ABC):
         return True, results
 
     @staticmethod
-    async def sync_dokku_with_api_database() -> None:
+    async def sync_dokku_with_api_database(db_session: AsyncSession) -> None:
         if not Config.API_USE_PER_USER_RESOURCE_NAMES:
             logging.warning(
                 "[sync_dokku_w_network_database]::Not implemented on API_USE_PER_USER_RESOURCE_NAMES=false..."
@@ -204,7 +205,9 @@ class NetworkService(ABC):
             if get_user_id_from_network(name) is not None
         }
 
-        db_networks = await get_resources(Network, offset=0, limit=None)
+        db_networks = await get_resources(
+            Network, offset=0, limit=None, db_session=db_session
+        )
 
         for network in db_networks:
             networks.pop(network["name"], None)

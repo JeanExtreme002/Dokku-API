@@ -5,6 +5,7 @@ from abc import ABC
 from typing import Any, Dict, Optional, Tuple
 
 from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.models import App, Service, create_resource, delete_resource, get_resources
 from src.api.schemas import UserSchema
@@ -71,6 +72,7 @@ class DatabaseService(ABC):
         session_user: UserSchema,
         plugin_name: str,
         database_name: str,
+        db_session: AsyncSession,
     ) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
         available_databases = (await DatabaseService.list_available_databases())[1]
@@ -90,7 +92,10 @@ class DatabaseService(ABC):
             raise HTTPException(status_code=404, detail="Plugin does not exist")
 
         await create_resource(
-            session_user.email, f"{plugin_name}:{database_name}", Service
+            session_user.email,
+            f"{plugin_name}:{database_name}",
+            Service,
+            db_session,
         )
         return await run_command(f"{plugin_name}:create {database_name}")
 
@@ -158,6 +163,7 @@ class DatabaseService(ABC):
         session_user: UserSchema,
         plugin_name: str,
         database_name: str,
+        db_session: AsyncSession,
     ) -> Tuple[bool, Any]:
         system_database_name = ResourceName(
             session_user, database_name, Service
@@ -179,7 +185,10 @@ class DatabaseService(ABC):
             )
 
         await delete_resource(
-            session_user.email, f"{plugin_name}:{system_database_name}", Service
+            session_user.email,
+            f"{plugin_name}:{system_database_name}",
+            Service,
+            db_session,
         )
         return await run_command(
             f"--force {plugin_name}:destroy {system_database_name}"
@@ -384,7 +393,7 @@ class DatabaseService(ABC):
         return True, message
 
     @staticmethod
-    async def sync_dokku_with_api_database() -> None:
+    async def sync_dokku_with_api_database(db_session: AsyncSession) -> None:
         if not Config.API_USE_PER_USER_RESOURCE_NAMES:
             logging.warning(
                 "[sync_dokku_w_service_database]::Not implemented on API_USE_PER_USER_RESOURCE_NAMES=false..."
@@ -409,7 +418,9 @@ class DatabaseService(ABC):
 
         logging.warning("[sync_dokku_w_service_database]::Syncing Dokku...")
 
-        db_services = await get_resources(Service, offset=0, limit=None)
+        db_services = await get_resources(
+            Service, offset=0, limit=None, db_session=db_session
+        )
 
         for service in db_services:
             services.pop(service["name"], None)

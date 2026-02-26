@@ -4,7 +4,7 @@ from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
-from src.api.models import get_user_by_access_token
+from src.api.models import AsyncSessionLocal, get_user_by_access_token
 
 
 class UserSessionMiddleware(BaseHTTPMiddleware):
@@ -24,9 +24,11 @@ class UserSessionMiddleware(BaseHTTPMiddleware):
             body = json.loads(body_bytes)
 
             if isinstance(body, dict) and (access_token := body.get("access_token")):
-                request.state.session_user = await get_user_by_access_token(
-                    access_token
-                )
+                async with AsyncSessionLocal() as db_session:
+                    request.state.session_user = await get_user_by_access_token(
+                        access_token,
+                        db_session,
+                    )
 
         except HTTPException as error:
             return JSONResponse(

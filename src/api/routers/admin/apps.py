@@ -1,7 +1,8 @@
-from fastapi import APIRouter, FastAPI, Request, status
+from fastapi import APIRouter, Depends, FastAPI, Request, status
 from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.models import get_user
+from src.api.models import get_db_session, get_user
 from src.api.services import AppService
 
 
@@ -12,26 +13,40 @@ def get_router(app: FastAPI) -> APIRouter:
         "/{email}/set-owner/{app_name}/",
         response_description="Set a user as owner of an existing app",
     )
-    async def set_owner(request: Request, email: str, app_name: str):
-        user = await get_user(email)
-        await AppService.set_owner(user, app_name)
+    async def set_owner(
+        request: Request,
+        email: str,
+        app_name: str,
+        db_session: AsyncSession = Depends(get_db_session),
+    ):
+        user = await get_user(email, db_session)
+        await AppService.set_owner(user, app_name, db_session)
 
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
 
     @router.delete(
         "/{email}/set-owner/{app_name}/", response_description="Unset owner from an app"
     )
-    async def unset_owner(request: Request, email: str, app_name: str):
-        user = await get_user(email)
-        await AppService.unset_owner(user, app_name)
+    async def unset_owner(
+        request: Request,
+        email: str,
+        app_name: str,
+        db_session: AsyncSession = Depends(get_db_session),
+    ):
+        user = await get_user(email, db_session)
+        await AppService.unset_owner(user, app_name, db_session)
 
         return JSONResponse(status_code=status.HTTP_200_OK, content={})
 
     @router.post(
         "/storage/{email}/{app_name}/", response_description="List storage of an app"
     )
-    async def list_storage(email: str, app_name: str):
-        user = await get_user(email)
+    async def list_storage(
+        email: str,
+        app_name: str,
+        db_session: AsyncSession = Depends(get_db_session),
+    ):
+        user = await get_user(email, db_session)
 
         success, result = await AppService.list_storage(user, app_name)
 
@@ -43,8 +58,13 @@ def get_router(app: FastAPI) -> APIRouter:
     @router.put(
         "/storage/{email}/{app_name}/", response_description="Mount storage for app"
     )
-    async def mount_storage(email: str, app_name: str, directory: str = "/app/storage"):
-        user = await get_user(email)
+    async def mount_storage(
+        email: str,
+        app_name: str,
+        directory: str = "/app/storage",
+        db_session: AsyncSession = Depends(get_db_session),
+    ):
+        user = await get_user(email, db_session)
 
         success, result = await AppService.mount_storage(user, app_name, directory)
 
@@ -57,9 +77,12 @@ def get_router(app: FastAPI) -> APIRouter:
         "/storage/{email}/{app_name}/", response_description="Unmount storage for app"
     )
     async def unmount_storage(
-        email: str, app_name: str, directory: str = "/app/storage"
+        email: str,
+        app_name: str,
+        directory: str = "/app/storage",
+        db_session: AsyncSession = Depends(get_db_session),
     ):
-        user = await get_user(email)
+        user = await get_user(email, db_session)
 
         success, result = await AppService.unmount_storage(user, app_name, directory)
 

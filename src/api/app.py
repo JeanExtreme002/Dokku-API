@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.api.middlewares import UserSessionMiddleware
+from src.api.models import AsyncSessionLocal
 from src.api.routers import get_router
 from src.api.services import AppService, DatabaseService, NetworkService
 from src.config import Config
@@ -43,11 +44,23 @@ def get_app() -> FastAPI:
 
     _app.include_router(get_router(_app))
 
+    async def sync_apps_job():
+        async with AsyncSessionLocal() as db_session:
+            await AppService.sync_dokku_with_api_database(db_session)
+
+    async def sync_databases_job():
+        async with AsyncSessionLocal() as db_session:
+            await DatabaseService.sync_dokku_with_api_database(db_session)
+
+    async def sync_networks_job():
+        async with AsyncSessionLocal() as db_session:
+            await NetworkService.sync_dokku_with_api_database(db_session)
+
     @_app.on_event("startup")
     async def startup():
         scheduler.start()
         scheduler.add_job(
-            AppService.sync_dokku_with_api_database,
+            sync_apps_job,
             trigger=IntervalTrigger(hours=1),
             id="sync_dokku_with_app_database",
             replace_existing=True,
@@ -56,7 +69,7 @@ def get_app() -> FastAPI:
             coalesce=True,
         )
         scheduler.add_job(
-            DatabaseService.sync_dokku_with_api_database,
+            sync_databases_job,
             trigger=IntervalTrigger(hours=1),
             id="sync_dokku_with_service_database",
             replace_existing=True,
@@ -65,7 +78,7 @@ def get_app() -> FastAPI:
             coalesce=True,
         )
         scheduler.add_job(
-            NetworkService.sync_dokku_with_api_database,
+            sync_networks_job,
             trigger=IntervalTrigger(minutes=10),
             id="sync_dokku_with_network_database",
             replace_existing=True,
