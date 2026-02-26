@@ -1,7 +1,7 @@
 import functools
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from src.api.models.models import App, Network, Service, User
+from src.api.models import App, Network, Service, User
 from src.api.schemas import UserSchema
 from src.api.tools import hash_access_token
 
@@ -24,7 +24,7 @@ MockNetwork = Network(name="test-network", user_email=MockUser.email)
 def mock_all_models(test_func):
     @functools.wraps(test_func)
     async def wrapper(*args, **kwargs):
-        with patch("src.api.models.models.AsyncSessionLocal") as mock_sessionmaker:
+        with patch("src.api.models.session.AsyncSessionLocal") as mock_sessionmaker:
             mock_session = AsyncMock()
             mock_sessionmaker.return_value.__aenter__.return_value = mock_session
 

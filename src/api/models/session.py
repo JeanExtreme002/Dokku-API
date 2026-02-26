@@ -1,17 +1,7 @@
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from src.api.models.base import (
-    USER_EAGER_LOAD,
-    App,
-    Base,
-    Network,
-    Resource,
-    Service,
-    SharedApp,
-    User,
-)
-from src.api.schemas import UserSchema
+from src.api.models.base import Base
 from src.config import Config
 
 DB_USER = Config.DATABASE.DB_USER

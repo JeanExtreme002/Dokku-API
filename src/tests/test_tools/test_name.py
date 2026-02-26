@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from src.api.models.models import App, Service
+from src.api.models import App, Service
 from src.api.schemas import UserSchema
 from src.api.tools.resource import ResourceName
 

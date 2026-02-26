@@ -4,10 +4,10 @@ from unittest.mock import patch
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
-from src.api.middlewares.session import SessionUserMiddleware
+from src.api.middlewares.session import UserSessionMiddleware
 
 
-class TestSessionUserMiddleware(unittest.TestCase):
+class TestUserSessionMiddleware(unittest.TestCase):
     def setUp(self):
         self.app = FastAPI()
 
@@ -16,7 +16,7 @@ class TestSessionUserMiddleware(unittest.TestCase):
             user = request.state.session_user
             return {"user": user.email if user else None}
 
-        self.app.add_middleware(SessionUserMiddleware)
+        self.app.add_middleware(UserSessionMiddleware)
         self.client = TestClient(self.app)
 
     @patch("src.api.middlewares.session.get_user_by_access_token")
@@ -30,7 +30,8 @@ class TestSessionUserMiddleware(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["user"], "test@example.com")
-        mock_get_user.assert_awaited_once_with("validtoken")
+        mock_get_user.assert_awaited_once()
+        self.assertEqual(mock_get_user.await_args.args[0], "validtoken")
 
     @patch("src.api.middlewares.session.get_user_by_access_token")
     def test_invalid_access_token_returns_401(self, mock_get_user):

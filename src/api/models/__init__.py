@@ -1,12 +1,7 @@
-from src.api.models.models import (
+from src.api.models.base import App, Network, Resource, Service, SharedApp, User
+from src.api.models.session import (
     DATABASE_URL,
-    App,
     AsyncSessionLocal,
-    Network,
-    Resource,
-    Service,
-    SharedApp,
-    User,
     get_db_session,
     init_models,
 )
