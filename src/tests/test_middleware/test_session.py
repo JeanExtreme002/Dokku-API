@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.testclient import TestClient
 
 from src.api.middlewares.session import UserSessionMiddleware
@@ -35,8 +35,6 @@ class TestUserSessionMiddleware(unittest.TestCase):
 
     @patch("src.api.middlewares.session.get_user_by_access_token")
     def test_invalid_access_token_returns_401(self, mock_get_user):
-        from fastapi import HTTPException
-
         mock_get_user.side_effect = HTTPException(
             status_code=401, detail="Invalid token"
         )
