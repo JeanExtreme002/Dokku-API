@@ -211,6 +211,21 @@ class DatabaseService(ABC):
         return success, parse_service_info(plugin_name, message) if success else None
 
     @staticmethod
+    async def export_as_dump(
+        session_user: UserSchema,
+        plugin_name: str,
+        database_name: str,
+    ) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+
+        if f"{plugin_name}:{database_name}" not in session_user.services:
+            raise HTTPException(
+                status_code=404,
+                detail="Database does not exist",
+            )
+        return await run_command(f"{plugin_name}:export {database_name}")
+
+    @staticmethod
     async def get_linked_apps(
         session_user: UserSchema,
         plugin_name: str,

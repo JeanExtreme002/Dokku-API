@@ -135,6 +135,27 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
+        "/{plugin_name}/{database_name}/export/",
+        response_description="Export the database as a SQL dump",
+    )
+    async def export_as_dump(
+        request: Request,
+        plugin_name: str,
+        database_name: str,
+    ):
+        success, result = await DatabaseService.export_as_dump(
+            request.state.session_user, plugin_name, database_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
+    @router.post(
         "/{plugin_name}/{database_name}/linked-apps/",
         response_description="Return all apps linked to a database",
     )
