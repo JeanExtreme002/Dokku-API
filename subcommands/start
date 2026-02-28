@@ -8,28 +8,13 @@ cmd-dokku-api-start() {
   declare cmd="$PLUGIN_COMMAND_PREFIX:start"
   [[ "$1" == "$cmd" ]] && shift 1
 
-  # Get required data from user input.
-  echo "Please fill in the information below:"
-  read -r -p "SSH_HOSTNAME: " SSH_HOSTNAME
-  read -r -p "SSH_PORT: " SSH_PORT
-  read -r -p "API_KEY: " API_KEY
-  read -r -p "MASTER_KEY: " MASTER_KEY
-  read -r -p "SSH_KEY_PATH: " SSH_KEY_PATH
-  read -r -p "VOLUME_DIR: " VOLUME_DIR
-
-  local APP REPO REF
-  APP="${1:-$DEFAULT_APP}"
-  REPO="${2:-$DEFAULT_REPO}"
-  REF="${3:-$DEFAULT_REF}"
+  local APP="${1:-$DEFAULT_APP}"
+  local REPO="${2:-$DEFAULT_REPO}"
+  local REF="${3:-$DEFAULT_REF}"
 
   local DB_NAME="${APP}-db"
   local APP_VOLUME_DIR="/app/storage"
   local APP_SSH_KEY_PATH="$APP_VOLUME_DIR/id_rsa"
-
-  # Support `--app <name>` (Dokku sets DOKKU_APP_NAME)
-  if [[ -n "${DOKKU_APP_NAME:-}" ]]; then
-    APP="$DOKKU_APP_NAME"
-  fi
 
   # Install the database
   if ! dokku mysql:help >/dev/null 2>&1; then
@@ -46,23 +31,9 @@ cmd-dokku-api-start() {
   fi
 
   dokku builder:set "$APP" selected dockerfile
-
-  dokku config:set --no-restart "$APP" \
-    VOLUME_DIR="$APP_VOLUME_DIR" \
-    SSH_KEY_PATH="$APP_SSH_KEY_PATH" \
-    SSH_HOSTNAME="$SSH_HOSTNAME" \
-    SSH_PORT="$SSH_PORT" \
-    API_KEY="$API_KEY" \
-    MASTER_KEY="$MASTER_KEY"
-
   dokku mysql:link "$DB_NAME" "$APP" >/dev/null 2>&1
 
-  # Mount storage and save SSH key into the application
-  mkdir -p "$VOLUME_DIR/$APP"
-  cp "$SSH_KEY_PATH" "$VOLUME_DIR/$APP/id_rsa"
-  chmod 644 "$VOLUME_DIR/$APP/id_rsa"
-
-  dokku storage:mount "$APP" "$VOLUME_DIR/$APP/:$APP_VOLUME_DIR" >/dev/null 2>&1
+  config_api "$APP" "$APP_VOLUME_DIR" "$APP_SSH_KEY_PATH"
 
   # Setup NGINX config
   dokku nginx:set "$APP" client-max-body-size 1024M >/dev/null 2>&1
@@ -70,6 +41,65 @@ cmd-dokku-api-start() {
 
   # Deploy from GitHub repository
   dokku git:sync --build "$APP" "$REPO" "$REF"
+}
+
+config_api() {
+  local app_name="$1"
+  local app_volume_dir="$2"
+  local app_ssh_key_path="$3"
+  local existing_config=""
+
+  local VOLUME_DIR="/var/lib/dokku/data/storage"
+
+  # Check if the application was configured previously
+  existing_config="$(dokku config:show "$app_name" 2>/dev/null || true)"
+  if [[ -n "$existing_config" ]] && printf "%s" "$existing_config" | grep -q "^SSH_HOSTNAME: "; then
+    return 0
+  fi
+
+  # Get required data from user input
+  echo "Please fill in the information below:"
+  read -r -p "SSH Hostname: " SSH_HOSTNAME
+  read -r -p "SSH Port: " SSH_PORT
+  read -r -p "SSH Key Path: " SSH_KEY_PATH
+
+  # Get / Generate API secrets
+  local API_KEY=""
+  local MASTER_KEY=""
+
+  read -r -p "Auto-generate API and MASTER keys? [y/N]: " AUTO_KEYS
+  case "$AUTO_KEYS" in
+    [yY])
+      API_KEY="$(cat /proc/sys/kernel/random/uuid)"
+      MASTER_KEY="$(cat /dev/urandom | head -c 32 | od -An -tx1 | tr -d ' \n')"
+      echo "API_KEY: $API_KEY"
+      echo "MASTER_KEY: $MASTER_KEY"
+      ;;
+    *)
+      while [[ -z "$API_KEY" ]]; do
+        read -r -p "API_KEY: " API_KEY
+      done
+      while [[ -z "$MASTER_KEY" ]]; do
+        read -r -p "MASTER_KEY: " MASTER_KEY
+      done
+      ;;
+  esac
+
+  # Configure the application
+  dokku config:set --no-restart "$app_name" \
+    VOLUME_DIR="$app_volume_dir" \
+    SSH_KEY_PATH="$app_ssh_key_path" \
+    SSH_HOSTNAME="$SSH_HOSTNAME" \
+    SSH_PORT="$SSH_PORT" \
+    API_KEY="$API_KEY" \
+    MASTER_KEY="$MASTER_KEY"
+
+  # Mount storage and save SSH key into the application
+  mkdir -p "$VOLUME_DIR/$app_name"
+  cp "$SSH_KEY_PATH" "$VOLUME_DIR/$app_name/id_rsa"
+  chmod 644 "$VOLUME_DIR/$app_name/id_rsa"
+
+  dokku storage:mount "$app_name" "$VOLUME_DIR/$app_name/:$app_volume_dir"
 }
 
 cmd-dokku-api-start "$@"

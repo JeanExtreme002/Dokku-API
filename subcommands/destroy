@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../config"
+set -eo pipefail
+[[ $DOKKU_TRACE ]] && set -x
+
+cmd-dokku-api-destroy() {
+  declare desc="Destroy Dokku-API application and its database"
+  declare cmd="$PLUGIN_COMMAND_PREFIX:destroy"
+  [[ "$1" == "$cmd" ]] && shift 1
+
+  local APP="${1:-$DEFAULT_APP}"
+
+  # Destroy the database
+  if dokku mysql:exists "$DB_NAME" >/dev/null 2>&1; then
+    dokku mysql:destroy "$DB_NAME" --force
+  fi
+
+  # Destroy the application
+  if dokku apps:exists "$APP" >/dev/null 2>&1; then
+    dokku apps:destroy "$APP" --force
+  fi
+}
+
+cmd-dokku-api-start "$@"

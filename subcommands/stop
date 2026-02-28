@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../config"
+set -eo pipefail
+[[ $DOKKU_TRACE ]] && set -x
+
+cmd-dokku-api-stop() {
+  declare desc="Stop Dokku-API application"
+  declare cmd="$PLUGIN_COMMAND_PREFIX:stop"
+  [[ "$1" == "$cmd" ]] && shift 1
+
+  local APP="${1:-$DEFAULT_APP}"
+
+  # Stop the application
+  dokku apps:stop "$APP"
+}
+
+cmd-dokku-api-start "$@"
