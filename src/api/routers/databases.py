@@ -70,6 +70,37 @@ def get_router(app: FastAPI) -> APIRouter:
             },
         )
 
+    @router.post(
+        "/{plugin_name}/{database_name}/clone/{existing_database_name}/",
+        response_description="Clone a database",
+    )
+    async def clone_database(
+        request: Request,
+        plugin_name: str,
+        database_name: str,
+        existing_database_name: str,
+        db_session: AsyncSession = Depends(get_db_session),
+    ):
+        success, result = await DatabaseService.create_database(
+            request.state.session_user,
+            plugin_name,
+            database_name,
+            db_session,
+            existing_database_name,
+        )
+        status_code = status.HTTP_201_CREATED
+
+        if not success:
+            status_code = status.HTTP_200_OK
+
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
     @router.delete(
         "/{plugin_name}/{database_name}/",
         response_description="Delete a database",

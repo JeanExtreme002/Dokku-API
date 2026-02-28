@@ -73,8 +73,14 @@ class DatabaseService(ABC):
         plugin_name: str,
         database_name: str,
         db_session: AsyncSession,
+        clone_from: Optional[str] = None,
     ) -> Tuple[bool, Any]:
         database_name = ResourceName(session_user, database_name, Service).for_system()
+        clone_from = (
+            ResourceName(session_user, clone_from, Service).for_system()
+            if clone_from
+            else None
+        )
         available_databases = (await DatabaseService.list_available_databases())[1]
 
         if plugin_name not in available_databases:
@@ -82,6 +88,17 @@ class DatabaseService(ABC):
                 status_code=404,
                 detail="Plugin not found",
             )
+
+        if clone_from:
+            _, message = await run_command(f"{plugin_name}:exists {clone_from}")
+
+            if (
+                f"{plugin_name}:{clone_from}" not in session_user.services
+                or f"service {clone_from} exists" not in message.lower()
+            ):
+                raise HTTPException(
+                    status_code=404, detail=f"Service '{clone_from}' does not exist"
+                )
 
         _, message = await run_command(f"{plugin_name}:exists {database_name}")
 
@@ -97,7 +114,12 @@ class DatabaseService(ABC):
             Service,
             db_session,
         )
-        return await run_command(f"{plugin_name}:create {database_name}")
+        if clone_from:
+            return await run_command(
+                f"{plugin_name}:clone {clone_from} {database_name}"
+            )
+        else:
+            return await run_command(f"{plugin_name}:create {database_name}")
 
     @staticmethod
     async def list_all_databases(
