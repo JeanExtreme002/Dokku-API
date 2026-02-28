@@ -16,14 +16,19 @@ $ dokku-api help
 ## Getting Started (quick run)
 The entire project has been built to run entirely on [Dokku](https://dokku.com/) or [Docker](https://www.docker.com/).
 
+
+#### For installing and running the API as a Dokku application:
+```
+$ dokku plugin:install https://github.com/JeanExtreme002/Dokku-API.git
+$ dokku dokku-api:start
+```
+
+#### For installing and running the API on Docker:
 Create a `.env` from `.env.sample`, configure the variables, and execute one of the commands below to run the application:
 ```
-# For installing and running the API as a Dokku application.
-$ make dokku-install
-
-# For installing and running the API on Docker.
 $ make docker-run
 ```
+
 Now, open the API on your browser at [http://dokku-api.yourdomain](http://dokku-api.yourdomain) — if you did not change the default settings.
 
 Access [/docs](http://dokku-api.yourdomain/docs) for more information about the API.

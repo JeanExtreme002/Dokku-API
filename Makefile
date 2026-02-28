@@ -10,8 +10,6 @@ NC=\033[0m # No Color
 TIMESTAMP     := $(shell date +%s)
 SSH_DIR       ?= $(HOME)/.ssh
 
-FORMATTED_API_NAME := $$(echo "$(API_NAME)" | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g')
-
 .PHONY: run
 run:  ## Run the API locally
 	@poetry run python -m src
@@ -84,134 +82,6 @@ lint-fix:  ## Run lint fix
 		poetry run isort src; \
 		\
 		poetry run black src; \
-	}
-
-.PHONY: dokku-install
-dokku-install:  ## Install and run the API on Dokku.
-	@{ \
-		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
-		\
-		echo "Creating Dokku app '$$FORMATTED_API_NAME'"; \
-		dokku apps:create $$FORMATTED_API_NAME && \
-		\
-		make dokku-create-db && \
-		\
-		make dokku-deploy; \
-	}
-
-.PHONY: dokku-deploy
-dokku-deploy:  ## Deploy the API to the Dokku (use dokku-install first).
-	@{ \
-		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
-		REPO_NAME="dokku@$(SSH_HOSTNAME):$$FORMATTED_API_NAME"; \
-		\
-		make dokku-set-config;\
-		\
-		if [ ! -d ".git" ]; then \
-			echo "$(YELLOW)No git repository found. Initializing git...$(NC)"; \
-			git init; \
-			git add .; \
-			git commit -m "Initial commit for Dokku deployment"; \
-			echo "$(GREEN)Git repository initialized and initial commit created.$(NC)"; \
-		fi; \
-		\
-		if git remote get-url dokku &> /dev/null; then \
-		  git remote remove dokku; \
-		fi; \
-		git remote add dokku $$REPO_NAME && \
-		\
-		dokku buildpacks:clear $$FORMATTED_API_NAME && \
-		dokku buildpacks:add $$FORMATTED_API_NAME https://github.com/heroku/heroku-buildpack-python.git && \
-		\
-		git push dokku; \
-	}
-
-.PHONY: dokku-create-db
-dokku-create-db:
-	@{ \
-		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
-		\
-		dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql; \
-		dokku mysql:create "$$FORMATTED_API_NAME-database"; \
-		dokku mysql:link "$$FORMATTED_API_NAME-database" $$FORMATTED_API_NAME; \
-	}
-
-.PHONY: dokku-destroy-db
-dokku-destroy-db:
-	@{ \
-		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
-		\
-		dokku mysql:destroy $$FORMATTED_API_NAME-database --force; \
-	}
-
-.PHONY: set-config
-dokku-set-config:
-	@{ \
-		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
-		\
-		if [ -z "$(SSH_HOSTNAME)" ] || [ -z "$(SSH_KEY_PATH)" ]; then \
-			echo "$(RED)ERROR: SSH_HOSTNAME, SSH_KEY_PATH, and FORMATTED_API_NAME are required.$(NC)"; \
-			exit 1; \
-		fi; \
-		\
-		echo "$(GREEN)Using SSH host: $(SSH_HOSTNAME)$(NC)"; \
-		echo "$(GREEN)Reading RSA private key from: $(SSH_KEY_PATH)$(NC)"; \
-		echo "$(GREEN)Using Dokku app: $$FORMATTED_API_NAME$(NC)"; \
-		\
-		if [ -z "$(API_KEY)" ]; then \
-			echo "$(YELLOW)WARNING: No API_KEY in .env. Generating a new one...$(NC)"; \
-			API_KEY=$$(curl -s https://www.uuidgenerator.net/api/version4); \
-		else \
-			API_KEY="$(API_KEY)"; \
-		fi; \
-		\
-		dokku config:set $$FORMATTED_API_NAME \
-			API_NAME='$(API_NAME)' \
-			API_HOST='$(API_HOST)' \
-			API_PORT='$(API_PORT)' \
-			API_WORKERS_COUNT='$(API_WORKERS_COUNT)' \
-			API_RELOAD='$(API_RELOAD)' \
-			API_LOG_LEVEL='$(API_LOG_LEVEL)' \
-			API_MAX_CONNECTIONS_PER_REQUEST='$(API_MAX_CONNECTIONS_PER_REQUEST)' \
-			API_ALLOW_USERS_REGISTER_SSH_KEY='$(API_ALLOW_USERS_REGISTER_SSH_KEY)' \
-			API_USE_PER_USER_RESOURCE_NAMES='$(API_USE_PER_USER_RESOURCE_NAMES)' \
-			API_DEFAULT_APPS_QUOTA='$(API_DEFAULT_APPS_QUOTA)' \
-			API_DEFAULT_SERVICES_QUOTA='$(API_DEFAULT_SERVICES_QUOTA)' \
-			API_DEFAULT_NETWORKS_QUOTA='$(API_DEFAULT_NETWORKS_QUOTA)' \
-			SSH_HOSTNAME='$(SSH_HOSTNAME)' \
-			SSH_PORT='$(SSH_PORT)' \
-			SSH_KEY_PATH="/$$FORMATTED_API_NAME/id_rsa" \
-			VOLUME_DIR='$(VOLUME_DIR)' \
-			API_KEY="$$API_KEY" \
-			MASTER_KEY=$(MASTER_KEY) \
-			AVAILABLE_DATABASES=$(AVAILABLE_DATABASES); \
-		\
-		mkdir -p "/$$FORMATTED_API_NAME"; \
-		cp $(SSH_KEY_PATH) /$$FORMATTED_API_NAME/id_rsa; \
-		chmod 644 /$$FORMATTED_API_NAME/id_rsa; \
-		\
-		if ! dokku storage:report $$FORMATTED_API_NAME | grep -q "/$$FORMATTED_API_NAME/:/$$FORMATTED_API_NAME/"; then \
-			dokku storage:mount $$FORMATTED_API_NAME /$$FORMATTED_API_NAME/:/$$FORMATTED_API_NAME/; \
-		fi; \
-		\
-		dokku nginx:set $$FORMATTED_API_NAME client-max-body-size $(CLIENT_MAX_BODY_SIZE); \
-		dokku proxy:build-config $$FORMATTED_API_NAME; \
-		\
-		printf "$(GREEN)Using API_KEY=$$API_KEY$(NC)\n"; \
-	}
-
-
-.PHONY: dokku-uninstall
-dokku-uninstall:  ## Stop and uninstall the API on Dokku
-	@{ \
-		FORMATTED_API_NAME=$(FORMATTED_API_NAME); \
-		\
-		echo "Destroying Dokku app $$FORMATTED_API_NAME"; \
-		dokku apps:destroy $$FORMATTED_API_NAME --force; \
-		\
-		make dokku-destroy-db; \
-		\
-		rm -rf "/$$FORMATTED_API_NAME"; \
 	}
 
 .PHONY: docker-run  
@@ -288,10 +158,6 @@ get-env-path:  ## Get the absolute path of the .env file
 help:  ## List commands
 	@echo ""; \
 	echo "$(GREEN)Dokku API - Available Commands$(NC)"; \
-	echo ""; \
-	echo "$(YELLOW)Dokku Deployment:$(NC)"; \
-	grep -E '^(dokku-install|dokku-deploy|dokku-uninstall|dokku-create-db|dokku-destroy-db):.*?## ' Makefile | \
-	awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'; \
 	echo ""; \
 	echo "$(YELLOW)Docker Deployment:$(NC)"; \
 	grep -E '^(docker-run|docker-run-database|docker-run-api|docker-stop):.*?## ' Makefile | \

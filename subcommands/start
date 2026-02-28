@@ -8,26 +8,30 @@ cmd-dokku-api-start() {
   declare cmd="$PLUGIN_COMMAND_PREFIX:start"
   [[ "$1" == "$cmd" ]] && shift 1
 
+  # Get required data from user input.
   echo "Please fill in the information below:"
   read -r -p "SSH_HOSTNAME: " SSH_HOSTNAME
   read -r -p "SSH_PORT: " SSH_PORT
   read -r -p "API_KEY: " API_KEY
   read -r -p "MASTER_KEY: " MASTER_KEY
+  read -r -p "SSH_KEY_PATH: " SSH_KEY_PATH
+  read -r -p "VOLUME_DIR: " VOLUME_DIR
 
   local APP REPO REF
-
   APP="${1:-$DEFAULT_APP}"
   REPO="${2:-$DEFAULT_REPO}"
   REF="${3:-$DEFAULT_REF}"
+
+  local DB_NAME="${APP}-db"
+  local APP_VOLUME_DIR="/app/storage"
+  local APP_SSH_KEY_PATH="$APP_VOLUME_DIR/id_rsa"
 
   # Support `--app <name>` (Dokku sets DOKKU_APP_NAME)
   if [[ -n "${DOKKU_APP_NAME:-}" ]]; then
     APP="$DOKKU_APP_NAME"
   fi
 
-  local DB_NAME="${APP}-db"
-  local VOLUME_DIR="/app/storage"
-
+  # Install the database
   if ! dokku mysql:help >/dev/null 2>&1; then
     dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql
   fi
@@ -36,25 +40,35 @@ cmd-dokku-api-start() {
     dokku mysql:create "$DB_NAME"
   fi
 
+  # Build the application
   if ! dokku apps:exists "$APP" >/dev/null 2>&1; then
     dokku apps:create "$APP"
-    dokku config:set --no-restart "$APP" \
-      VOLUME_DIR="$VOLUME_DIR" \
-      SSH_KEY_PATH="$VOLUME_DIR/id_rsa" \
-      SSH_HOSTNAME="$SSH_HOSTNAME" \
-      SSH_PORT="$SSH_PORT" \
-      API_KEY="$API_KEY" \
-      MASTER_KEY="$MASTER_KEY"
   fi
 
-  dokku storage:mount "$APP" /"$APP"/:/app/storage;
   dokku builder:set "$APP" selected dockerfile
+
+  dokku config:set --no-restart "$APP" \
+    VOLUME_DIR="$APP_VOLUME_DIR" \
+    SSH_KEY_PATH="$APP_SSH_KEY_PATH" \
+    SSH_HOSTNAME="$SSH_HOSTNAME" \
+    SSH_PORT="$SSH_PORT" \
+    API_KEY="$API_KEY" \
+    MASTER_KEY="$MASTER_KEY"
 
   dokku mysql:link "$DB_NAME" "$APP" >/dev/null 2>&1
 
+  # Mount storage and save SSH key into the application
+  mkdir -p "$VOLUME_DIR/$APP"
+  cp "$SSH_KEY_PATH" "$VOLUME_DIR/$APP/id_rsa"
+  chmod 644 "$VOLUME_DIR/$APP/id_rsa"
+
+  dokku storage:mount "$APP" "$VOLUME_DIR/$APP/:$APP_VOLUME_DIR" >/dev/null 2>&1
+
+  # Setup NGINX config
   dokku nginx:set "$APP" client-max-body-size 1024M >/dev/null 2>&1
   dokku proxy:build-config "$APP" >/dev/null 2>&1
 
+  # Deploy from GitHub repository
   dokku git:sync --build "$APP" "$REPO" "$REF"
 }
 
