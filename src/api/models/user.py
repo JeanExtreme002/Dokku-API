@@ -10,6 +10,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(100), unique=True)
     access_token = Column(String(500), unique=True)
+    access_token_expiration = Column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
     apps_quota = Column(Integer, nullable=False, default=0)
     services_quota = Column(Integer, nullable=False, default=0)
     networks_quota = Column(Integer, nullable=False, default=0)

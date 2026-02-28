@@ -1,3 +1,4 @@
+import datetime
 import os
 import tempfile
 from typing import Optional
@@ -142,8 +143,14 @@ def get_router(app: FastAPI) -> APIRouter:
             await create_user(email, new_access_token, db_session)
             user = await get_user(email, db_session)
 
+        new_access_token_expiration = datetime.datetime.now(
+            datetime.timezone.utc
+        ) + datetime.timedelta(days=7)
+
         new_access_token = hash_access_token(new_access_token)
         user.access_token = new_access_token
+        user.access_token_expiration = new_access_token_expiration
+
         await update_user(email, user, db_session)
 
         return JSONResponse(status_code=status.HTTP_200_OK, content={})

@@ -26,6 +26,7 @@ def get_user_schema(user: User) -> UserSchema:
         id=user.id,
         email=user.email,
         access_token=user.access_token,
+        access_token_expiration=user.access_token_expiration,
         apps_quota=user.apps_quota,
         services_quota=user.services_quota,
         networks_quota=user.networks_quota,
@@ -64,17 +65,21 @@ async def get_user(email: str, db_session: AsyncSession) -> UserSchema:
 async def get_user_by_access_token(
     access_token: str, db_session: AsyncSession
 ) -> UserSchema:
+    now = datetime.datetime.now(datetime.timezone.utc)
+
     could_be_take_over = access_token.startswith("take-over")
     access_token = hash_access_token(access_token)
 
     result = await db_session.execute(
-        select(User).options(*USER_EAGER_LOAD).filter_by(access_token=access_token)
+        select(User)
+        .options(*USER_EAGER_LOAD)
+        .filter(
+            and_(User.access_token == access_token, User.access_token_expiration > now)
+        )
     )
     user = result.scalar_one_or_none()
 
     if not user and could_be_take_over:
-        now = datetime.datetime.now(datetime.timezone.utc)
-
         result = await db_session.execute(
             select(User)
             .options(*USER_EAGER_LOAD)
@@ -95,6 +100,10 @@ async def get_user_by_access_token(
 
 async def create_user(email: str, access_token: str, db_session: AsyncSession) -> None:
     access_token = hash_access_token(access_token)
+    access_token_expiration = datetime.datetime.now(
+        datetime.timezone.utc
+    ) + datetime.timedelta(days=7)
+
     validate_email_format(email)
 
     result = await db_session.execute(select(User).filter_by(email=email))
@@ -105,6 +114,7 @@ async def create_user(email: str, access_token: str, db_session: AsyncSession) -
     db_user = User(
         email=email,
         access_token=access_token,
+        access_token_expiration=access_token_expiration,
     )
     db_session.add(db_user)
 
@@ -124,6 +134,7 @@ async def update_user(email: str, user: UserSchema, db_session: AsyncSession) ->
     db_user.email = user.email
     db_user.is_admin = user.is_admin
     db_user.access_token = user.access_token
+    db_user.access_token_expiration = user.access_token_expiration
     db_user.apps_quota = user.apps_quota
     db_user.services_quota = user.services_quota
     db_user.networks_quota = user.networks_quota

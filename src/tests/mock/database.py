@@ -1,3 +1,4 @@
+import datetime
 import functools
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -9,6 +10,8 @@ MockUser = UserSchema(
     id=1,
     email="test@example.com",
     access_token="abc123",
+    access_token_expiration=datetime.datetime.now(datetime.timezone.utc)
+    + datetime.timedelta(days=7),
     is_admin=False,
     created_at="2023-01-01T00:00:00Z",
     apps_quota=1,
@@ -32,6 +35,7 @@ def mock_all_models(test_func):
                 id=MockUser.id,
                 email=MockUser.email,
                 access_token=hash_access_token(MockUser.access_token),
+                access_token_expiration=MockUser.access_token_expiration,
                 is_admin=MockUser.is_admin,
                 created_at=MockUser.created_at,
                 apps_quota=MockUser.apps_quota,
@@ -55,24 +59,49 @@ def mock_all_models(test_func):
 
                 where = getattr(statement, "_where_criteria", ())
 
+                def iter_criteria(criteria):
+                    for item in criteria:
+                        clauses = getattr(item, "clauses", None)
+                        if clauses is not None:
+                            for clause in clauses:
+                                yield clause
+                        else:
+                            yield item
+
+                def get_column_and_value(crit):
+                    left_name = getattr(crit.left, "name", None)
+                    right_name = getattr(crit.right, "name", None)
+                    left_value = getattr(crit.left, "value", None)
+                    right_value = getattr(crit.right, "value", None)
+
+                    if left_name is not None:
+                        return left_name, right_value
+                    if right_name is not None:
+                        return right_name, left_value
+                    return None, None
+
                 if entity == User:
                     if not where:
                         mock_result.scalar_one_or_none.return_value = user
                         mock_result.scalars.return_value.all.return_value = [user]
                     else:
-                        found = False
-                        for crit in where:
+                        found_identity = False
+                        expiration_ok = True
+                        for crit in iter_criteria(where):
                             try:
-                                value = getattr(crit.right, "value", None)
+                                column_name, value = get_column_and_value(crit)
                                 if value in [
                                     MockUser.email,
                                     hash_access_token(MockUser.access_token),
                                 ]:
-                                    found = True
-                                    break
+                                    found_identity = True
+                                if column_name == "access_token_expiration" and value:
+                                    expiration_ok = (
+                                        MockUser.access_token_expiration > value
+                                    )
                             except Exception:
                                 continue
-                        if found:
+                        if found_identity and expiration_ok:
                             mock_result.scalar_one_or_none.return_value = user
                             mock_result.scalars.return_value.all.return_value = [user]
                         else:

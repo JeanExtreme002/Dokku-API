@@ -10,6 +10,7 @@ class UserSchema(BaseModel):
     id: int
     email: str
     access_token: str
+    access_token_expiration: Optional[datetime] = None
     is_admin: bool = False
     take_over_access_token: Optional[str] = None
     take_over_access_token_expiration: Optional[datetime] = None
