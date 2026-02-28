@@ -1,0 +1,4 @@
+[plugin]
+description = "dokku plugin that can be used to install Dokku-API to the Dokku server"
+version = "1.0.0"
+[plugin.config]

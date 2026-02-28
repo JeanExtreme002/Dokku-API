@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -eo pipefail
+[[ $DOKKU_TRACE ]] && set -x
+
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/help"
+
+# dokku passes the command as $1 (e.g. "dokku-api")
+fn-help-all "$1"

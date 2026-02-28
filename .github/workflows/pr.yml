@@ -29,6 +29,7 @@ jobs:
           scopes: |-
             core
             github
+            plugin
             system-tests
             api
             api-middlewares

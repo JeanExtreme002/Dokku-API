@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../config"
+set -eo pipefail
+[[ $DOKKU_TRACE ]] && set -x
+
+cmd-dokku-api-start() {
+  declare desc="Deploy the Dokku-API into Dokku"
+  declare cmd="$PLUGIN_COMMAND_PREFIX:start"
+  [[ "$1" == "$cmd" ]] && shift 1
+
+  echo "Please fill in the information below:"
+  read -r -p "SSH_HOSTNAME: " SSH_HOSTNAME
+  read -r -p "SSH_PORT: " SSH_PORT
+  read -r -p "API_KEY: " API_KEY
+  read -r -p "MASTER_KEY: " MASTER_KEY
+
+  local APP REPO REF
+
+  APP="${1:-$DEFAULT_APP}"
+  REPO="${2:-$DEFAULT_REPO}"
+  REF="${3:-$DEFAULT_REF}"
+
+  # Support `--app <name>` (Dokku sets DOKKU_APP_NAME)
+  if [[ -n "${DOKKU_APP_NAME:-}" ]]; then
+    APP="$DOKKU_APP_NAME"
+  fi
+
+  local DB_NAME="${APP}-db"
+  local VOLUME_DIR="/app/storage"
+
+  if ! dokku mysql:help >/dev/null 2>&1; then
+    dokku plugin:install https://github.com/dokku/dokku-mysql.git mysql
+  fi
+
+  if ! dokku mysql:exists "$DB_NAME" >/dev/null 2>&1; then
+    dokku mysql:create "$DB_NAME"
+  fi
+
+  if ! dokku apps:exists "$APP" >/dev/null 2>&1; then
+    dokku apps:create "$APP"
+    dokku config:set --no-restart "$APP" \
+      VOLUME_DIR="$VOLUME_DIR" \
+      SSH_KEY_PATH="$VOLUME_DIR/id_rsa" \
+      SSH_HOSTNAME="$SSH_HOSTNAME" \
+      SSH_PORT="$SSH_PORT" \
+      API_KEY="$API_KEY" \
+      MASTER_KEY="$MASTER_KEY"
+  fi
+
+  dokku storage:mount "$APP" /"$APP"/:/app/storage;
+  dokku builder:set "$APP" selected dockerfile
+
+  dokku mysql:link "$DB_NAME" "$APP" >/dev/null 2>&1
+
+  dokku nginx:set "$APP" client-max-body-size 1024M >/dev/null 2>&1
+  dokku proxy:build-config "$APP" >/dev/null 2>&1
+
+  dokku git:sync --build "$APP" "$REPO" "$REF"
+}
+
+cmd-dokku-api-start "$@"

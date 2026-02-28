@@ -26,8 +26,8 @@ class SSHServerConfig:
     SSH server configuration.
     """
 
-    SSH_HOSTNAME: str = os.getenv("SSH_HOSTNAME")
-    SSH_PORT: int = int(os.getenv("SSH_PORT"))
+    SSH_HOSTNAME: str = os.getenv("SSH_HOSTNAME", "localhost")
+    SSH_PORT: int = int(os.getenv("SSH_PORT", "22"))
     SSH_KEY_PATH: str = os.getenv("SSH_KEY_PATH")
 
 

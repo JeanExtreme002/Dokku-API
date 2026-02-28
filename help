@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/config"
+set -eo pipefail
+[[ $DOKKU_TRACE ]] && set -x
+
+# shellcheck disable=SC2155
+export SUBCOMMAND_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/subcommands"
+
+fn-help() {
+  declare CMD="$1"
+  local cmd EXIT_CODE
+
+  if [[ "$CMD" == "help" ]] || [[ "$CMD" == "$PLUGIN_COMMAND_PREFIX:help" ]] || [[ "$CMD" == "$PLUGIN_COMMAND_PREFIX" ]] || [[ "$CMD" == "$PLUGIN_COMMAND_PREFIX:default" ]]; then
+    fn-help-all "$@"
+    exit 0
+  fi
+
+  pushd "$SUBCOMMAND_ROOT" >/dev/null 2>&1
+  for cmd in *; do
+    if [[ "$CMD" == "${PLUGIN_COMMAND_PREFIX}:$cmd" ]]; then
+      "$SUBCOMMAND_ROOT/$cmd" "$@"
+      EXIT_CODE="$?"
+      exit "$EXIT_CODE"
+    fi
+  done
+  popd >/dev/null 2>&1
+
+  exit "$DOKKU_NOT_IMPLEMENTED_EXIT"
+}
+
+fn-help-all() {
+  local CMD="$1"
+  local plugin="$PLUGIN_COMMAND_PREFIX"
+
+  local lines=()
+
+  # Always expose a help entry
+  lines+=("${plugin}:help,Show help for the ${plugin} plugin")
+
+  # Collect subcommands and their descriptions
+  pushd "$SUBCOMMAND_ROOT" >/dev/null 2>&1
+  for sc in *; do
+    [[ -f "$sc" ]] || continue
+    [[ "$sc" == "default" ]] && continue
+
+    local file="$SUBCOMMAND_ROOT/$sc"
+    local desc=""
+    local line=""
+
+    # Try to extract: declare desc="..."
+    line="$(grep -m1 -E 'declare[[:space:]]+desc=' "$file" 2>/dev/null || true)"
+    if [[ -n "$line" ]]; then
+      desc="${line#*desc=}"
+
+      # Remove inline comments and CR (in case of Windows line endings)
+      desc="${desc%%#*}"
+      desc="${desc%$'\r'}"
+
+      # Trim whitespace
+      desc="${desc#"${desc%%[![:space:]]*}"}"
+      desc="${desc%"${desc##*[![:space:]]}"}"
+
+      # Strip surrounding quotes
+      desc="${desc%\"}"; desc="${desc#\"}"
+      desc="${desc%\'}"; desc="${desc#\'}"
+    fi
+
+    [[ -z "$desc" ]] && desc="(no description)"
+    lines+=("${plugin}:${sc},${desc}")
+  done
+  popd >/dev/null 2>&1
+
+  # When Dokku calls "help", it expects only "cmd,desc" lines
+  if [[ "$CMD" == "help" ]]; then
+    printf '%s\n' "${lines[@]}" | sort
+    return 0
+  fi
+
+  # Full help output (for dokku <plugin> / <plugin>:help / etc)
+  echo "Usage: dokku ${plugin}:<command> [args]"
+  echo ""
+  echo "Commands:"
+
+  if command -v column >/dev/null 2>&1; then
+    printf '%s\n' "${lines[@]}" | sort | column -c2 -t -s,
+  else
+    # Fallback if 'column' is not available
+    printf '%s\n' "${lines[@]}" | sort
+  fi
+}

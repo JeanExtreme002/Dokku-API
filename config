@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+export PLUGIN_COMMAND_PREFIX="dokku-api"
+export DEFAULT_APP="dokku-api"
+export DEFAULT_REPO="https://github.com/JeanExtreme002/Dokku-API.git"
+export DEFAULT_REF="main"
