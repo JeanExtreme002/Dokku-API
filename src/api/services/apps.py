@@ -191,10 +191,27 @@ class AppService(ABC):
         app_name: str,
         db_session: AsyncSession,
         unique_app: Optional[bool] = False,
+        clone_from: Optional[str] = None,
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
+        clone_from = (
+            ResourceName(session_user, clone_from, App).for_system()
+            if clone_from
+            else None
+        )
 
         unique_app = unique_app and Config.API_USE_PER_USER_RESOURCE_NAMES
+
+        if clone_from:
+            _, message = await run_command(f"apps:exists {clone_from}")
+
+            if (
+                clone_from not in session_user.apps
+                or "does not exist" in message.lower()
+            ):
+                raise HTTPException(
+                    status_code=404, detail=f"App '{clone_from}' does not exist"
+                )
 
         if unique_app:
             success, message = await run_command("apps:list")
@@ -219,7 +236,11 @@ class AppService(ABC):
                 raise HTTPException(status_code=403, detail="App already exists")
 
         await create_resource(session_user.email, app_name, App, db_session)
-        success, message = await run_command(f"apps:create {app_name}")
+
+        if clone_from:
+            success, message = await run_command(f"apps:clone {clone_from} {app_name}")
+        else:
+            success, message = await run_command(f"apps:create {app_name}")
 
         if unique_app and success:
             session_user.apps.append(app_name)

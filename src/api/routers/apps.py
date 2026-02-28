@@ -115,6 +115,37 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
+        "/{app_name}/clone/{existing_app_name}/",
+        response_description="Clone an application",
+    )
+    async def clone_app(
+        request: Request,
+        app_name: str,
+        existing_app_name: str,
+        unique_app: Optional[bool] = False,
+        db_session: AsyncSession = Depends(get_db_session),
+    ):
+        success, result = await AppService.create_app(
+            request.state.session_user,
+            app_name,
+            db_session,
+            unique_app,
+            existing_app_name,
+        )
+        status_code = status.HTTP_201_CREATED
+
+        if not success:
+            status_code = status.HTTP_200_OK
+
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
+    @router.post(
         "/{app_name}/exists/",
         response_description="Check if an application exists",
     )
