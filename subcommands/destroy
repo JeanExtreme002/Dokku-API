@@ -11,14 +11,14 @@ cmd-dokku-api-destroy() {
   local APP="${1:-$DEFAULT_APP}"
   local DB_NAME="${APP}-db"
 
-  # Destroy the database
-  if dokku mysql:exists "$DB_NAME" >/dev/null 2>&1; then
-    dokku mysql:destroy "$DB_NAME" --force
-  fi
-
   # Destroy the application
   if dokku apps:exists "$APP" >/dev/null 2>&1; then
     dokku apps:destroy "$APP" --force
+  fi
+
+  # Destroy the database
+  if dokku mysql:exists "$DB_NAME" >/dev/null 2>&1; then
+    dokku mysql:destroy "$DB_NAME" --force
   fi
 }
 
