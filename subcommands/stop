@@ -14,4 +14,4 @@ cmd-dokku-api-stop() {
   dokku apps:stop "$APP"
 }
 
-cmd-dokku-api-start "$@"
+cmd-dokku-api-stop "$@"

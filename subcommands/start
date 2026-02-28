@@ -31,13 +31,13 @@ cmd-dokku-api-start() {
   fi
 
   dokku builder:set "$APP" selected dockerfile
-  dokku mysql:link "$DB_NAME" "$APP" >/dev/null 2>&1
+  dokku mysql:link "$DB_NAME" "$APP" >/dev/null 2>&1 || true
 
-  config_api "$APP" "$APP_VOLUME_DIR" "$APP_SSH_KEY_PATH"
-
-  # Setup NGINX config
-  dokku nginx:set "$APP" client-max-body-size 1024M >/dev/null 2>&1
-  dokku proxy:build-config "$APP" >/dev/null 2>&1
+  # Check if the application was configured previously
+  existing_config="$(dokku config:show "$APP" 2>/dev/null || true)"
+  if ! { [[ -n "$existing_config" ]] && printf "%s" "$existing_config" | grep -q "^SSH_HOSTNAME: "; }; then
+    config_api "$APP" "$APP_VOLUME_DIR" "$APP_SSH_KEY_PATH"
+  fi
 
   # Deploy from GitHub repository
   dokku git:sync --build "$APP" "$REPO" "$REF"
@@ -50,12 +50,6 @@ config_api() {
   local existing_config=""
 
   local VOLUME_DIR="/var/lib/dokku/data/storage"
-
-  # Check if the application was configured previously
-  existing_config="$(dokku config:show "$app_name" 2>/dev/null || true)"
-  if [[ -n "$existing_config" ]] && printf "%s" "$existing_config" | grep -q "^SSH_HOSTNAME: "; then
-    return 0
-  fi
 
   # Get required data from user input
   echo "Please fill in the information below:"
@@ -70,8 +64,18 @@ config_api() {
   read -r -p "Auto-generate API and MASTER keys? [y/N]: " AUTO_KEYS
   case "$AUTO_KEYS" in
     [yY])
-      API_KEY="$(cat /proc/sys/kernel/random/uuid)"
-      MASTER_KEY="$(cat /dev/urandom | head -c 32 | od -An -tx1 | tr -d ' \n')"
+      if ! API_KEY="$(cat /proc/sys/kernel/random/uuid 2>/dev/null)"; then
+        echo "Failed to generate API_KEY from /proc/sys/kernel/random/uuid" >&2
+        exit 1
+      fi
+      if ! MASTER_KEY="$(cat /proc/sys/kernel/random/uuid 2>/dev/null)"; then
+        echo "Failed to generate MASTER_KEY from /proc/sys/kernel/random/uuid" >&2
+        exit 1
+      fi
+      if [[ -z "$API_KEY" || -z "$MASTER_KEY" ]]; then
+        echo "Generated secrets are empty" >&2
+        exit 1
+      fi
       echo "API_KEY: $API_KEY"
       echo "MASTER_KEY: $MASTER_KEY"
       ;;
@@ -85,6 +89,13 @@ config_api() {
       ;;
   esac
 
+  # Mount storage and save SSH key into the application
+  mkdir -p "$VOLUME_DIR/$app_name"
+  cp "$SSH_KEY_PATH" "$VOLUME_DIR/$app_name/id_rsa"
+  chmod 644 "$VOLUME_DIR/$app_name/id_rsa"
+
+  dokku storage:mount "$app_name" "$VOLUME_DIR/$app_name:$app_volume_dir"
+
   # Configure the application
   dokku config:set --no-restart "$app_name" \
     VOLUME_DIR="$app_volume_dir" \
@@ -94,12 +105,9 @@ config_api() {
     API_KEY="$API_KEY" \
     MASTER_KEY="$MASTER_KEY"
 
-  # Mount storage and save SSH key into the application
-  mkdir -p "$VOLUME_DIR/$app_name"
-  cp "$SSH_KEY_PATH" "$VOLUME_DIR/$app_name/id_rsa"
-  chmod 644 "$VOLUME_DIR/$app_name/id_rsa"
-
-  dokku storage:mount "$app_name" "$VOLUME_DIR/$app_name/:$app_volume_dir"
+  # Setup NGINX config
+  dokku nginx:set "$app_name" client-max-body-size 1024M >/dev/null 2>&1
+  dokku proxy:build-config "$app_name" >/dev/null 2>&1
 }
 
 cmd-dokku-api-start "$@"

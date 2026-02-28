@@ -9,6 +9,7 @@ cmd-dokku-api-destroy() {
   [[ "$1" == "$cmd" ]] && shift 1
 
   local APP="${1:-$DEFAULT_APP}"
+  local DB_NAME="${APP}-db"
 
   # Destroy the database
   if dokku mysql:exists "$DB_NAME" >/dev/null 2>&1; then
@@ -21,4 +22,4 @@ cmd-dokku-api-destroy() {
   fi
 }
 
-cmd-dokku-api-start "$@"
+cmd-dokku-api-destroy "$@"
