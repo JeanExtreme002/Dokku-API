@@ -32,7 +32,9 @@ $ make docker-run
 ```
 
 Now, open the API on your browser at [http://dokku-api.yourdomain](http://dokku-api.yourdomain) — if you did not change the default settings.
-
+```
+curl 'http://dokku-api.yourdomain/api/'
+```
 Access [/docs](http://dokku-api.yourdomain/docs) for more information about the API.
 
 ## Getting Started (development)
