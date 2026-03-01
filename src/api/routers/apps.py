@@ -92,14 +92,12 @@ def get_router(app: FastAPI) -> APIRouter:
     async def create_app(
         request: Request,
         app_name: str,
-        unique_app: Optional[bool] = False,
         db_session: AsyncSession = Depends(get_db_session),
     ):
         success, result = await AppService.create_app(
             request.state.session_user,
             app_name,
             db_session,
-            unique_app,
         )
         status_code = status.HTTP_201_CREATED
 
@@ -122,14 +120,12 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
         existing_app_name: str,
-        unique_app: Optional[bool] = False,
         db_session: AsyncSession = Depends(get_db_session),
     ):
         success, result = await AppService.create_app(
             request.state.session_user,
             app_name,
             db_session,
-            unique_app,
             existing_app_name,
         )
         status_code = status.HTTP_201_CREATED
@@ -213,7 +209,6 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
         new_app_name: str,
-        unique_app: Optional[bool] = False,
         db_session: AsyncSession = Depends(get_db_session),
     ):
         success, result = await AppService.rename_app(
@@ -221,7 +216,6 @@ def get_router(app: FastAPI) -> APIRouter:
             app_name,
             new_app_name,
             db_session,
-            unique_app,
         )
 
         return JSONResponse(

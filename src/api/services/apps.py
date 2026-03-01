@@ -24,7 +24,6 @@ from src.api.models import (
 )
 from src.api.schemas import UserSchema
 from src.api.services.databases import DatabaseService
-from src.api.services.domains import DomainService
 from src.api.tools.resource import ResourceName, check_shared_app
 from src.api.tools.ssh import run_command
 from src.config import Config
@@ -190,7 +189,6 @@ class AppService(ABC):
         session_user: UserSchema,
         app_name: str,
         db_session: AsyncSession,
-        unique_app: Optional[bool] = False,
         clone_from: Optional[str] = None,
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
@@ -199,8 +197,6 @@ class AppService(ABC):
             if clone_from
             else None
         )
-
-        unique_app = unique_app and Config.API_USE_PER_USER_RESOURCE_NAMES
 
         if clone_from:
             _, message = await run_command(f"apps:exists {clone_from}")
@@ -213,27 +209,10 @@ class AppService(ABC):
                     status_code=404, detail=f"App '{clone_from}' does not exist"
                 )
 
-        if unique_app:
-            success, message = await run_command("apps:list")
+        _, message = await run_command(f"apps:exists {app_name}")
 
-            if not success:
-                raise HTTPException(
-                    status_code=500, detail="Could not recover apps list"
-                )
-
-            apps = parse_apps_list(message)
-
-            app_exists = any(
-                [get_raw_app(app) == get_raw_app(app_name) for app in apps]
-            )
-
-            if app_exists:
-                raise HTTPException(status_code=403, detail="App name already in use")
-        else:
-            _, message = await run_command(f"apps:exists {app_name}")
-
-            if "does not exist" not in message.lower():
-                raise HTTPException(status_code=403, detail="App already exists")
+        if "does not exist" not in message.lower():
+            raise HTTPException(status_code=403, detail="App already exists")
 
         await create_resource(session_user.email, app_name, App, db_session)
 
@@ -241,17 +220,6 @@ class AppService(ABC):
             success, message = await run_command(f"apps:clone {clone_from} {app_name}")
         else:
             success, message = await run_command(f"apps:create {app_name}")
-
-        if unique_app and success:
-            session_user.apps.append(app_name)
-            app_name = get_raw_app(app_name)
-
-            _, url = await AppService.get_app_url(session_user, app_name)
-            hostname = url.split(".", maxsplit=1)[-1]
-
-            await DomainService.set_domain(
-                session_user, app_name, f"{app_name}.{hostname}"
-            )
 
         return success, message
 
@@ -310,34 +278,14 @@ class AppService(ABC):
         app_name: str,
         new_app_name: str,
         db_session: AsyncSession,
-        unique_app: Optional[bool] = False,
     ) -> Tuple[bool, Any]:
         app_name = ResourceName(session_user, app_name, App).for_system()
         new_app_name = ResourceName(session_user, new_app_name, App).for_system()
 
-        unique_app = unique_app and Config.API_USE_PER_USER_RESOURCE_NAMES
+        _, message = await run_command(f"apps:exists {new_app_name}")
 
-        if unique_app:
-            success, message = await run_command("apps:list")
-
-            if not success:
-                raise HTTPException(
-                    status_code=500, detail="Could not recover apps list"
-                )
-
-            apps = parse_apps_list(message)
-
-            app_exists = any(
-                [get_raw_app(app) == get_raw_app(new_app_name) for app in apps]
-            )
-
-            if app_exists:
-                raise HTTPException(status_code=403, detail="App name already in use")
-        else:
-            _, message = await run_command(f"apps:exists {new_app_name}")
-
-            if "does not exist" not in message.lower():
-                raise HTTPException(status_code=403, detail="App already exists")
+        if "does not exist" not in message.lower():
+            raise HTTPException(status_code=403, detail="App already exists")
 
         async def run_rename_in_background():
             try:
@@ -355,18 +303,6 @@ class AppService(ABC):
                         task_session,
                     )
 
-                if unique_app:
-                    session_user.apps.append(new_app_name)
-                    _, url = await AppService.get_app_url(
-                        session_user, raw_new_app_name
-                    )
-                    hostname = url.split(".", maxsplit=1)[-1]
-
-                    await DomainService.set_domain(
-                        session_user,
-                        raw_new_app_name,
-                        f"{raw_new_app_name}.{hostname}",
-                    )
             except Exception:
                 logging.exception("apps:rename background task failed")
 
