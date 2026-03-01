@@ -3,9 +3,11 @@ This is a RESTful API for managing applications and resources on Dokku, built wi
 
 [![CI](https://github.com/JeanExtreme002/Dokku-API/actions/workflows/ci.yml/badge.svg)](https://github.com/JeanExtreme002/Dokku-API/actions/workflows/ci.yml)
 [![Pypi](https://img.shields.io/pypi/v/dokku-api)](https://pypi.org/project/dokku-api/)
-[![License](https://img.shields.io/pypi/l/Dokku-API)](https://pypi.org/project/Dokku-API/)
-[![Platforms](https://img.shields.io/badge/platforms-Dokku%20%7C%20Linux-8A2BE2)](https://pypi.org/project/dokku-api/)
-[![Python Version](https://img.shields.io/badge/python->=3.11-blue)](https://pypi.org/project/dokku-api/)
+[![License](https://img.shields.io/pypi/l/Dokku-API)](https://github.com/JeanExtreme002/Dokku-API)
+[![Python Version](https://img.shields.io/badge/python-3.11+-yellow)](https://pypi.org/project/dokku-api/)
+[![OS](https://img.shields.io/badge/os-Linux-red)](https://pypi.org/project/dokku-api/)
+[![Platform](https://img.shields.io/badge/platform-Dokku-8A2BE2)](https://pypi.org/project/dokku-api/)
+[![Downloads](https://static.pepy.tech/personalized-badge/dokku-api?period=total&units=international_system&left_color=grey&right_color=orange&left_text=downloads)](https://pypi.org/project/dokku-api/)
 
 ### Installing Dokku API from PyPI:
 ```
