@@ -28,6 +28,7 @@ jobs:
           requireScope: true
           scopes: |-
             core
+            deps
             github
             plugin
             system-tests
