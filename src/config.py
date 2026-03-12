@@ -31,6 +31,15 @@ class SSHServerConfig:
     SSH_KEY_PATH: str = os.getenv("SSH_KEY_PATH")
 
 
+class ACLServerConfig:
+    """
+    ACL Server configuration.
+    """
+
+    HOST = os.getenv("ACL_HOST", "localhost")
+    PORT = int(os.getenv("ACL_PORT", "5001"))
+
+
 class Config:
     """
     Base configuration.
@@ -62,6 +71,7 @@ class Config:
 
     VOLUME_DIR: str = os.getenv("VOLUME_DIR")
 
+    ACL_SERVER: ACLServerConfig = ACLServerConfig()
     SSH_SERVER: SSHServerConfig = SSHServerConfig()
     DATABASE: DatabaseConfig = DatabaseConfig()
 

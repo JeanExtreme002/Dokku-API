@@ -57,6 +57,10 @@ def get_router(app: FastAPI) -> APIRouter:
                     "port": Config.SSH_SERVER.SSH_PORT,
                     "key_path": Config.SSH_SERVER.SSH_KEY_PATH,
                 },
+                "acl_server": {
+                    "hostname": Config.ACL_SERVER.HOST,
+                    "port": Config.ACL_SERVER.PORT,
+                },
                 "database": {
                     "host": Config.DATABASE.HOST,
                     "port": Config.DATABASE.PORT,

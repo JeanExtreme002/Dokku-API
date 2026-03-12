@@ -1,5 +1,6 @@
 from fastapi import APIRouter, FastAPI
 
+from src.api.routers.admin.acl import get_router as acl_router
 from src.api.routers.admin.api import get_router as api_router
 from src.api.routers.admin.apps import get_router as apps_router
 from src.api.routers.admin.letsencrypt import get_router as letsencrypt_router
@@ -14,6 +15,11 @@ def get_router(app: FastAPI) -> APIRouter:
         api_router(app),
         tags=["Admin: API"],
         prefix="/api",
+    )
+    router.include_router(
+        acl_router(app),
+        tags=["Admin: ACL"],
+        prefix="/acl",
     )
     router.include_router(
         apps_router(app),
