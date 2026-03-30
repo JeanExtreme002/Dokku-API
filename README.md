@@ -1,5 +1,5 @@
 # Dokku API
-This is a RESTful API for managing applications and resources on Dokku, built with [FastAPI](https://fastapi.tiangolo.com/).
+This is a REST API for managing applications and resources on Dokku, built with [FastAPI](https://fastapi.tiangolo.com/).
 
 [![CI](https://github.com/JeanExtreme002/Dokku-API/actions/workflows/ci.yml/badge.svg)](https://github.com/JeanExtreme002/Dokku-API/actions/workflows/ci.yml)
 [![Pypi](https://img.shields.io/pypi/v/dokku-api)](https://pypi.org/project/dokku-api/)
