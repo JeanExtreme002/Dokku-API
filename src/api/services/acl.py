@@ -18,6 +18,6 @@ class ACLService(ABC):
             response = await client.post(url, headers=headers, params=params)
 
         message = response.json()
-        success = message.get("status")
+        success = str(message.get("status", "")) == "200"
 
         return success, message
