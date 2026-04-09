@@ -21,8 +21,6 @@ class ACLService(ABC):
         message = response.json()
         success = response.status_code == 200
 
-        logging.info(
-            f"ACL command executed: {command}. Response: {message}"
-        )
+        logging.info(f"ACL command executed: {command}. Response: {message}")
 
         return success, message
