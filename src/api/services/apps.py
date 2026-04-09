@@ -192,6 +192,7 @@ class AppService(ABC):
         db_session: AsyncSession,
         clone_from: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        original_app_name = app_name
         app_name = ResourceName(session_user, app_name, App).for_system()
         clone_from = (
             ResourceName(session_user, clone_from, App).for_system()
@@ -223,6 +224,12 @@ class AppService(ABC):
             success, message = await run_command(f"apps:create {app_name}")
 
         if success:
+            while (
+                "does not exist"
+                in (await AppService.app_exists(session_user, original_app_name))[1]
+            ):
+                await asyncio.sleep(1)
+
             acl_user = session_user.email.split("@")[0]
             asyncio.create_task(
                 ACLService.run_acl_command(f"acl:add {app_name} {acl_user}")

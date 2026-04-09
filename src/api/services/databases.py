@@ -69,6 +69,17 @@ class DatabaseService(ABC):
         return True, available_databases
 
     @staticmethod
+    async def database_exists(
+        session_user: UserSchema, plugin_name: str, database_name: str
+    ) -> Tuple[bool, Any]:
+        database_name = ResourceName(session_user, database_name, Service).for_system()
+
+        if f"{plugin_name}:{database_name}" not in session_user.services:
+            return False, f"Database {database_name} does not exist on the API"
+
+        return await run_command(f"{plugin_name}:exists {database_name}")
+
+    @staticmethod
     async def create_database(
         session_user: UserSchema,
         plugin_name: str,
@@ -76,6 +87,7 @@ class DatabaseService(ABC):
         db_session: AsyncSession,
         clone_from: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        original_database_name = database_name
         database_name = ResourceName(session_user, database_name, Service).for_system()
         clone_from = (
             ResourceName(session_user, clone_from, Service).for_system()
@@ -125,6 +137,13 @@ class DatabaseService(ABC):
             )
 
         if success:
+            while "does not exist" in (
+                await DatabaseService.database_exists(
+                    session_user, plugin_name, original_database_name
+                )
+            ):
+                await asyncio.sleep(1)
+
             acl_user = session_user.email.split("@")[0]
             asyncio.create_task(
                 ACLService.run_acl_command(

@@ -22,6 +22,8 @@ class ACLService(ABC):
         success = message.get("status", False)
         output = message.get("stdout")
 
-        logging.info(f"ACL command executed: {command}. Success: {success}. Output: {output}")
+        logging.info(
+            f"ACL command executed: {command}. Success: {success}. Output: {output}"
+        )
 
         return success, message
