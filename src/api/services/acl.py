@@ -20,12 +20,10 @@ class ACLService(ABC):
 
         message = response.json()
         result = message.get("result", dict())
-
         success = result.get("status", False)
-        output = result.get("stdout")
 
         logging.info(
-            f"ACL command executed: {command}. Success: {success}. Output: {output}"
+            f"ACL command executed: {command}. Success: {success}. Response: {message}"
         )
 
         return success, message
