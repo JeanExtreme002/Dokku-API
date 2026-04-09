@@ -235,7 +235,7 @@ class AppService(ABC):
 
             acl_user = session_user.email.split("@")[0]
             asyncio.create_task(
-                ACLService.run_acl_command(f"acl:add {app_name} {acl_user}")
+                ACLService.run_acl_command(f"add {app_name} {acl_user}")
             )
 
         return success, message

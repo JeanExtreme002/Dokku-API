@@ -148,7 +148,7 @@ class DatabaseService(ABC):
             acl_user = session_user.email.split("@")[0]
             asyncio.create_task(
                 ACLService.run_acl_command(
-                    f"acl:add-service {plugin_name} {database_name} {acl_user}"
+                    f"add-service {plugin_name} {database_name} {acl_user}"
                 )
             )
 
