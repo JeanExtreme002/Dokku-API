@@ -137,10 +137,11 @@ class DatabaseService(ABC):
             )
 
         if success:
+            session_user.services.append(f"{plugin_name}:{original_database_name}")
             while "does not exist" in (
                 await DatabaseService.database_exists(
                     session_user, plugin_name, original_database_name
-                )
+                )[1].lower()
             ):
                 await asyncio.sleep(1)
 

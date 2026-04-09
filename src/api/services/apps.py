@@ -224,9 +224,12 @@ class AppService(ABC):
             success, message = await run_command(f"apps:create {app_name}")
 
         if success:
+            session_user.apps.append(original_app_name)
             while (
                 "does not exist"
-                in (await AppService.app_exists(session_user, original_app_name))[1]
+                in (await AppService.app_exists(session_user, original_app_name))[
+                    1
+                ].lower()
             ):
                 await asyncio.sleep(1)
 

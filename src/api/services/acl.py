@@ -19,8 +19,10 @@ class ACLService(ABC):
             response = await client.post(url, headers=headers, params=params)
 
         message = response.json()
-        success = message.get("status", False)
-        output = message.get("stdout")
+        result = message.get("result", dict())
+
+        success = result.get("status", False)
+        output = result.get("stdout")
 
         logging.info(
             f"ACL command executed: {command}. Success: {success}. Output: {output}"
