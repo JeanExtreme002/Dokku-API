@@ -23,6 +23,7 @@ from src.api.models import (
     unshare_app,
 )
 from src.api.schemas import UserSchema
+from src.api.services.acl import ACLService
 from src.api.services.databases import DatabaseService
 from src.api.tools.resource import ResourceName, check_shared_app
 from src.api.tools.ssh import run_command
@@ -220,6 +221,9 @@ class AppService(ABC):
             success, message = await run_command(f"apps:clone {clone_from} {app_name}")
         else:
             success, message = await run_command(f"apps:create {app_name}")
+
+        if success:
+            ACLService.run_acl_command(f"acl:add {app_name} {session_user.email}")
 
         return success, message
 

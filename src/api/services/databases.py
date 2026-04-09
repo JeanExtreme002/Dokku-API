@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.models import App, Service, create_resource, delete_resource, get_resources
 from src.api.schemas import UserSchema
+from src.api.services.acl import ACLService
 from src.api.tools.resource import ResourceName
 from src.api.tools.ssh import run_command
 from src.config import Config
@@ -115,11 +116,20 @@ class DatabaseService(ABC):
             db_session,
         )
         if clone_from:
-            return await run_command(
+            success, message = await run_command(
                 f"{plugin_name}:clone {clone_from} {database_name}"
             )
         else:
-            return await run_command(f"{plugin_name}:create {database_name}")
+            success, message = await run_command(
+                f"{plugin_name}:create {database_name}"
+            )
+
+        if success:
+            ACLService.run_acl_command(
+                f"acl:add-service {plugin_name} {database_name} {session_user.email}"
+            )
+
+        return success, message
 
     @staticmethod
     async def list_all_databases(

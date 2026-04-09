@@ -1,3 +1,4 @@
+import logging
 from abc import ABC
 from typing import Any, Tuple
 
@@ -19,5 +20,7 @@ class ACLService(ABC):
 
         message = response.json()
         success = str(message.get("status", "")) == "200"
+
+        logging.info(f"ACL command executed: {command}. Success: {success}")
 
         return success, message
