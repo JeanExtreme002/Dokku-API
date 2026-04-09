@@ -223,7 +223,9 @@ class AppService(ABC):
             success, message = await run_command(f"apps:create {app_name}")
 
         if success:
-            ACLService.run_acl_command(f"acl:add {app_name} {session_user.email}")
+            asyncio.create_task(
+                ACLService.run_acl_command(f"acl:add {app_name} {session_user.email}")
+            )
 
         return success, message
 

@@ -125,8 +125,10 @@ class DatabaseService(ABC):
             )
 
         if success:
-            ACLService.run_acl_command(
-                f"acl:add-service {plugin_name} {database_name} {session_user.email}"
+            asyncio.create_task(
+                ACLService.run_acl_command(
+                    f"acl:add-service {plugin_name} {database_name} {session_user.email}"
+                )
             )
 
         return success, message
