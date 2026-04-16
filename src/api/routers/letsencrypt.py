@@ -8,7 +8,7 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post(
-        "/{app_name}/active",
+        "/{app_name}/active/",
         response_description="Check if LetsEncrypt is active for an application",
     )
     async def is_letsencrypt_active(
