@@ -8,6 +8,26 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post(
+        "/{app_name}/active",
+        response_description="Check if LetsEncrypt is active for an application",
+    )
+    async def is_letsencrypt_active(
+        request: Request,
+        app_name: str,
+    ):
+        success, result = await LetsencryptService.is_letsencrypt_active(
+            request.state.session_user, app_name
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
+    @router.post(
         "/{app_name}/",
         response_description="Enable LetsEncrypt for an application",
     )

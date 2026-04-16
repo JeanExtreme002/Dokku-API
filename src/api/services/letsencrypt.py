@@ -12,6 +12,22 @@ from src.api.tools.ssh import run_command
 class LetsencryptService(ABC):
 
     @staticmethod
+    async def is_letsencrypt_active(
+        session_user: UserSchema, app_name: str
+    ) -> Tuple[bool, Any]:
+        app_name = ResourceName(session_user, app_name, App).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(
+                status_code=404,
+                detail="App does not exist",
+            )
+        success, message = await run_command(f"letsencrypt:active {app_name}")
+        is_active = message.lower() == "true"
+
+        return success, is_active
+
+    @staticmethod
     async def enable_letsencrypt(
         session_user: UserSchema, app_name: str
     ) -> Tuple[bool, Any]:
