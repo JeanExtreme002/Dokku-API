@@ -25,6 +25,7 @@ from src.api.models import (
 from src.api.schemas import UserSchema
 from src.api.services.acl import ACLService
 from src.api.services.databases import DatabaseService
+from src.api.services.letsencrypt import LetsencryptService
 from src.api.tools.resource import ResourceName, check_shared_app
 from src.api.tools.ssh import run_command
 from src.config import Config
@@ -223,8 +224,13 @@ class AppService(ABC):
         else:
             success, message = await run_command(f"apps:create {app_name}")
 
+        async def async_post_creation():
+            acl_user = session_user.email.split("@")[0]
+            await ACLService.run_acl_command(f"add {app_name} {acl_user}")
+            await LetsencryptService.enable_letsencrypt(session_user, original_app_name)
+
         if success:
-            session_user.apps.append(original_app_name)
+            session_user.apps.append(app_name)
             while (
                 "does not exist"
                 in (await AppService.app_exists(session_user, original_app_name))[
@@ -232,12 +238,8 @@ class AppService(ABC):
                 ].lower()
             ):
                 await asyncio.sleep(1)
-
-            acl_user = session_user.email.split("@")[0]
-            asyncio.create_task(
-                ACLService.run_acl_command(f"add {app_name} {acl_user}")
-            )
-
+            asyncio.create_task(async_post_creation())
+ 
         return success, message
 
     @staticmethod
