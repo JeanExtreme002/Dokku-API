@@ -42,7 +42,7 @@ def build_context(base_url, master_key, api_key):
         user_app_key=f"key{secrets.token_hex(8)}",
         user_app_key_value=secrets.token_hex(8),
         user_app_port_mapping={"protocol": "http", "origin": 5300, "dest": 7040},
-        user_database="test_database",
+        user_database="test-database",
         user_network="test_network",
         user_app_renamed=f"{user_app}-renamed",
         user_app_domain_2=f"alt{test_id}.example.com",
