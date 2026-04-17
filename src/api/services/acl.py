@@ -51,7 +51,7 @@ class ACLService(ABC):
 
             user = await get_user(email, db_session)
             db_apps = set(user.apps)
-            left_apps = db_apps - acl_apps
+            left_apps = acl_apps - db_apps
 
             for app_name in left_apps:
                 logging.warning(
