@@ -197,7 +197,7 @@ async def create_resource(
     name: str,
     resource_type: Type[Resource],
     db_session: AsyncSession,
-    ignore_quota: bool = False
+    ignore_quota: bool = False,
 ) -> None:
     ResourceType = resource_type
 

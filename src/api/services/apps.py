@@ -370,7 +370,9 @@ class AppService(ABC):
         system_app_name = ResourceName(session_user, app_name, App).for_system()
 
         if system_app_name not in session_user.apps:
-            await create_resource(session_user.email, system_app_name, App, db_session, ignore_quota=True)
+            await create_resource(
+                session_user.email, system_app_name, App, db_session, ignore_quota=True
+            )
 
         await run_command(f"apps:rename {app_name} {system_app_name}")
 

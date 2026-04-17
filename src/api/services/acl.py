@@ -59,7 +59,9 @@ class ACLService(ABC):
                 )
                 try:
                     await on_link_app(user, app_name, db_session)
-                    logging.warning(f"[sync_acl_apps]:{email}:{app_name}::Successfully imported.")
+                    logging.warning(
+                        f"[sync_acl_apps]:{email}:{app_name}::Successfully imported."
+                    )
                 except Exception as error:
                     logging.warning(
                         f"[sync_acl_apps]:{email}:{app_name}::Failed on importing app to the API... {error}"
