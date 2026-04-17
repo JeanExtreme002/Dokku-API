@@ -239,7 +239,7 @@ class AppService(ABC):
             ):
                 await asyncio.sleep(1)
             asyncio.create_task(async_post_creation())
- 
+
         return success, message
 
     @staticmethod

@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from src.api.middlewares import UserSessionMiddleware
 from src.api.models import AsyncSessionLocal
 from src.api.routers import get_router
-from src.api.services import AppService, DatabaseService, NetworkService
+from src.api.services import ACLService, AppService, DatabaseService, NetworkService
 from src.config import Config
 
 APP_ROOT = Path(__file__).parent
@@ -56,6 +56,10 @@ def get_app() -> FastAPI:
         async with AsyncSessionLocal() as db_session:
             await NetworkService.sync_dokku_with_api_database(db_session)
 
+    async def sync_acl_resources_job():
+        async with AsyncSessionLocal() as db_session:
+            await ACLService.sync_apps(db_session)
+
     @_app.on_event("startup")
     async def startup():
         scheduler.start()
@@ -81,6 +85,15 @@ def get_app() -> FastAPI:
             sync_networks_job,
             trigger=IntervalTrigger(minutes=10),
             id="sync_dokku_with_network_database",
+            replace_existing=True,
+            next_run_time=datetime.now(),
+            max_instances=1,
+            coalesce=True,
+        )
+        scheduler.add_job(
+            sync_acl_resources_job,
+            trigger=IntervalTrigger(hours=1),
+            id="sync_acl_resources",
             replace_existing=True,
             next_run_time=datetime.now(),
             max_instances=1,
