@@ -58,7 +58,7 @@ def get_app() -> FastAPI:
 
     async def sync_acl_resources_job():
         async with AsyncSessionLocal() as db_session:
-            await ACLService.sync_apps(db_session)
+            await ACLService.sync_apps(db_session, on_link_app=AppService.set_owner)
 
     @_app.on_event("startup")
     async def startup():

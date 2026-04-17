@@ -1,12 +1,11 @@
 import logging
 from abc import ABC
-from typing import Any, Tuple
+from typing import Any, Callable, Coroutine, Tuple
 
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.models import get_user, get_users
-from src.api.services.apps import AppService
 from src.config import Config
 
 
@@ -29,7 +28,10 @@ class ACLService(ABC):
         return success, message
 
     @staticmethod
-    async def sync_apps(db_session: AsyncSession) -> None:
+    async def sync_apps(
+        db_session: AsyncSession,
+        on_link_app: Callable[..., Coroutine[Any, Any, Any]],
+    ) -> None:
         logging.warning("[sync_acl_apps]::Syncing ACL apps...")
 
         users = await get_users(db_session)
@@ -55,7 +57,7 @@ class ACLService(ABC):
                     f"[sync_acl_apps]:{email}:{app_name}::Importing missing users's app found by ACL to the API..."
                 )
                 try:
-                    await AppService.set_owner(user, app_name, db_session)
+                    await on_link_app(user, app_name, db_session)
                 except:
                     logging.warning(
                         f"[sync_acl_apps]:{email}:{app_name}::Failed on importing app to the API..."
