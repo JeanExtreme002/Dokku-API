@@ -39,6 +39,7 @@ class ACLService(ABC):
         for email in users:
             acl_user = email.split("@")[0]
             success, result = await ACLService.run_acl_command(f"allowed {acl_user}")
+            result = result["stdout"]
 
             if not success:
                 logging.warning(
