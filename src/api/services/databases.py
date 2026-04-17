@@ -137,7 +137,7 @@ class DatabaseService(ABC):
             )
 
         if success:
-            session_user.services.append(f"{plugin_name}:{original_database_name}")
+            session_user.services.append(f"{plugin_name}:{database_name}")
             while (
                 "does not exist"
                 in (
