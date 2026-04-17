@@ -55,7 +55,8 @@ class ACLService(ABC):
 
             for app_name in left_apps:
                 logging.warning(
-                    f"[sync_acl_apps]:{email}:{app_name}::Importing missing users's app found by ACL to the API..."
+                    f"[sync_acl_apps]:{email}:{app_name}::"
+                    "Importing missing users's app found by ACL to the API..."
                 )
                 try:
                     await on_link_app(user, app_name, db_session)
