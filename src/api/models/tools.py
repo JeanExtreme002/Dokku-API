@@ -197,6 +197,7 @@ async def create_resource(
     name: str,
     resource_type: Type[Resource],
     db_session: AsyncSession,
+    ignore_quota: bool = False
 ) -> None:
     ResourceType = resource_type
 
@@ -223,7 +224,7 @@ async def create_resource(
     }
     quota, resources = quota_map.get(ResourceType)
 
-    if quota <= len(resources):
+    if quota <= len(resources) and not ignore_quota:
         raise HTTPException(status_code=403, detail="Quota exceeded")
 
     resource = ResourceType(name=name, user_email=db_user.email)
