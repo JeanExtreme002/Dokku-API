@@ -226,8 +226,10 @@ class AppService(ABC):
 
         async def async_post_creation():
             acl_user = session_user.email.split("@")[0]
-            await ACLService.run_acl_command(f"add {app_name} {acl_user}")
-            await LetsencryptService.enable_letsencrypt(session_user, original_app_name)
+            await asyncio.gather(
+                ACLService.run_acl_command(f"add {app_name} {acl_user}"),
+                LetsencryptService.enable_letsencrypt(session_user, original_app_name),
+            )
 
         if success:
             session_user.apps.append(app_name)
