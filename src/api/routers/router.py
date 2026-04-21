@@ -5,6 +5,7 @@ from src.api.routers.api import get_router as api_router
 from src.api.routers.apps import get_router as apps_router
 from src.api.routers.base import get_router as base_router
 from src.api.routers.config import get_router as config_router
+from src.api.routers.cron import get_router as cron_router
 from src.api.routers.databases import get_router as databases_router
 from src.api.routers.domains import get_router as domains_router
 from src.api.routers.git import get_router as git_router
@@ -119,6 +120,15 @@ def get_router(app: FastAPI) -> APIRouter:
         ssh_router(app),
         tags=["SSH"],
         prefix="/api/ssh",
+        dependencies=[
+            Depends(validate_api_key),
+            Depends(validate_user_credentials),
+        ],
+    )
+    router.include_router(
+        cron_router(app),
+        tags=["Cron"],
+        prefix="/api/cron",
         dependencies=[
             Depends(validate_api_key),
             Depends(validate_user_credentials),

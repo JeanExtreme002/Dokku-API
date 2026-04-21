@@ -3,6 +3,7 @@ from typing import Tuple
 from src.api.services.acl import ACLService
 from src.api.services.apps import AppService
 from src.api.services.config import ConfigService
+from src.api.services.cron import CronService
 from src.api.services.databases import DatabaseService
 from src.api.services.domains import DomainService
 from src.api.services.git import GitService
