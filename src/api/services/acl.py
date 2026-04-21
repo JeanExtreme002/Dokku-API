@@ -13,7 +13,7 @@ class ACLService(ABC):
 
     @staticmethod
     async def run_acl_command(command: str) -> Tuple[bool, Any]:
-        url = f"{Config.ACL_SERVER.HOST}:{Config.ACL_SERVER.PORT}/api/run"
+        url = f"{Config.ACL_SERVER.HOST}:{Config.ACL_SERVER.PORT}/api/acl"
         headers = {"MASTER-KEY": Config.MASTER_KEY}
         params = {"command": command}
 
