@@ -9,6 +9,13 @@ from src.config import Config
 def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
+    @router.post("/port/", response_description="Get the SSH server port")
+    async def get_ssh_port():
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={"port": Config.SSH_SERVER.SSH_PORT},
+        )
+
     @router.post(
         "/key/", response_description="Set a SSH key (receive as base64) at Dokku"
     )
