@@ -5,7 +5,7 @@ import dotenv
 
 dotenv.load_dotenv()
 
-API_VERSION_NUMBER = "1.3.4"
+API_VERSION_NUMBER = "1.3.5"
 
 
 class DatabaseConfig:
