@@ -8,7 +8,7 @@ def get_router(app: FastAPI) -> APIRouter:
     router = APIRouter()
 
     @router.post(
-        "/list/",
+        "/{app_name}/list/",
         response_description="List cron jobs for an application",
     )
     async def list_cron(
@@ -28,7 +28,7 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
-        "/run/",
+        "/{app_name}/run/",
         response_description="Run a cron job for an application",
     )
     async def run_cron(
