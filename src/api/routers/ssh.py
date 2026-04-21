@@ -13,7 +13,10 @@ def get_router(app: FastAPI) -> APIRouter:
     async def get_ssh_port():
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={"port": Config.SSH_SERVER.SSH_PORT},
+            content={
+                "message": {"port": Config.SSH_SERVER.SSH_PORT},
+                "success": True,
+            },
         )
 
     @router.post(
