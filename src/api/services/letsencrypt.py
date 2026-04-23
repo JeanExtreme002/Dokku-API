@@ -13,7 +13,9 @@ class LetsencryptService(ABC):
 
     @staticmethod
     async def is_letsencrypt_active(
-        session_user: UserSchema, app_name: str, shared_by: Optional[str] = None,
+        session_user: UserSchema,
+        app_name: str,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
         app_name = ResourceName(session_user, app_name, App).for_system()
