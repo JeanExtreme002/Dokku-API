@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
@@ -14,9 +16,10 @@ def get_router(app: FastAPI) -> APIRouter:
     async def list_cron(
         request: Request,
         app_name: str,
+        shared_by: Optional[str] = None,
     ):
         success, result = await CronService.list_cron(
-            request.state.session_user, app_name
+            request.state.session_user, app_name, shared_by
         )
 
         return JSONResponse(
@@ -35,9 +38,10 @@ def get_router(app: FastAPI) -> APIRouter:
         request: Request,
         app_name: str,
         cron_id: str,
+        shared_by: Optional[str] = None,
     ):
         success, result = await CronService.run_cron(
-            request.state.session_user, app_name, cron_id
+            request.state.session_user, app_name, cron_id, shared_by
         )
 
         return JSONResponse(
