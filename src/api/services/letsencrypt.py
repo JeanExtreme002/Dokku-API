@@ -1,11 +1,11 @@
 from abc import ABC
-from typing import Any, Tuple
+from typing import Any, Optional, Tuple
 
 from fastapi import HTTPException
 
 from src.api.models import App
 from src.api.schemas import UserSchema
-from src.api.tools.resource import ResourceName
+from src.api.tools.resource import ResourceName, check_shared_app
 from src.api.tools.ssh import run_command
 
 
@@ -13,8 +13,11 @@ class LetsencryptService(ABC):
 
     @staticmethod
     async def is_letsencrypt_active(
-        session_user: UserSchema, app_name: str
+        session_user: UserSchema,
+        app_name: str,
+        shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
         app_name = ResourceName(session_user, app_name, App).for_system()
 
         if app_name not in session_user.apps:

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
@@ -14,9 +16,10 @@ def get_router(app: FastAPI) -> APIRouter:
     async def is_letsencrypt_active(
         request: Request,
         app_name: str,
+        shared_by: Optional[str] = None,
     ):
         success, result = await LetsencryptService.is_letsencrypt_active(
-            request.state.session_user, app_name
+            request.state.session_user, app_name, shared_by
         )
 
         return JSONResponse(
