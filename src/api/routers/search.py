@@ -21,7 +21,7 @@ def get_router(app: FastAPI) -> APIRouter:
         user: UserSchema = request.state.session_user
 
         for app_name in user.apps:
-            app_name = str(ResourceName(user, app_name, App, from_system=True)).lower()
+            app_name = str(ResourceName(user, app_name, from_system=True)).lower()
 
             if query in app_name:
                 details = (await AppService.get_app_info(user, app_name))[1]
@@ -45,7 +45,7 @@ def get_router(app: FastAPI) -> APIRouter:
         for service_name in user.services:
             plugin_name, service_name = service_name.split(":", maxsplit=1)
             service_name = str(
-                ResourceName(user, service_name, Service, from_system=True)
+                ResourceName(user, service_name, from_system=True)
             ).lower()
 
             if query in service_name:
@@ -61,7 +61,7 @@ def get_router(app: FastAPI) -> APIRouter:
 
         for network_name in user.networks:
             network_name = str(
-                ResourceName(user, network_name, Network, from_system=True)
+                ResourceName(user, network_name, from_system=True)
             ).lower()
 
             if query in network_name:

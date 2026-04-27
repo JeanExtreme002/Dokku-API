@@ -21,32 +21,28 @@ MockUser = UserSchema(
 class TestResourceName(unittest.TestCase):
     def test_normalization_for_app(self):
         name = "My Resource!Name"
-        rname = ResourceName(user=MockUser, name=name, resource_type=App)
+        rname = ResourceName(user=MockUser, name=name)
         self.assertEqual(rname.normalized(), "my-resource-name")
         self.assertEqual(str(rname), "my-resource-name")
         self.assertEqual(rname.for_system(), "1-my-resource-name")
 
     def test_normalization_for_service(self):
         name = "My Resource!Name"
-        rname = ResourceName(user=MockUser, name=name, resource_type=Service)
+        rname = ResourceName(user=MockUser, name=name)
         self.assertEqual(rname.normalized(), "my-resource-name")
         self.assertEqual(str(rname), "my-resource-name")
         self.assertEqual(rname.for_system(), "1-my-resource-name")
 
     def test_decoding_app_name(self):
         name = "1-my-resource-name"
-        rname = ResourceName(
-            user=MockUser, name=name, resource_type=App, from_system=True
-        )
+        rname = ResourceName(user=MockUser, name=name, from_system=True)
         self.assertEqual(rname.normalized(), "my-resource-name")
         self.assertEqual(str(rname), "my-resource-name")
         self.assertEqual(rname.for_system(), "1-my-resource-name")
 
     def test_decoding_service_name(self):
         name = "1-my-resource-name"
-        rname = ResourceName(
-            user=MockUser, name=name, resource_type=Service, from_system=True
-        )
+        rname = ResourceName(user=MockUser, name=name, from_system=True)
         self.assertEqual(rname.normalized(), "my-resource-name")
         self.assertEqual(str(rname), "my-resource-name")
         self.assertEqual(rname.for_system(), "1-my-resource-name")

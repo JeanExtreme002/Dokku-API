@@ -43,7 +43,7 @@ class DomainService(ABC):
         app_name: str,
         domain: str,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(
@@ -57,7 +57,7 @@ class DomainService(ABC):
         session_user: UserSchema,
         app_name: str,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(
@@ -73,7 +73,7 @@ class DomainService(ABC):
         app_name: str,
         domain: str,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(
@@ -88,7 +88,7 @@ class DomainService(ABC):
         app_name: str,
         domain: str,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(

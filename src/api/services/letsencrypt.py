@@ -18,7 +18,7 @@ class LetsencryptService(ABC):
         shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(
@@ -34,7 +34,7 @@ class LetsencryptService(ABC):
     async def enable_letsencrypt(
         session_user: UserSchema, app_name: str
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(
@@ -53,7 +53,7 @@ class LetsencryptService(ABC):
         session_user: UserSchema,
         app_name: str,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(

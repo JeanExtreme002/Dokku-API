@@ -36,7 +36,7 @@ class ConfigService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(
@@ -56,7 +56,7 @@ class ConfigService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(
@@ -75,7 +75,7 @@ class ConfigService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(
@@ -97,7 +97,7 @@ class ConfigService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(

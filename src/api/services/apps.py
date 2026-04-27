@@ -90,7 +90,7 @@ def parse_network_info(session_user: UserSchema, text: str) -> Dict:
         network = result.get("network_computed_initial_network")
 
     if network:
-        network = ResourceName(session_user, network, Network, from_system=True)
+        network = ResourceName(session_user, network, from_system=True)
 
     return {"network": str(network) if network else None}
 
@@ -177,7 +177,7 @@ class AppService(ABC):
     staticmethod
 
     async def app_exists(session_user: UserSchema, app_name: str) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             return False, f"App {app_name} does not exist on the API"
@@ -191,11 +191,9 @@ class AppService(ABC):
         db_session: AsyncSession,
         clone_from: Optional[str] = None,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
         clone_from = (
-            ResourceName(session_user, clone_from, App).for_system()
-            if clone_from
-            else None
+            ResourceName(session_user, clone_from).for_system() if clone_from else None
         )
 
         if clone_from:
@@ -227,7 +225,7 @@ class AppService(ABC):
     async def get_shared_app_users(
         session_user: UserSchema, app_name: str, db_session: AsyncSession
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -240,7 +238,7 @@ class AppService(ABC):
     async def unshare_app(
         session_user: UserSchema, app_name: str, email: str, db_session: AsyncSession
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -261,7 +259,7 @@ class AppService(ABC):
                 status_code=400, detail="You cannot share the application with yourself"
             )
 
-        system_app_name = ResourceName(session_user, app_name, App).for_system()
+        system_app_name = ResourceName(session_user, app_name).for_system()
 
         if system_app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -279,8 +277,8 @@ class AppService(ABC):
         new_app_name: str,
         db_session: AsyncSession,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
-        new_app_name = ResourceName(session_user, new_app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
+        new_app_name = ResourceName(session_user, new_app_name).for_system()
 
         _, message = await run_command(f"apps:exists {new_app_name}")
 
@@ -316,7 +314,7 @@ class AppService(ABC):
         app_name: str,
         db_session: AsyncSession,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -331,7 +329,7 @@ class AppService(ABC):
         app_name: str,
         db_session: AsyncSession,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -348,7 +346,7 @@ class AppService(ABC):
         if "does not exist" in message.lower():
             raise HTTPException(status_code=404, detail="App does not exist on Dokku")
 
-        system_app_name = ResourceName(session_user, app_name, App).for_system()
+        system_app_name = ResourceName(session_user, app_name).for_system()
 
         if system_app_name not in session_user.apps:
             await create_resource(session_user.email, system_app_name, App, db_session)
@@ -361,7 +359,7 @@ class AppService(ABC):
     async def unset_owner(
         session_user: UserSchema, app_name: str, db_session: AsyncSession
     ) -> Tuple[bool, Any]:
-        system_app_name = ResourceName(session_user, app_name, App).for_system()
+        system_app_name = ResourceName(session_user, app_name).for_system()
 
         if system_app_name in session_user.apps:
             await delete_resource(session_user.email, system_app_name, App, db_session)
@@ -380,7 +378,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -393,7 +391,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -406,7 +404,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -436,14 +434,12 @@ class AppService(ABC):
 
         if not return_info:
             for app_name in session_user.apps:
-                app_name = str(
-                    ResourceName(session_user, app_name, App, from_system=True)
-                )
+                app_name = str(ResourceName(session_user, app_name, from_system=True))
                 result[app_name] = {}
             return True, result
 
         for app_name in session_user.apps:
-            app_name = str(ResourceName(session_user, app_name, App, from_system=True))
+            app_name = str(ResourceName(session_user, app_name, from_system=True))
             app_names.append(app_name)
             tasks.append(AppService.get_app_info(session_user, app_name))
 
@@ -490,7 +486,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -503,7 +499,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -516,7 +512,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -529,7 +525,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -542,7 +538,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -555,7 +551,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -585,7 +581,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         available_builders = ["herokuish", "dockerfile", "lambda", "pack"]
 
@@ -609,7 +605,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -629,7 +625,7 @@ class AppService(ABC):
         shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -659,7 +655,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -685,7 +681,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -707,7 +703,7 @@ class AppService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        sys_app_name = ResourceName(session_user, app_name, App).for_system()
+        sys_app_name = ResourceName(session_user, app_name).for_system()
 
         if sys_app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -716,9 +712,7 @@ class AppService(ABC):
 
         for db_name in session_user.services:
             plugin_name, db_name = db_name.split(":", maxsplit=1)
-            db_name = str(
-                ResourceName(session_user, db_name, Service, from_system=True)
-            )
+            db_name = str(ResourceName(session_user, db_name, from_system=True))
 
             success, data = await DatabaseService.get_linked_apps(
                 session_user, plugin_name, db_name
@@ -736,7 +730,7 @@ class AppService(ABC):
         session_user: UserSchema,
         app_name: str,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -750,7 +744,7 @@ class AppService(ABC):
         app_name: str,
         directory: str,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -765,7 +759,7 @@ class AppService(ABC):
         app_name: str,
         directory: str,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -788,7 +782,7 @@ class AppService(ABC):
         """
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
