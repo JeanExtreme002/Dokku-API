@@ -1,7 +1,6 @@
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from src.api.models import App, Network, Service
 from src.api.schemas import UserSchema
 from src.api.services import AppService, DatabaseService
 from src.api.tools.resource import ResourceName

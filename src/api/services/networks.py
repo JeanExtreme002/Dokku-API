@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Tuple
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.models import App, Network, create_resource, delete_resource, get_resources
+from src.api.models import Network, create_resource, delete_resource, get_resources
 from src.api.schemas import UserSchema
 from src.api.services import AppService
 from src.api.tools.resource import ResourceName

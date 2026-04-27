@@ -4,7 +4,6 @@ from typing import Any, Dict, Tuple
 
 from fastapi import HTTPException
 
-from src.api.models import App
 from src.api.schemas import UserSchema
 from src.api.tools.resource import ResourceName
 from src.api.tools.ssh import run_command

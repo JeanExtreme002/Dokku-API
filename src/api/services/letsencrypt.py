@@ -3,7 +3,6 @@ from typing import Any, Optional, Tuple
 
 from fastapi import HTTPException
 
-from src.api.models import App
 from src.api.schemas import UserSchema
 from src.api.tools.resource import ResourceName, check_shared_app
 from src.api.tools.ssh import run_command

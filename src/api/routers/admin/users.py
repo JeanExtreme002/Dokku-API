@@ -17,9 +17,6 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.models import (
-    App,
-    Network,
-    Service,
     create_take_over_access_token,
     create_user,
     delete_user,

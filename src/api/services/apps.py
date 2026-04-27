@@ -11,8 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.models import (
     App,
     AsyncSessionLocal,
-    Network,
-    Service,
     create_resource,
     delete_resource,
     get_app_deployment_token,

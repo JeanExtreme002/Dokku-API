@@ -1,9 +1,9 @@
-from typing import Optional, Type
+from typing import Optional
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.models import App, AsyncSessionLocal, Resource, Service, get_user
+from src.api.models import AsyncSessionLocal, get_user
 from src.api.schemas import UserSchema
 from src.config import Config
 
