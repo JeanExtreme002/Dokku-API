@@ -21,7 +21,8 @@ class ResourceName:
         from_system: bool = False,
     ):
         self.__user = user.id
-        self.__separator = {App: "-", Service: "-"}.get(resource_type, "_")
+        self.__separator = "-"
+        
         self.__name = name.lower()
 
         allowed = "abcdefghijklmnopqrstuvwxyz0123456789"
