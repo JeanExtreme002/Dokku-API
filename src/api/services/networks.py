@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Tuple
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.models import App, Network, create_resource, delete_resource, get_resources
+from src.api.models import Network, create_resource, delete_resource, get_resources
 from src.api.schemas import UserSchema
 from src.api.services import AppService
 from src.api.tools.resource import ResourceName
@@ -63,7 +63,7 @@ class NetworkService(ABC):
     async def create_network(
         session_user: UserSchema, network_name: str, db_session: AsyncSession
     ) -> Tuple[bool, Any]:
-        network_name = ResourceName(session_user, network_name, Network).for_system()
+        network_name = ResourceName(session_user, network_name).for_system()
 
         _, message = await run_command(f"network:exists {network_name}")
 
@@ -77,7 +77,7 @@ class NetworkService(ABC):
     async def delete_network(
         session_user: UserSchema, network_name: str, db_session: AsyncSession
     ) -> Tuple[bool, Any]:
-        network_name = ResourceName(session_user, network_name, Network).for_system()
+        network_name = ResourceName(session_user, network_name).for_system()
 
         if network_name not in session_user.networks:
             raise HTTPException(status_code=404, detail="Network does not exist")
@@ -98,7 +98,7 @@ class NetworkService(ABC):
         if not return_info:
             for network_name in session_user.networks:
                 parsed_network_name = ResourceName(
-                    session_user, network_name, Network, from_system=True
+                    session_user, network_name, from_system=True
                 )
                 parsed_network_name = str(parsed_network_name)
                 result[parsed_network_name] = {}
@@ -106,7 +106,7 @@ class NetworkService(ABC):
 
         for network_name in session_user.networks:
             parsed_network_name = ResourceName(
-                session_user, network_name, Network, from_system=True
+                session_user, network_name, from_system=True
             )
             parsed_network_name = str(parsed_network_name)
 
@@ -132,8 +132,8 @@ class NetworkService(ABC):
         network_name: str,
         app_name: str,
     ) -> Tuple[bool, Any]:
-        network_name = ResourceName(session_user, network_name, Network).for_system()
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        network_name = ResourceName(session_user, network_name).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if network_name not in session_user.networks:
             raise HTTPException(status_code=404, detail="Network does not exist")
@@ -150,7 +150,7 @@ class NetworkService(ABC):
         session_user: UserSchema,
         app_name: str,
     ) -> Tuple[bool, Any]:
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -162,9 +162,7 @@ class NetworkService(ABC):
         session_user: UserSchema,
         network_name: str,
     ) -> Tuple[bool, Any]:
-        sys_network_name = ResourceName(
-            session_user, network_name, Network
-        ).for_system()
+        sys_network_name = ResourceName(session_user, network_name).for_system()
 
         if sys_network_name not in session_user.networks:
             raise HTTPException(status_code=404, detail="Network does not exist")
@@ -172,7 +170,7 @@ class NetworkService(ABC):
         results = []
 
         for app_name in session_user.apps:
-            app_name = ResourceName(session_user, app_name, App, from_system=True)
+            app_name = ResourceName(session_user, app_name, from_system=True)
             app_name = str(app_name)
 
             success, data = await AppService.get_network(session_user, app_name)

@@ -4,7 +4,6 @@ from typing import Any, List, Optional, Tuple
 
 from fastapi import HTTPException
 
-from src.api.models import App
 from src.api.schemas import UserSchema
 from src.api.tools.resource import ResourceName, check_shared_app
 from src.api.tools.ssh import run_command
@@ -54,7 +53,7 @@ class CronService(ABC):
         shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -74,7 +73,7 @@ class CronService(ABC):
         shared_by: Optional[str] = None,
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")

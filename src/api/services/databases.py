@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Tuple
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.models import App, Service, create_resource, delete_resource, get_resources
+from src.api.models import Service, create_resource, delete_resource, get_resources
 from src.api.schemas import UserSchema
 from src.api.services.acl import ACLService
 from src.api.tools.resource import ResourceName
@@ -88,11 +88,9 @@ class DatabaseService(ABC):
         clone_from: Optional[str] = None,
     ) -> Tuple[bool, Any]:
         original_database_name = database_name
-        database_name = ResourceName(session_user, database_name, Service).for_system()
+        database_name = ResourceName(session_user, database_name).for_system()
         clone_from = (
-            ResourceName(session_user, clone_from, Service).for_system()
-            if clone_from
-            else None
+            ResourceName(session_user, clone_from).for_system() if clone_from else None
         )
         available_databases = (await DatabaseService.list_available_databases())[1]
 
@@ -193,14 +191,14 @@ class DatabaseService(ABC):
         if not return_info:
             for database_name in databases:
                 database_name = str(
-                    ResourceName(session_user, database_name, Service, from_system=True)
+                    ResourceName(session_user, database_name, from_system=True)
                 )
                 result[database_name] = {}
             return True, result
 
         for database_name in databases:
             database_name = str(
-                ResourceName(session_user, database_name, Service, from_system=True)
+                ResourceName(session_user, database_name, from_system=True)
             )
             database_names.append(database_name)
             tasks.append(
@@ -223,9 +221,7 @@ class DatabaseService(ABC):
         database_name: str,
         db_session: AsyncSession,
     ) -> Tuple[bool, Any]:
-        system_database_name = ResourceName(
-            session_user, database_name, Service
-        ).for_system()
+        system_database_name = ResourceName(session_user, database_name).for_system()
 
         if f"{plugin_name}:{system_database_name}" not in session_user.services:
             raise HTTPException(
@@ -258,7 +254,7 @@ class DatabaseService(ABC):
         plugin_name: str,
         database_name: str,
     ) -> Tuple[bool, Any]:
-        database_name = ResourceName(session_user, database_name, Service).for_system()
+        database_name = ResourceName(session_user, database_name).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
@@ -274,7 +270,7 @@ class DatabaseService(ABC):
         plugin_name: str,
         database_name: str,
     ) -> Tuple[bool, Any]:
-        database_name = ResourceName(session_user, database_name, Service).for_system()
+        database_name = ResourceName(session_user, database_name).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
@@ -289,7 +285,7 @@ class DatabaseService(ABC):
         plugin_name: str,
         database_name: str,
     ) -> Tuple[bool, Any]:
-        database_name = ResourceName(session_user, database_name, Service).for_system()
+        database_name = ResourceName(session_user, database_name).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
@@ -299,7 +295,7 @@ class DatabaseService(ABC):
         success, message = await run_command(f"{plugin_name}:links {database_name}")
         result = (
             [
-                str(ResourceName(session_user, app, App, from_system=True))
+                str(ResourceName(session_user, app, from_system=True))
                 for app in message.split("\n")
                 if app
             ]
@@ -316,8 +312,8 @@ class DatabaseService(ABC):
         database_name: str,
         app_name: str,
     ) -> Tuple[bool, Any]:
-        database_name = ResourceName(session_user, database_name, Service).for_system()
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        database_name = ResourceName(session_user, database_name).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
@@ -340,8 +336,8 @@ class DatabaseService(ABC):
         database_name: str,
         app_name: str,
     ) -> Tuple[bool, Any]:
-        database_name = ResourceName(session_user, database_name, Service).for_system()
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        database_name = ResourceName(session_user, database_name).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
@@ -363,7 +359,7 @@ class DatabaseService(ABC):
         plugin_name: str,
         database_name: str,
     ) -> Tuple[bool, Any]:
-        database_name = ResourceName(session_user, database_name, Service).for_system()
+        database_name = ResourceName(session_user, database_name).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
@@ -385,7 +381,7 @@ class DatabaseService(ABC):
         database_name: str,
         n_lines: int = 2000,
     ) -> Tuple[bool, Any]:
-        database_name = ResourceName(session_user, database_name, Service).for_system()
+        database_name = ResourceName(session_user, database_name).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
@@ -408,7 +404,7 @@ class DatabaseService(ABC):
         plugin_name: str,
         database_name: str,
     ) -> Tuple[bool, Any]:
-        database_name = ResourceName(session_user, database_name, Service).for_system()
+        database_name = ResourceName(session_user, database_name).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
@@ -429,7 +425,7 @@ class DatabaseService(ABC):
         plugin_name: str,
         database_name: str,
     ) -> Tuple[bool, Any]:
-        database_name = ResourceName(session_user, database_name, Service).for_system()
+        database_name = ResourceName(session_user, database_name).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(
@@ -450,7 +446,7 @@ class DatabaseService(ABC):
         plugin_name: str,
         database_name: str,
     ) -> Tuple[bool, Any]:
-        database_name = ResourceName(session_user, database_name, Service).for_system()
+        database_name = ResourceName(session_user, database_name).for_system()
 
         if f"{plugin_name}:{database_name}" not in session_user.services:
             raise HTTPException(

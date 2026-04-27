@@ -1,9 +1,9 @@
-from typing import Optional, Type
+from typing import Optional
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.models import App, AsyncSessionLocal, Resource, Service, get_user
+from src.api.models import AsyncSessionLocal, get_user
 from src.api.schemas import UserSchema
 from src.config import Config
 
@@ -17,12 +17,10 @@ class ResourceName:
         self,
         user: UserSchema,
         name: str,
-        resource_type: Type[Resource],
         from_system: bool = False,
     ):
         self.__user = user.id
         self.__separator = "-"
-        
         self.__name = name.lower()
 
         allowed = "abcdefghijklmnopqrstuvwxyz0123456789"

@@ -275,7 +275,7 @@ class GitService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -293,7 +293,7 @@ class GitService(ABC):
     ) -> Tuple[bool, Any]:
         session_user = await check_shared_app(session_user, app_name, shared_by)
 
-        app_name = ResourceName(session_user, app_name, App).for_system()
+        app_name = ResourceName(session_user, app_name).for_system()
 
         if app_name not in session_user.apps:
             raise HTTPException(status_code=404, detail="App does not exist")
@@ -320,7 +320,7 @@ class GitService(ABC):
         dest_dir.mkdir(parents=True, exist_ok=True)
 
         dest_dir, app, user = await save_app_zip(file, dest_dir, db_session)
-        app_name = ResourceName(user, app.name, App, from_system=True).for_system()
+        app_name = ResourceName(user, app.name, from_system=True).for_system()
 
         task = push_to_dokku(dest_dir, SSH_HOSTNAME, SSH_PORT, app_name, branch=BRANCH)
         result = "Deploying application..."
