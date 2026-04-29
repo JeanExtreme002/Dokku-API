@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.models import get_db_session
-from src.api.services import AppService
+from src.api.services import AppService, GitService
 
 
 def get_router(app: FastAPI) -> APIRouter:
@@ -541,6 +541,28 @@ def get_router(app: FastAPI) -> APIRouter:
                 "success": success,
                 "result": result,
             },
+        )
+
+    @router.post(
+        "/{app_name}/zip/",
+        response_description="Return the application repository as a zip file",
+    )
+    async def download_app_zip(
+        request: Request,
+        app_name: str,
+        shared_by: Optional[str] = None,
+        as_octet_stream: Optional[bool] = False,
+    ):
+        zip_content = await GitService.clone_application(
+            request.state.session_user, app_name, shared_by
+        )
+
+        return Response(
+            content=zip_content,
+            media_type=(
+                "application/octet-stream" if as_octet_stream else "application/zip"
+            ),
+            headers={"Content-Disposition": f"attachment; filename={app_name}.zip"},
         )
 
     @router.post(

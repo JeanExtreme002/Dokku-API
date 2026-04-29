@@ -1,10 +1,12 @@
 import asyncio
+import io
 import logging
 import os
+import shutil
 import subprocess
 import zipfile
 from abc import ABC
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, Tuple
 
@@ -302,6 +304,65 @@ class GitService(ABC):
         return success, parse_git_info(message)
 
     @staticmethod
+    async def clone_application(
+        session_user: UserSchema, app_name: str, shared_by: Optional[str] = None
+    ) -> bytes:
+        session_user = await check_shared_app(session_user, app_name, shared_by)
+        app_name = ResourceName(session_user, app_name).for_system()
+
+        if app_name not in session_user.apps:
+            raise HTTPException(status_code=404, detail="App does not exist")
+
+        SSH_HOSTNAME = Config.SSH_SERVER.SSH_HOSTNAME
+        SSH_PORT = Config.SSH_SERVER.SSH_PORT
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        clone_dir = Path(f"/tmp/dokku-api-clone-{app_name}-{timestamp}")
+
+        env = os.environ.copy()
+        env["GIT_SSH_COMMAND"] = (
+            f"ssh -i {Config.SSH_SERVER.SSH_KEY_PATH} -p {SSH_PORT} "
+            f"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "
+            f"-o IdentitiesOnly=yes -o LogLevel=VERBOSE"
+        )
+
+        try:
+            process = await asyncio.create_subprocess_exec(
+                "git",
+                "clone",
+                f"dokku@{SSH_HOSTNAME}:{app_name}",
+                str(clone_dir),
+                env=env,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+
+            try:
+                _, stderr = await asyncio.wait_for(
+                    process.communicate(), timeout=5 * 60
+                )
+            except asyncio.TimeoutError:
+                process.kill()
+                raise HTTPException(status_code=500, detail="Git clone timed out")
+
+            if process.returncode != 0:
+                error = stderr.decode() if stderr else "Unknown error"
+                raise HTTPException(
+                    status_code=500, detail=f"Git clone failed: {error}"
+                )
+
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                for file_path in clone_dir.rglob("*"):
+                    if file_path.is_file():
+                        zf.write(file_path, file_path.relative_to(clone_dir))
+
+            return buffer.getvalue()
+
+        finally:
+            shutil.rmtree(clone_dir, ignore_errors=True)
+
+    @staticmethod
     async def deploy_application(
         file: UploadFile,
         db_session: AsyncSession,
@@ -314,7 +375,7 @@ class GitService(ABC):
         BASE_DIR = Path("/tmp")
         BRANCH = "master"
 
-        timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S").split(".")[0]
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S").split(".")[0]
 
         dest_dir = BASE_DIR / f"dokku-api-deploy-{filename}-{timestamp}"
         dest_dir.mkdir(parents=True, exist_ok=True)
