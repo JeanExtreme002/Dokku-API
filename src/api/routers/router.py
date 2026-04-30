@@ -11,6 +11,7 @@ from src.api.routers.domains import get_router as domains_router
 from src.api.routers.git import get_router as git_router
 from src.api.routers.letsencrypt import get_router as letsencrypt_router
 from src.api.routers.networks import get_router as networks_router
+from src.api.routers.nginx import get_router as nginx_router
 from src.api.routers.quota import get_router as quota_router
 from src.api.routers.search import get_router as search_router
 from src.api.routers.ssh import get_router as ssh_router
@@ -120,6 +121,15 @@ def get_router(app: FastAPI) -> APIRouter:
         ssh_router(app),
         tags=["SSH"],
         prefix="/api/ssh",
+        dependencies=[
+            Depends(validate_api_key),
+            Depends(validate_user_credentials),
+        ],
+    )
+    router.include_router(
+        nginx_router(app),
+        tags=["Nginx"],
+        prefix="/api/nginx",
         dependencies=[
             Depends(validate_api_key),
             Depends(validate_user_credentials),
