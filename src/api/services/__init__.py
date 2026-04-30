@@ -8,6 +8,7 @@ from src.api.services.domains import DomainService
 from src.api.services.git import GitService
 from src.api.services.letsencrypt import LetsencryptService
 from src.api.services.networks import NetworkService
+from src.api.services.nginx import NginxService
 from src.api.services.plugins import PluginService
 from src.api.tools.ssh import run_command
 
