@@ -254,6 +254,20 @@ class AppService(ABC):
         return True, results
 
     @staticmethod
+    async def list_apps_shared_with(
+        session_user: UserSchema, db_session: AsyncSession
+    ) -> Tuple[bool, Any]:
+        app_names = list(session_user.apps)
+
+        results = await asyncio.gather(
+            *[get_shared_app_users(app_name, db_session) for app_name in app_names]
+        )
+
+        return True, {
+            app_name: users for app_name, users in zip(app_names, results) if users
+        }
+
+    @staticmethod
     async def unshare_app(
         session_user: UserSchema, app_name: str, email: str, db_session: AsyncSession
     ) -> Tuple[bool, Any]:

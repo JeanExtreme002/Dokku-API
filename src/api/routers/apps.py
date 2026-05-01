@@ -66,6 +66,27 @@ def get_router(app: FastAPI) -> APIRouter:
         )
 
     @router.post(
+        "/list-apps-shared-with/",
+        response_description="Return all own applications shared with a third party",
+    )
+    async def list_apps_shared_with(
+        request: Request,
+        db_session: AsyncSession = Depends(get_db_session),
+    ):
+        success, result = await AppService.list_apps_shared_with(
+            request.state.session_user,
+            db_session,
+        )
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": success,
+                "result": result,
+            },
+        )
+
+    @router.post(
         "/{app_name}/exec/",
         response_description="Execute a command into the application's container",
     )
