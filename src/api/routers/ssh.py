@@ -30,12 +30,13 @@ def get_router(app: FastAPI) -> APIRouter:
             )
         user: UserSchema = request.state.session_user
         success, message = await SSHService.register_ssh_key(user.email, public_ssh_key)
+        message = message.get("stdout", "") + message.get("stderr", "")
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
-                "message": message.get("stdout", "") + message.get("stderr", ""),
-                "success": success,
+                "message": message,
+                "success": success and ("is not a valid" not in message.lower()),
             },
         )
 
