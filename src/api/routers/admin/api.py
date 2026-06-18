@@ -2,11 +2,12 @@ import os
 import signal
 from datetime import datetime
 
-from fastapi import APIRouter, FastAPI, File, UploadFile, status
+from fastapi import APIRouter, Depends, FastAPI, File, UploadFile, status
 from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.models import DATABASE_URL
-from src.api.tools.ssh import get_command_history, run_command
+from src.api.models import DATABASE_URL, get_command_history, get_db_session
+from src.api.tools.ssh import run_command
 from src.config import Config
 
 
@@ -157,8 +158,11 @@ def get_router(app: FastAPI) -> APIRouter:
             )
 
     @router.post("/ssh-history/", response_description="Check SSH command history")
-    async def get_ssh_command_history():
-        history = get_command_history()
+    async def get_ssh_command_history(
+        limit: int = 1000,
+        db_session: AsyncSession = Depends(get_db_session),
+    ):
+        history = await get_command_history(db_session, limit=limit)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

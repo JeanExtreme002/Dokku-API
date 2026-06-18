@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 from src.api.models.base import (
     USER_EAGER_LOAD,
     App,
+    CommandHistory,
     Network,
     Resource,
     Service,
@@ -41,6 +42,34 @@ def get_user_schema(user: User) -> UserSchema:
         take_over_access_token=user.take_over_access_token,
         take_over_access_token_expiration=user.take_over_access_token_expiration,
     )
+
+
+async def log_command(command: str, username: str, db_session: AsyncSession) -> None:
+    db_session.add(CommandHistory(command=command, username=username))
+    await db_session.commit()
+
+
+async def get_command_history(
+    db_session: AsyncSession, limit: Optional[int] = 1000
+) -> List[dict]:
+    query = select(CommandHistory).order_by(CommandHistory.created_at.desc())
+
+    if limit is not None:
+        query = query.limit(limit)
+
+    result = await db_session.execute(query)
+    records = result.scalars().all()
+
+    return [
+        {
+            "command": record.command,
+            "username": record.username,
+            "created_at": (
+                record.created_at.isoformat() if record.created_at else None
+            ),
+        }
+        for record in records
+    ]
 
 
 async def get_users(db_session: AsyncSession, only_admin: bool = False) -> List[str]:
