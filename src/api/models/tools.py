@@ -51,7 +51,7 @@ async def log_command(command: str, username: str, db_session: AsyncSession) -> 
 
 async def get_command_history(
     db_session: AsyncSession, limit: Optional[int] = 1000
-) -> List[dict]:
+) -> List[str]:
     query = select(CommandHistory).order_by(CommandHistory.created_at.desc())
 
     if limit is not None:
@@ -61,14 +61,9 @@ async def get_command_history(
     records = result.scalars().all()
 
     return [
-        {
-            "command": record.command,
-            "username": record.username,
-            "created_at": (
-                record.created_at.isoformat() if record.created_at else None
-            ),
-        }
-        for record in records
+        f"{record.created_at.strftime('[%Y-%m-%d %H:%M:%S]')} - "
+        f"SSH Command: {record.command}"
+        for record in reversed(records)
     ]
 
 
