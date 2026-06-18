@@ -1,4 +1,12 @@
-from src.api.models.base import App, Network, Resource, Service, SharedApp, User
+from src.api.models.base import (
+    App,
+    CommandHistory,
+    Network,
+    Resource,
+    Service,
+    SharedApp,
+    User,
+)
 from src.api.models.session import (
     DATABASE_URL,
     AsyncSessionLocal,
@@ -13,11 +21,13 @@ from src.api.models.tools import (
     delete_user,
     get_app_by_deploy_token,
     get_app_deployment_token,
+    get_command_history,
     get_resources,
     get_shared_app_users,
     get_user,
     get_user_by_access_token,
     get_users,
+    log_command,
     rename_resource,
     share_app,
     unshare_app,
